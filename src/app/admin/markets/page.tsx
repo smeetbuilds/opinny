@@ -1,9 +1,8 @@
-import { MoreHorizontal, Plus, Search } from "lucide-react";
 import { AdminShell } from "@/components/admin/admin-shell";
+import { AdminMarketsConsole } from "@/components/admin/admin-markets-console";
 import { dataAdapter } from "@/lib/data";
-import { formatCurrency, formatDate } from "@/lib/format";
 
 export default async function AdminMarketsPage() {
   const markets = await dataAdapter.listMarkets();
-  return <AdminShell title="Markets" description="Create, moderate, pause and inspect platform markets." actions={<button className="primary-button compact"><Plus size={16} />Create market</button>}><section className="admin-panel"><div className="admin-table-toolbar"><div className="admin-search"><Search size={16} /><input placeholder="Search markets" /></div><div className="panel-tabs"><button className="active">All</button><button>Open</button><button>Draft</button><button>Resolved</button></div></div><div className="responsive-table"><table><thead><tr><th>Market</th><th>Category</th><th>Probability</th><th>Volume</th><th>Liquidity</th><th>End date</th><th>Status</th><th /></tr></thead><tbody>{markets.map((market) => <tr key={market.id}><td className="wide-cell"><div className="admin-market-cell"><span className={`market-avatar small ${market.imageTone}`}>{market.icon}</span><span><strong>{market.shortQuestion}</strong><small>{market.id}</small></span></div></td><td>{market.category}</td><td>{market.outcomes[0].probability}%</td><td>{formatCurrency(market.volume, { compact: true })}</td><td>{formatCurrency(market.liquidity, { compact: true })}</td><td>{formatDate(market.endDate)}</td><td><span className={`status-pill ${market.status}`}>{market.status}</span></td><td><button className="icon-button" aria-label={`Open market actions for ${market.shortQuestion}`}><MoreHorizontal size={17} /></button></td></tr>)}</tbody></table></div></section></AdminShell>;
+  return <AdminShell title="Markets" description="Create, moderate, pause and inspect platform markets."><AdminMarketsConsole initialMarkets={markets} /></AdminShell>;
 }
