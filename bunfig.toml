@@ -1,4 +1,6 @@
 [install]
 linker = "isolated"
+dev = true
+production = false
 minimumReleaseAge = 259200
 minimumReleaseAgeExcludes = ["next", "react", "react-dom", "lucide-react", "eslint", "eslint-config-next", "typescript", "@types/bun", "@types/node", "@types/react", "@types/react-dom"]
