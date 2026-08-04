@@ -1,40 +1,49 @@
 name: Bug report
-description: Report a reproducible problem in Opinny
+description: Report a reproducible Opinny frontend problem
 title: "[Bug]: "
+labels: ["bug"]
 body:
   - type: markdown
     attributes:
       value: |
-        Opinny is an open-source frontend platform developed by Aahav Labs.
-        Website: https://aahavlabs.in · Contact: hi@aahavlabs.in
+        Opinny is an open-source project developed by Aahav Labs. Please do not include private keys, recovery phrases, secrets or personal data.
   - type: textarea
+    id: problem
     attributes:
-      label: What happened?
+      label: Problem
+      description: What happened and what did you expect?
     validations:
       required: true
   - type: textarea
+    id: reproduce
     attributes:
-      label: Steps to reproduce
+      label: Reproduction
+      description: Provide exact steps, route and viewport/device.
     validations:
       required: true
-  - type: input
-    attributes:
-      label: Route
-      placeholder: /market/example-market
-  - type: input
-    attributes:
-      label: Browser and viewport
-      placeholder: Chrome 138, 390 × 844
-  - type: textarea
-    attributes:
-      label: Screenshots or recording
   - type: dropdown
+    id: viewport
     attributes:
-      label: Severity
+      label: Viewport
       options:
-        - Critical — blocks primary flow
-        - High — major flow broken
-        - Medium — degraded behavior
-        - Low — visual or minor issue
+        - Desktop
+        - Laptop
+        - Tablet
+        - Mobile
+        - Multiple
     validations:
       required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Browser, OS, commit SHA and deployment context.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Safety checks
+      options:
+        - label: I removed secrets, private keys and recovery phrases.
+          required: true
+        - label: I checked existing issues for duplicates.
+          required: true

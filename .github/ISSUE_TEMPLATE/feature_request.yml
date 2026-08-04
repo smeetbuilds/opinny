@@ -1,36 +1,36 @@
 name: Feature request
-description: Propose a frontend capability or integration-contract improvement
+description: Propose a frontend, integration-contract or admin improvement
 title: "[Feature]: "
+labels: ["enhancement"]
 body:
   - type: markdown
     attributes:
       value: |
-        Opinny is an open-source frontend platform developed by Aahav Labs.
-        Website: https://aahavlabs.in · Contact: hi@aahavlabs.in
+        Opinny is open source and developed by Aahav Labs. Proposed features must preserve the frontend-only, backend-agnostic and crypto-only product boundaries.
   - type: textarea
+    id: need
     attributes:
-      label: Problem
-      description: What user, operator, or integrator problem should this solve?
+      label: User need
+      description: What user or operator problem should be solved?
     validations:
       required: true
   - type: textarea
+    id: solution
     attributes:
-      label: Proposed frontend behavior
+      label: Proposed experience
+      description: Describe screens, states and responsive behaviour.
     validations:
       required: true
-  - type: textarea
+  - type: checkboxes
+    id: scope
     attributes:
-      label: Backend-neutral contract impact
-      description: Describe any domain type or adapter-port changes without assuming a transport or database.
-  - type: dropdown
-    attributes:
-      label: Surface
+      label: Requirement checks
       options:
-        - Public market experience
-        - Trading and wallet flow
-        - Account and portfolio
-        - Administration
-        - Design system and accessibility
-        - Integration contracts
-    validations:
-      required: true
+        - label: This remains frontend only.
+          required: true
+        - label: This does not add a fiat payment gateway.
+          required: true
+        - label: This can use backend-neutral contracts.
+          required: true
+        - label: This does not copy another platform's branding or assets.
+          required: true

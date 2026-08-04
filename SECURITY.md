@@ -1,5 +1,37 @@
-# Security Policy
+# Security policy
 
-Please report security issues privately to **hi@aahavlabs.in**. Do not open a public issue for an exploitable vulnerability.
+Opinny is an open-source frontend-only project developed by Aahav Labs.
 
-This repository is a frontend reference implementation. Wallet signing, custody, order matching, settlement, compliance, permissions, market resolution, and all authoritative financial state must be implemented and validated by the integrating backend and smart-contract systems.
+- Website: https://aahavlabs.in
+- Security contact: hi@aahavlabs.in
+
+## Reporting a vulnerability
+
+Please email hi@aahavlabs.in with:
+
+- affected file, component or workflow;
+- impact and realistic attack scenario;
+- reproduction steps or proof of concept;
+- affected commit or version;
+- suggested mitigation, if available.
+
+Do not publish exploitable details before maintainers have had a reasonable opportunity to investigate and release a fix.
+
+## Supported version
+
+Security fixes are applied to the latest commit on `main`. Older commits, forks and third-party deployments are not maintained by Aahav Labs unless separately agreed.
+
+## Frontend-only boundary
+
+This repository does not provide production custody, authentication, authorization, matching, settlement, compliance or database services. Operators integrating Opinny must independently secure:
+
+- wallet challenge verification and sessions;
+- API authentication and authorization;
+- admin permissions and audit logs;
+- smart contracts and blockchain transactions;
+- deposits, withdrawals and confirmation tracking;
+- pricing, order matching and settlement;
+- KYC/KYB, sanctions, geofencing and fraud controls;
+- secrets, infrastructure and data retention.
+
+A polished frontend is not a security boundary. Never rely on hidden routes, disabled buttons or client-side validation to enforce policy.

@@ -1,5 +1,6 @@
 import type { OrderIntent, OrderPreview } from "@/core/contracts/domain";
 import type { MarketQuery, OpinnyIntegrationAdapter } from "@/core/contracts/ports";
+import { appConfig } from "@/lib/config";
 import {
   activity,
   adminMetrics,
@@ -15,7 +16,7 @@ import {
 } from "./data";
 
 const wait = <T,>(value: T) => Promise.resolve(value);
-const demoContract = "0x0000000000000000000000000000000000000001";
+const referenceContract = "0x0000000000000000000000000000000000000001";
 
 function buildOrderPreview(intent: OrderIntent): OrderPreview {
   const market = markets.find((item) => item.id === intent.marketId);
@@ -40,14 +41,10 @@ function buildOrderPreview(intent: OrderIntent): OrderPreview {
 export const mockAdapter: OpinnyIntegrationAdapter = {
   async listMarkets(query?: MarketQuery) {
     let result = [...markets];
-    if (query?.category && query.category !== "All") {
-      result = result.filter((market) => market.category === query.category);
-    }
+    if (query?.category && query.category !== "All") result = result.filter((market) => market.category === query.category);
     if (query?.search) {
       const term = query.search.toLowerCase();
-      result = result.filter((market) =>
-        [market.question, market.category, ...market.tags].some((value) => value.toLowerCase().includes(term))
-      );
+      result = result.filter((market) => [market.question, market.category, ...market.tags].some((value) => value.toLowerCase().includes(term)));
     }
     if (query?.bookmarked) result = result.filter((market) => market.bookmarked);
     if (query?.status) result = result.filter((market) => market.status === query.status);
@@ -74,26 +71,26 @@ export const mockAdapter: OpinnyIntegrationAdapter = {
     expiresAt: new Date(Date.now() + 60_000).toISOString(),
     preview: buildOrderPreview(intent),
     walletRequest: {
-      chainId: 137,
-      to: demoContract,
+      chainId: appConfig.chainId,
+      to: referenceContract,
       data: "0x",
       value: "0x0"
     }
   }),
-  cancelOrder: (orderId) => wait({ id: orderId, status: "accepted", message: "Demo cancellation accepted." }),
+  cancelOrder: (orderId) => wait({ id: orderId, status: "accepted", message: "Cancellation request accepted." }),
   prepareFunding: (intent) => wait({
     requestId: `fund-${Date.now()}`,
     expiresAt: new Date(Date.now() + 60_000).toISOString(),
     walletRequest: {
       chainId: intent.chainId,
-      to: demoContract,
+      to: referenceContract,
       data: "0x",
       value: "0x0"
     }
   }),
-  createMarket: () => wait({ id: `market-${Date.now()}`, status: "accepted", message: "Demo market draft created." }),
-  updateUserStatus: (userId, status) => wait({ id: userId, status: "accepted", message: `Demo user status changed to ${status}.` }),
-  resolveMarket: (caseId, outcome) => wait({ id: caseId, status: "accepted", message: `Demo resolution prepared for ${outcome}.` }),
+  createMarket: () => wait({ id: `market-${Date.now()}`, status: "accepted", message: "Market draft created." }),
+  updateUserStatus: (userId, status) => wait({ id: userId, status: "accepted", message: `User status changed to ${status}.` }),
+  resolveMarket: (caseId, outcome) => wait({ id: caseId, status: "accepted", message: `Resolution prepared for ${outcome}.` }),
   subscribeToMarket: (marketId, onEvent) => {
     const timer = globalThis.setTimeout(() => onEvent({ type: "snapshot", marketId, sequence: 1 }), 0);
     return () => globalThis.clearTimeout(timer);

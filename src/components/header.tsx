@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Bell, ChevronDown, Menu, Search, Wallet, X } from "lucide-react";
+import { ChevronDown, Menu, Search, Wallet, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Logo } from "./logo";
+import { NotificationCenter } from "./notification-center";
 import { useApp } from "./app-provider";
 import { shortAddress } from "@/lib/format";
 import { markets } from "@/adapters/mock/data";
@@ -19,7 +20,8 @@ const drawerItems = [
   ...navItems,
   { href: "/watchlist", label: "Watchlist" },
   { href: "/activity", label: "Activity" },
-  { href: "/settings", label: "Settings" }
+  { href: "/settings", label: "Settings" },
+  { href: "/help", label: "Help centre" }
 ];
 
 export function Header() {
@@ -51,10 +53,7 @@ export function Header() {
     closeSearch();
   }, [closeSearch, router]);
 
-  useEffect(() => {
-    setActiveResult(0);
-  }, [query]);
-
+  useEffect(() => setActiveResult(0), [query]);
   useEffect(() => {
     setMenuOpen(false);
     setAccountOpen(false);
@@ -74,14 +73,12 @@ export function Header() {
         setSearchOpen(true);
         return;
       }
-
       if (event.key === "Escape") {
         if (searchOpen) closeSearch();
         setMenuOpen(false);
         setAccountOpen(false);
         return;
       }
-
       if (!searchOpen || results.length === 0) return;
       if (event.key === "ArrowDown") {
         event.preventDefault();
@@ -96,7 +93,6 @@ export function Header() {
         openMarket(results[activeResult]?.slug ?? results[0].slug);
       }
     };
-
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [activeResult, closeSearch, openMarket, results, searchOpen]);
@@ -107,21 +103,17 @@ export function Header() {
         <div className="topbar-inner">
           <Logo />
           <nav className="desktop-nav" aria-label="Primary navigation">
-            {navItems.map((item) => (
-              <Link className={pathname.startsWith(item.href) ? "active" : ""} href={item.href} key={item.href}>{item.label}</Link>
-            ))}
+            {navItems.map((item) => <Link className={pathname.startsWith(item.href) ? "active" : ""} href={item.href} key={item.href}>{item.label}</Link>)}
           </nav>
           <button className="search-trigger" onClick={() => setSearchOpen(true)} aria-label="Search markets">
             <Search size={17} /><span>Search markets</span><kbd>⌘ K</kbd>
           </button>
           <div className="topbar-actions">
-            <button className="icon-button desktop-only notification-button" aria-label="Notifications"><Bell size={18} /><span className="notification-dot" /></button>
+            <NotificationCenter />
             {connected ? (
               <div className="account-control">
                 <button className="account-button" onClick={() => setAccountOpen((open) => !open)} aria-expanded={accountOpen} aria-haspopup="menu">
-                  <span className="status-dot" />
-                  <span>{shortAddress(walletAddress)}</span>
-                  <ChevronDown className={accountOpen ? "rotated" : ""} size={15} />
+                  <span className="status-dot" /><span>{shortAddress(walletAddress)}</span><ChevronDown className={accountOpen ? "rotated" : ""} size={15} />
                 </button>
                 {accountOpen ? (
                   <div className="account-menu" role="menu">
@@ -132,9 +124,7 @@ export function Header() {
                   </div>
                 ) : null}
               </div>
-            ) : (
-              <button className="primary-button compact" onClick={() => setWalletOpen(true)}><Wallet size={16} />Connect</button>
-            )}
+            ) : <button className="primary-button compact" onClick={() => setWalletOpen(true)}><Wallet size={16} />Connect wallet</button>}
             <button className="icon-button mobile-menu-trigger" onClick={() => setMenuOpen(true)} aria-label="Open menu" aria-expanded={menuOpen}><Menu size={20} /></button>
           </div>
         </div>
@@ -172,9 +162,7 @@ export function Header() {
             <div className="mobile-drawer-head"><Logo /><button className="icon-button" aria-label="Close menu" onClick={() => setMenuOpen(false)}><X size={19} /></button></div>
             <button className="drawer-search" onClick={() => { setMenuOpen(false); setSearchOpen(true); }}><Search size={18} />Search markets <kbd>⌘ K</kbd></button>
             <nav aria-label="Mobile primary navigation">
-              {drawerItems.map((item) => (
-                <Link className={pathname.startsWith(item.href) ? "active" : ""} href={item.href} key={item.href} onClick={() => setMenuOpen(false)}>{item.label}</Link>
-              ))}
+              {drawerItems.map((item) => <Link className={pathname.startsWith(item.href) ? "active" : ""} href={item.href} key={item.href} onClick={() => setMenuOpen(false)}>{item.label}</Link>)}
             </nav>
             <div className="drawer-spacer" />
             <Link className="admin-link" href="/admin" onClick={() => setMenuOpen(false)}>Admin interface</Link>

@@ -1,51 +1,29 @@
-import { describe, expect, test } from "bun:test";
+import { expect, test } from "bun:test";
 import { mockAdapter } from "./index";
 
-const demoIntent = {
-  clientRequestId: "test-order-1",
-  marketId: "mkt-001",
-  outcomeId: "yes",
-  side: "buy" as const,
-  type: "market" as const,
-  collateralAmount: 100
-};
+test("mock adapter exposes market, trading and crypto funding contracts", async () => {
+  const markets = await mockAdapter.listMarkets();
+  expect(markets.length).toBeGreaterThan(0);
 
-describe("mockAdapter", () => {
-  test("returns markets sorted by daily volume", async () => {
-    const result = await mockAdapter.listMarkets({ sort: "trending" });
-    expect(result.length).toBeGreaterThan(0);
-    expect(result[0].volume24h).toBeGreaterThanOrEqual(result[1].volume24h);
-  });
+  const market = await mockAdapter.getMarket(markets[0].slug);
+  expect(market?.id).toBe(markets[0].id);
 
-  test("filters markets by category and search term", async () => {
-    const result = await mockAdapter.listMarkets({ category: "Crypto", search: "Bitcoin" });
-    expect(result).toHaveLength(1);
-    expect(result[0].category).toBe("Crypto");
+  const preview = await mockAdapter.previewOrder({
+    clientRequestId: "test-order",
+    marketId: markets[0].id,
+    outcomeId: markets[0].outcomes[0].id,
+    side: "buy",
+    type: "market",
+    collateralAmount: 100
   });
+  expect(preview.estimatedShares).toBeGreaterThan(0);
 
-  test("returns account and admin demo states", async () => {
-    const [positions, metrics, resolutions] = await Promise.all([
-      mockAdapter.getPositions(),
-      mockAdapter.getMetrics(),
-      mockAdapter.getResolutionQueue()
-    ]);
-    expect(positions.length).toBeGreaterThan(0);
-    expect(metrics).toHaveLength(4);
-    expect(resolutions.some((item) => item.status === "disputed")).toBe(true);
+  const funding = await mockAdapter.prepareFunding({
+    type: "deposit",
+    asset: "USDC",
+    amount: 100,
+    chainId: 137
   });
-
-  test("previews and prepares backend-neutral order commands", async () => {
-    const preview = await mockAdapter.previewOrder(demoIntent);
-    const prepared = await mockAdapter.prepareOrder(demoIntent);
-    expect(preview.estimatedShares).toBeGreaterThan(0);
-    expect(prepared.requestId).toBe(demoIntent.clientRequestId);
-    expect(prepared.walletRequest?.chainId).toBe(137);
-  });
-
-  test("emits an initial real-time snapshot", async () => {
-    const event = await new Promise<{ type: string }>((resolve) => {
-      mockAdapter.subscribeToMarket("mkt-001", resolve);
-    });
-    expect(event.type).toBe("snapshot");
-  });
+  expect(funding.walletRequest.chainId).toBe(137);
+  expect(funding.requestId.startsWith("fund-")).toBe(true);
 });

@@ -1,5 +1,6 @@
 import { Header } from "./header";
 import { MobileNavigation } from "./mobile-navigation";
+import { SiteFooter } from "./site-footer";
 
 export function SiteShell({ children }: { children: React.ReactNode }) {
   return (
@@ -7,6 +8,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
       <a className="skip-link" href="#main-content">Skip to main content</a>
       <Header />
       <main id="main-content" tabIndex={-1}>{children}</main>
+      <SiteFooter />
       <MobileNavigation />
     </div>
   );

@@ -1,18 +1,27 @@
-# Opinny engineering guide
+# Opinny agent instructions
 
-## Product boundary
+Opinny is an open-source project developed by Aahav Labs (https://aahavlabs.in · hi@aahavlabs.in).
 
-Opinny is a frontend-only prediction-market platform. Do not introduce custody, signing, authentication, authorization, matching, settlement, resolution, compliance decisions, or authoritative balance calculations into browser code.
+## Product invariants
 
-## Architecture rules
+- Frontend only; no bundled production backend or database.
+- Backend-neutral contracts under `src/core/contracts`.
+- Crypto-only wallet, deposit and withdrawal experiences.
+- No card, bank, Stripe, PayPal or other fiat payment gateway.
+- Public UI is branded only as Opinny; repository attribution stays in repository files.
+- Independent light-mode visual identity; do not copy another platform’s branding or assets.
+- Responsive desktop, laptop, tablet and mobile behaviour is mandatory.
+- Admin UI is a presentation and command-preparation layer, never an authorization boundary.
 
-- UI code consumes domain models and ports from `src/core/contracts`.
-- Transport-specific mapping belongs in `src/adapters`; pages must not depend directly on REST, GraphQL, WebSocket, RPC, database, or chain SDK response shapes.
-- Keep server components as the default. Add `"use client"` only around interaction boundaries.
-- Preserve light-mode-only design tokens and responsive behavior from 320px through ultrawide layouts.
-- Every icon-only control requires an accessible name. Every modal, drawer, or sheet must support semantic dialog behavior and a clear close action.
-- Never expose secrets through `NEXT_PUBLIC_*` variables.
+## Implementation rules
 
-## Quality gate
+- Keep provider payloads inside adapters.
+- Use normalized domain types in components.
+- Preserve static export compatibility for the reference mock deployment.
+- Add loading, empty, validation, error and success states.
+- Use accessible labels, roles, focus states, Escape dismissal and reduced-motion support.
+- Do not claim mock calculations or requests are authoritative.
 
-Run `bun run check` before merging. It executes ESLint, strict TypeScript checking, Bun tests, and the production build.
+## Validation
+
+Run `bun run check` before considering work complete.

@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Private security report
-    url: mailto:hi@aahavlabs.in
-    about: Report exploitable security issues privately.
+  - name: Security report
+    url: https://aahavlabs.in
+    about: Privately report a vulnerability to Aahav Labs at hi@aahavlabs.in.
   - name: Aahav Labs
     url: https://aahavlabs.in
-    about: Project developer and maintainer information.
+    about: Website and project contact information.

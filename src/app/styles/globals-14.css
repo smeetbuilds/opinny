@@ -1,0 +1,183 @@
+/* Requirements-compliance layer: platform footer, notifications, crypto funding, policy and account controls */
+.primary-button:disabled, .secondary-button:disabled, button:disabled { cursor: not-allowed; opacity: .48; transform: none !important; box-shadow: none !important; }
+.spin { animation: opinny-spin .8s linear infinite; }
+@keyframes opinny-spin { to { transform: rotate(360deg); } }
+
+/* Notification centre */
+.notification-trigger { position: relative; }
+.notification-badge { position: absolute; top: -5px; right: -5px; display: grid; min-width: 17px; height: 17px; place-items: center; border: 2px solid var(--canvas); border-radius: 99px; padding: 0 4px; color: #fff; background: var(--accent); font-size: 8px; font-weight: 900; line-height: 1; }
+.notification-layer { position: fixed; z-index: 130; inset: 0; }
+.notification-backdrop { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: rgba(15, 29, 25, .28); backdrop-filter: blur(4px); }
+.notification-center { position: absolute; top: 78px; right: max(20px, calc((100vw - var(--container)) / 2)); display: flex; width: min(430px, calc(100% - 24px)); max-height: min(690px, calc(100vh - 96px)); overflow: hidden; flex-direction: column; border: 1px solid rgba(255, 255, 255, .8); border-radius: 20px; background: var(--surface); box-shadow: 0 28px 90px rgba(13, 31, 26, .24); animation: dialog-in .2s ease; }
+.notification-center > header { display: flex; align-items: flex-start; gap: 16px; border-bottom: 1px solid var(--line); padding: 18px; }
+.notification-center > header > div { min-width: 0; flex: 1; }
+.notification-center h2 { margin: 2px 0 2px; font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; font-size: 29px; letter-spacing: -.03em; }
+.notification-center header p { margin: 0; color: var(--ink-3); font-size: 10px; }
+.notification-tools { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); padding: 8px 12px; background: #fbfcfa; }
+.notification-tools button { display: inline-flex; align-items: center; gap: 6px; border: 0; padding: 5px 7px; color: var(--ink-3); background: transparent; cursor: pointer; font-size: 9px; font-weight: 800; }
+.notification-list { overflow-y: auto; }
+.notification-list > a, .notification-list > button { display: grid; width: 100%; grid-template-columns: auto minmax(0, 1fr) auto; align-items: start; gap: 11px; border: 0; border-bottom: 1px solid var(--line); padding: 13px 15px; background: var(--surface); cursor: pointer; text-align: left; }
+.notification-list > a:hover, .notification-list > button:hover { background: var(--surface-soft); }
+.notification-list > .read { background: #fcfdfb; }
+.notification-kind { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 10px; color: var(--brand-2); background: var(--brand-soft); }
+.notification-kind.trade { color: var(--green); background: var(--green-soft); }
+.notification-kind.funding { color: var(--amber); background: var(--amber-soft); }
+.notification-copy { display: grid; min-width: 0; gap: 2px; }
+.notification-copy strong { font-size: 11px; }
+.notification-copy small { color: var(--ink-2); font-size: 9px; line-height: 1.45; }
+.notification-copy time { margin-top: 2px; color: var(--ink-3); font-size: 8px; }
+.unread-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+.notification-center > footer { padding: 10px 15px; text-align: center; }
+.notification-center > footer a { color: var(--brand-2); font-size: 10px; font-weight: 800; }
+.notification-empty { display: grid; min-height: 260px; place-items: center; align-content: center; gap: 6px; padding: 28px; color: var(--ink-3); text-align: center; }
+.notification-empty strong { color: var(--ink); }
+.notification-empty span { max-width: 260px; font-size: 10px; }
+
+/* Wallet and crypto funding */
+.wallet-network-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 15px 0 12px; }
+.wallet-network-row > span { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 1px 8px; border: 1px solid var(--line); border-radius: 11px; padding: 9px 10px; background: var(--surface-soft); }
+.wallet-network-row svg { grid-row: span 2; color: var(--brand-2); }
+.wallet-network-row small { color: var(--ink-3); font-size: 8px; }
+.wallet-network-row strong { font-size: 10px; }
+.enhanced-funding-dialog { max-height: min(840px, calc(100vh - 32px)); overflow-y: auto; }
+.funding-head { display: flex; align-items: flex-start; gap: 18px; }
+.funding-head > div { min-width: 0; flex: 1; }
+.funding-head p { margin: 0; color: var(--ink-2); font-size: 11px; }
+.funding-network-bar { display: flex; height: 38px; margin-top: 15px; align-items: center; justify-content: space-between; border: 1px solid var(--line); border-radius: 10px; padding: 0 11px; background: var(--surface-soft); font-size: 9px; }
+.funding-network-bar span { display: flex; align-items: center; gap: 7px; font-weight: 800; }
+.funding-network-bar i { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 4px var(--green-soft); }
+.funding-network-bar strong { color: var(--ink-3); }
+.enhanced-funding-dialog .asset-selector { margin-top: 10px; }
+.dialog-field { display: grid; gap: 6px; margin-top: 12px; }
+.dialog-field > span { font-size: 9px; font-weight: 800; }
+.address-input { width: 100%; height: 42px; border: 1px solid var(--line); border-radius: 10px; outline: 0; padding: 0 11px; background: #fbfcfa; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 10px; }
+.address-input:focus, .dialog-field input:focus { border-color: var(--brand-2); box-shadow: 0 0 0 3px var(--brand-soft); }
+.field-hint { display: flex; align-items: center; justify-content: space-between; color: var(--ink-3); font-size: 8px; }
+.field-hint button { border: 0; color: var(--brand-2); background: transparent; cursor: pointer; font-weight: 800; }
+.funding-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-top: 12px; }
+.funding-summary span { display: grid; gap: 2px; border: 1px solid var(--line); border-radius: 9px; padding: 8px; background: #fbfcfa; }
+.funding-summary small, .prepared-summary small { color: var(--ink-3); font-size: 7px; text-transform: uppercase; letter-spacing: .07em; }
+.funding-summary strong, .prepared-summary strong { font-size: 9px; }
+.dialog-error { border: 1px solid #f2c5bf; border-radius: 9px; margin: 10px 0 0; padding: 8px 10px; color: var(--red); background: var(--red-soft); font-size: 9px; font-weight: 700; }
+.enhanced-funding-dialog .network-notice { display: flex; align-items: flex-start; gap: 9px; margin: 11px 0; }
+.enhanced-funding-dialog .network-notice svg { flex: 0 0 auto; color: var(--amber); }
+.funding-prepared { display: grid; place-items: center; padding-top: 8px; text-align: center; }
+.prepared-icon { display: grid; width: 54px; height: 54px; place-items: center; border-radius: 17px; color: var(--green); background: var(--green-soft); }
+.funding-prepared h3 { margin: 13px 0 3px; font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; font-size: 27px; }
+.funding-prepared > p { max-width: 370px; margin: 0; color: var(--ink-2); font-size: 10px; }
+.prepared-summary { display: grid; width: 100%; grid-template-columns: 1fr 1fr; gap: 7px; margin: 17px 0; text-align: left; }
+.prepared-summary span { display: grid; min-width: 0; gap: 3px; border: 1px solid var(--line); border-radius: 10px; padding: 9px; background: var(--surface-soft); }
+.prepared-summary strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Account preferences */
+.settings-save-actions { display: flex; align-items: center; gap: 8px; }
+.settings-save-actions > span { border-radius: 99px; padding: 6px 9px; font-size: 8px; font-weight: 850; }
+.settings-save-actions > span.saved { color: var(--green); background: var(--green-soft); }
+.settings-save-actions > span.dirty { color: var(--amber); background: var(--amber-soft); }
+.account-policy-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
+.account-policy-strip > span { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 0 8px; border: 1px solid var(--line); border-radius: 12px; padding: 11px; background: var(--surface); }
+.account-policy-strip svg { grid-row: span 2; color: var(--brand-2); }
+.account-policy-strip small { color: var(--ink-3); font-size: 8px; }
+.account-policy-strip strong { font-size: 10px; }
+.enhanced-account-settings .settings-card.span-two { grid-column: 1 / -1; }
+.settings-card-note { display: flex; align-items: center; gap: 8px; border-top: 1px solid var(--line); margin-top: 12px; padding: 11px 14px 1px; color: var(--ink-3); font-size: 9px; }
+.settings-card-note svg { color: var(--green); }
+.preference-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 2px 14px 14px; }
+.preference-grid label { display: grid; gap: 7px; border: 1px solid var(--line); border-radius: 12px; padding: 12px; background: #fbfcfa; }
+.preference-grid label > span { display: flex; align-items: center; gap: 7px; color: var(--ink); font-size: 9px; font-weight: 800; }
+.preference-grid label > span svg { color: var(--brand-2); }
+.preference-grid select { width: 100%; height: 38px; border: 1px solid var(--line); border-radius: 9px; outline: 0; padding: 0 9px; background: var(--surface); font-size: 10px; font-weight: 700; }
+.preference-grid small { color: var(--ink-3); font-size: 8px; line-height: 1.45; }
+
+/* Platform footer */
+.site-footer { border-top: 1px solid var(--line); background: #f1f2ed; }
+.footer-grid { display: grid; grid-template-columns: minmax(300px, 1.7fr) repeat(3, minmax(120px, .65fr)); gap: 44px; padding: 48px 0 34px; }
+.footer-brand p { max-width: 390px; margin: 16px 0 14px; color: var(--ink-2); font-size: 11px; line-height: 1.65; }
+.footer-assurance { display: flex; flex-wrap: wrap; gap: 7px; }
+.footer-assurance span { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--line); border-radius: 99px; padding: 5px 8px; color: var(--ink-2); background: rgba(255, 255, 255, .55); font-size: 8px; font-weight: 750; }
+.footer-assurance svg { color: var(--brand-2); }
+.footer-grid nav { display: grid; align-content: start; gap: 8px; }
+.footer-grid nav strong { margin-bottom: 3px; font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
+.footer-grid nav a { color: var(--ink-2); font-size: 10px; font-weight: 650; }
+.footer-grid nav a:hover { color: var(--brand-2); }
+.footer-bottom { display: flex; min-height: 52px; align-items: center; justify-content: space-between; gap: 18px; border-top: 1px solid var(--line); color: var(--ink-3); font-size: 8px; }
+
+/* Help and policy surfaces */
+.policy-page, .help-page { padding: 38px 0 86px; }
+.policy-hero, .help-hero { max-width: 830px; padding: 42px 0 34px; }
+.policy-hero h1, .help-hero h1 { margin: 0; font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; font-size: clamp(48px, 6vw, 78px); font-weight: 600; letter-spacing: -.055em; line-height: .98; }
+.policy-hero p, .help-hero p { max-width: 660px; margin: 18px 0 0; color: var(--ink-2); font-size: 15px; line-height: 1.65; }
+.policy-hero time { display: block; margin-top: 15px; color: var(--ink-3); font-size: 9px; font-weight: 700; }
+.policy-layout { display: grid; grid-template-columns: 230px minmax(0, 760px); gap: 56px; align-items: start; }
+.policy-layout > aside { position: sticky; top: 98px; display: grid; gap: 8px; border: 1px solid var(--line); border-radius: 14px; padding: 14px; background: var(--surface); }
+.policy-layout > aside strong { margin-bottom: 3px; font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
+.policy-layout > aside a { border-radius: 7px; padding: 6px 7px; color: var(--ink-3); font-size: 9px; font-weight: 700; }
+.policy-layout > aside a:hover { color: var(--brand-2); background: var(--brand-soft); }
+.policy-content { display: grid; gap: 12px; }
+.policy-content section { scroll-margin-top: 96px; border: 1px solid var(--line); border-radius: 15px; padding: 23px 25px; background: var(--surface); box-shadow: var(--shadow-sm); }
+.policy-content h2 { margin: 0 0 11px; font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; font-size: 27px; letter-spacing: -.025em; }
+.policy-content p { margin: 0 0 10px; color: var(--ink-2); font-size: 11px; line-height: 1.75; }
+.policy-content p:last-child { margin-bottom: 0; }
+.policy-content ul { display: grid; gap: 7px; margin: 13px 0 0; padding-left: 19px; color: var(--ink-2); font-size: 10px; line-height: 1.55; }
+.help-topic-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.help-topic-grid a { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 3px 11px; border: 1px solid var(--line); border-radius: 14px; padding: 15px; background: var(--surface); box-shadow: var(--shadow-sm); }
+.help-topic-grid a > span { display: grid; width: 38px; height: 38px; grid-row: span 2; place-items: center; border-radius: 11px; color: var(--brand-2); background: var(--brand-soft); }
+.help-topic-grid strong { font-size: 11px; }
+.help-topic-grid small { color: var(--ink-3); font-size: 8px; }
+.help-topic-grid a > svg { grid-row: span 2; color: var(--ink-3); }
+.faq-section { margin-top: 54px; }
+.faq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 18px; }
+.faq-grid details { border: 1px solid var(--line); border-radius: 13px; background: var(--surface); }
+.faq-grid summary { position: relative; padding: 14px 42px 14px 15px; cursor: pointer; list-style: none; font-size: 10px; font-weight: 800; }
+.faq-grid summary::-webkit-details-marker { display: none; }
+.faq-grid summary::after { content: "+"; position: absolute; top: 12px; right: 15px; color: var(--brand-2); font-size: 17px; }
+.faq-grid details[open] summary::after { content: "−"; }
+.faq-grid p { border-top: 1px solid var(--line); margin: 0; padding: 12px 15px 15px; color: var(--ink-2); font-size: 9px; line-height: 1.65; }
+.help-safety-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 15px; border: 1px solid #cfe4db; border-radius: 16px; margin-top: 32px; padding: 18px; background: var(--brand-soft); }
+.help-safety-card > svg { color: var(--brand-2); }
+.help-safety-card strong { font-size: 11px; }
+.help-safety-card p { margin: 3px 0 0; color: var(--ink-2); font-size: 9px; }
+.help-safety-card a { display: inline-flex; align-items: center; gap: 6px; font-size: 9px; font-weight: 850; }
+
+@media (max-width: 1024px) {
+  .footer-grid { grid-template-columns: 1.4fr repeat(3, .7fr); gap: 25px; }
+  .account-policy-strip { grid-template-columns: 1fr 1fr; }
+  .preference-grid { grid-template-columns: 1fr; }
+  .help-topic-grid { grid-template-columns: 1fr 1fr; }
+  .policy-layout { grid-template-columns: 190px minmax(0, 1fr); gap: 28px; }
+}
+
+@media (max-width: 760px) {
+  .notification-center { top: auto; right: 0; bottom: 0; left: 0; width: 100%; max-height: min(88vh, 720px); border-radius: 22px 22px 0 0; padding-bottom: env(safe-area-inset-bottom); animation: sheet-in .24s ease; }
+  .notification-center .sheet-handle { display: block; margin-top: 9px; margin-bottom: 0; }
+  .notification-center > header { padding-top: 12px; }
+  .funding-summary { grid-template-columns: 1fr; }
+  .enhanced-funding-dialog { width: 100%; max-height: 92vh; border-radius: 22px 22px 0 0; padding-bottom: calc(18px + env(safe-area-inset-bottom)); }
+  .wallet-network-row { grid-template-columns: 1fr; }
+  .settings-save-actions > span { display: none; }
+  .settings-save-actions .secondary-button { display: none; }
+  .account-policy-strip { grid-template-columns: 1fr 1fr; }
+  .footer-grid { grid-template-columns: 1fr 1fr; gap: 26px 18px; padding: 34px 0 28px; }
+  .footer-brand { grid-column: 1 / -1; }
+  .footer-bottom { flex-wrap: wrap; justify-content: flex-start; padding: 13px 0 calc(78px + env(safe-area-inset-bottom)); }
+  .policy-page, .help-page { padding-top: 22px; }
+  .policy-hero, .help-hero { padding: 27px 0 26px; }
+  .policy-hero h1, .help-hero h1 { font-size: 49px; }
+  .policy-hero p, .help-hero p { font-size: 12px; }
+  .policy-layout { display: block; }
+  .policy-layout > aside { position: static; display: flex; overflow-x: auto; margin-bottom: 12px; scrollbar-width: none; }
+  .policy-layout > aside strong { display: none; }
+  .policy-layout > aside a { flex: 0 0 auto; border: 1px solid var(--line); border-radius: 99px; background: var(--surface); }
+  .policy-content section { padding: 18px; }
+  .help-topic-grid, .faq-grid { grid-template-columns: 1fr; }
+  .help-safety-card { grid-template-columns: auto 1fr; }
+  .help-safety-card a { grid-column: 1 / -1; justify-content: flex-end; }
+}
+
+@media (max-width: 430px) {
+  .account-policy-strip { grid-template-columns: 1fr; }
+  .prepared-summary { grid-template-columns: 1fr; }
+  .footer-grid { grid-template-columns: 1fr 1fr; }
+  .footer-grid nav:last-child { grid-column: 1 / -1; grid-template-columns: repeat(3, 1fr); }
+  .footer-grid nav:last-child strong { grid-column: 1 / -1; }
+}
