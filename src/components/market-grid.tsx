@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { SlidersHorizontal } from "lucide-react";
+import { Search, SlidersHorizontal, X } from "lucide-react";
 import type { Market } from "@/core/contracts/domain";
 import { categories } from "@/adapters/mock/data";
 import { CategoryTabs } from "./category-tabs";
@@ -11,9 +11,12 @@ export function MarketGrid({ initialMarkets, heading = "Markets", showCategories
   const [category, setCategory] = useState("All");
   const [sort, setSort] = useState("trending");
   const [openOnly, setOpenOnly] = useState(true);
+  const [query, setQuery] = useState("");
 
   const visible = useMemo(() => {
     let result = [...initialMarkets];
+    const normalized = query.trim().toLowerCase();
+    if (normalized) result = result.filter((market) => [market.question, market.shortQuestion, market.category, ...market.tags].join(" ").toLowerCase().includes(normalized));
     if (category !== "All") result = result.filter((market) => market.category === category);
     if (openOnly) result = result.filter((market) => market.status === "open");
     if (sort === "volume") result.sort((a, b) => b.volume - a.volume);
@@ -21,7 +24,15 @@ export function MarketGrid({ initialMarkets, heading = "Markets", showCategories
     if (sort === "ending") result.sort((a, b) => +new Date(a.endDate) - +new Date(b.endDate));
     if (sort === "trending") result.sort((a, b) => b.volume24h - a.volume24h);
     return result;
-  }, [initialMarkets, category, sort, openOnly]);
+  }, [initialMarkets, category, sort, openOnly, query]);
+
+  const hasActiveFilters = category !== "All" || sort !== "trending" || !openOnly || Boolean(query.trim());
+  const clearFilters = () => {
+    setCategory("All");
+    setSort("trending");
+    setOpenOnly(true);
+    setQuery("");
+  };
 
   return (
     <section className="market-grid-section">
@@ -29,14 +40,18 @@ export function MarketGrid({ initialMarkets, heading = "Markets", showCategories
         <div><span className="eyebrow">Explore</span><h2>{heading}</h2></div>
         <div className="market-controls">
           <label className="toggle-control"><input type="checkbox" checked={openOnly} onChange={(event) => setOpenOnly(event.target.checked)} /><span />Open only</label>
-          <label className="select-control"><SlidersHorizontal size={15} /><select value={sort} onChange={(event) => setSort(event.target.value)}><option value="trending">Trending</option><option value="volume">Volume</option><option value="newest">Newest</option><option value="ending">Ending soon</option></select></label>
+          <label className="select-control"><SlidersHorizontal size={15} /><select aria-label="Sort markets" value={sort} onChange={(event) => setSort(event.target.value)}><option value="trending">Trending</option><option value="volume">Volume</option><option value="newest">Newest</option><option value="ending">Ending soon</option></select></label>
         </div>
+      </div>
+      <div className="market-discovery-bar">
+        <label className="market-search-field"><Search size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search within markets" aria-label="Search within markets" />{query ? <button onClick={() => setQuery("")} aria-label="Clear market search"><X size={14} /></button> : null}</label>
+        <div className="market-results-meta" aria-live="polite"><strong>{visible.length}</strong><span>{visible.length === 1 ? "market" : "markets"}</span>{hasActiveFilters ? <button onClick={clearFilters}>Reset filters</button> : null}</div>
       </div>
       {showCategories ? <CategoryTabs categories={categories} active={category} onChange={setCategory} /> : null}
       <div className="market-grid">
         {visible.map((market) => <MarketCard market={market} key={market.id} />)}
       </div>
-      {visible.length === 0 ? <div className="empty-state"><strong>No markets match this filter.</strong><span>Try another category or include resolved markets.</span></div> : null}
+      {visible.length === 0 ? <div className="empty-state market-empty"><Search size={24} /><strong>No markets match these filters.</strong><span>Try another category, remove a keyword or include resolved markets.</span><button className="secondary-button compact" onClick={clearFilters}>Clear all filters</button></div> : null}
     </section>
   );
 }
