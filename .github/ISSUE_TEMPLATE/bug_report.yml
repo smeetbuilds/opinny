@@ -1,0 +1,40 @@
+name: Bug report
+description: Report a reproducible problem in Opinny
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Opinny is an open-source frontend platform developed by Aahav Labs.
+        Website: https://aahavlabs.in · Contact: hi@aahavlabs.in
+  - type: textarea
+    attributes:
+      label: What happened?
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Route
+      placeholder: /market/example-market
+  - type: input
+    attributes:
+      label: Browser and viewport
+      placeholder: Chrome 138, 390 × 844
+  - type: textarea
+    attributes:
+      label: Screenshots or recording
+  - type: dropdown
+    attributes:
+      label: Severity
+      options:
+        - Critical — blocks primary flow
+        - High — major flow broken
+        - Medium — degraded behavior
+        - Low — visual or minor issue
+    validations:
+      required: true

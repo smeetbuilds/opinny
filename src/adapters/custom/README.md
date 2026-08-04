@@ -1,0 +1,1 @@
+Place backend-specific adapter implementations in this directory. Keep provider SDKs, transport clients and response normalizers isolated here, then expose only `OpinnyDataAdapter` methods to the application.

@@ -1,0 +1,21 @@
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+}
+
+/* Loading and error states */
+.loading-shell { min-height: 100vh; background: var(--canvas); }
+.loading-topbar { height: 70px; border-bottom: 1px solid var(--line); background: rgba(255, 255, 255, .6); }
+.loading-container { width: min(var(--container), calc(100% - 40px)); margin: 0 auto; padding: 60px 0; }
+.skeleton { border-radius: 10px; background: linear-gradient(90deg, #e9ece7 25%, #f4f6f2 45%, #e9ece7 65%); background-size: 240% 100%; animation: skeleton-pulse 1.4s ease infinite; }
+.skeleton-kicker { width: 100px; height: 12px; }
+.skeleton-title { width: min(560px, 82%); height: 58px; margin-top: 14px; }
+.skeleton-copy { width: min(460px, 70%); height: 18px; margin-top: 15px; }
+.loading-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 42px; }
+.loading-card { height: 250px; border-radius: var(--radius); }
+.error-page { display: grid; min-height: 100vh; place-items: center; align-content: center; gap: 12px; padding: 24px; text-align: center; }
+.error-page .brand { margin-bottom: 28px; }
+.error-code { color: var(--accent); font-size: 11px; font-weight: 900; letter-spacing: .14em; text-transform: uppercase; }
+.error-page h1 { max-width: 620px; margin: 0; font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; font-size: clamp(42px, 7vw, 74px); font-weight: 600; letter-spacing: -.05em; line-height: .98; }
+.error-page p { max-width: 480px; margin: 0 0 10px; color: var(--ink-2); }
+@keyframes skeleton-pulse { to { background-position: -240% 0; } }
+@media (max-width: 760px) { .loading-topbar { height: 60px; } .loading-container { width: calc(100% - 24px); padding-top: 35px; } .loading-grid { grid-template-columns: 1fr; } }

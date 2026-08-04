@@ -1,0 +1,36 @@
+name: Feature request
+description: Propose a frontend capability or integration-contract improvement
+title: "[Feature]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Opinny is an open-source frontend platform developed by Aahav Labs.
+        Website: https://aahavlabs.in · Contact: hi@aahavlabs.in
+  - type: textarea
+    attributes:
+      label: Problem
+      description: What user, operator, or integrator problem should this solve?
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Proposed frontend behavior
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Backend-neutral contract impact
+      description: Describe any domain type or adapter-port changes without assuming a transport or database.
+  - type: dropdown
+    attributes:
+      label: Surface
+      options:
+        - Public market experience
+        - Trading and wallet flow
+        - Account and portfolio
+        - Administration
+        - Design system and accessibility
+        - Integration contracts
+    validations:
+      required: true
