@@ -1,11 +1,11 @@
 [build]
   command = "bun run build"
-  publish = ".next"
+  publish = "out"
 
 [build.environment]
   BUN_VERSION = "1.3.14"
   NODE_VERSION = "22"
-  NETLIFY_NEXT_SKEW_PROTECTION = "true"
+  NETLIFY_NEXT_PLUGIN_SKIP = "true"
 
 [dev]
   command = "bun run dev"

@@ -14,6 +14,13 @@ import { MarketCard } from "@/components/market-card";
 import { dataAdapter } from "@/lib/data";
 import { formatCurrency, formatDate, formatNumber } from "@/lib/format";
 
+export const dynamicParams = false;
+
+export async function generateStaticParams() {
+  const markets = await dataAdapter.listMarkets();
+  return markets.map((market) => ({ slug: market.slug }));
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const market = await dataAdapter.getMarket(slug);
