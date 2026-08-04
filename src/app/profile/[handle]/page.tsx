@@ -7,6 +7,12 @@ import { markets } from "@/adapters/mock/data";
 import { formatCurrency } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Trader profile" };
+export const dynamicParams = false;
+
+export async function generateStaticParams() {
+  const entries = await dataAdapter.getLeaderboard();
+  return entries.map((entry) => ({ handle: entry.handle }));
+}
 
 export default async function ProfilePage({ params }: { params: Promise<{ handle: string }> }) {
   const { handle } = await params;
