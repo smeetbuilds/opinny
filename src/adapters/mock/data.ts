@@ -40,10 +40,11 @@ export const recentTrades: RecentTrade[] = [
 ];
 
 export const positions: Position[] = [
-  { id: "pos-1", marketId: "mkt-001", marketSlug: markets[0].slug, marketQuestion: markets[0].shortQuestion, outcome: "Yes", shares: 1240, averagePrice: 0.51, currentPrice: 0.63, value: 781.2, pnl: 148.8, pnlPercent: 23.5 },
-  { id: "pos-2", marketId: "mkt-004", marketSlug: markets[3].slug, marketQuestion: markets[3].shortQuestion, outcome: "Yes", shares: 900, averagePrice: 0.36, currentPrice: 0.41, value: 369, pnl: 45, pnlPercent: 13.9 },
-  { id: "pos-3", marketId: "mkt-005", marketSlug: markets[4].slug, marketQuestion: markets[4].shortQuestion, outcome: "No", shares: 620, averagePrice: 0.61, currentPrice: 0.66, value: 409.2, pnl: 31, pnlPercent: 8.2 },
-  { id: "pos-4", marketId: "mkt-007", marketSlug: markets[6].slug, marketQuestion: markets[6].shortQuestion, outcome: "Yes", shares: 500, averagePrice: 0.22, currentPrice: 0.18, value: 90, pnl: -20, pnlPercent: -18.2 }
+  { id: "pos-1", marketId: "mkt-001", marketSlug: markets[0].slug, marketQuestion: markets[0].shortQuestion, outcome: "Yes", shares: 1240, averagePrice: 0.51, currentPrice: 0.63, value: 781.2, pnl: 148.8, pnlPercent: 23.5, status: "open" },
+  { id: "pos-2", marketId: "mkt-004", marketSlug: markets[3].slug, marketQuestion: markets[3].shortQuestion, outcome: "Yes", shares: 900, averagePrice: 0.36, currentPrice: 0.41, value: 369, pnl: 45, pnlPercent: 13.9, status: "open" },
+  { id: "pos-3", marketId: "mkt-005", marketSlug: markets[4].slug, marketQuestion: markets[4].shortQuestion, outcome: "No", shares: 620, averagePrice: 0.61, currentPrice: 0.66, value: 409.2, pnl: 31, pnlPercent: 8.2, status: "open" },
+  { id: "pos-4", marketId: "mkt-007", marketSlug: markets[6].slug, marketQuestion: markets[6].shortQuestion, outcome: "Yes", shares: 500, averagePrice: 0.22, currentPrice: 0.18, value: 90, pnl: -20, pnlPercent: -18.2, status: "open" },
+  { id: "pos-5", marketId: "mkt-009", marketSlug: markets[8].slug, marketQuestion: markets[8].shortQuestion, outcome: "Yes", shares: 486, averagePrice: 0.54, currentPrice: 1, value: 486, pnl: 223.56, pnlPercent: 85.2, status: "resolved", claimableAmount: 486, resolvedOutcome: "Yes", resolvedAt: "2026-07-01T12:20:00.000Z" }
 ];
 
 export const orders: UserOrder[] = [
@@ -56,22 +57,124 @@ export const activity: ActivityItem[] = [
   { id: "act-1", type: "trade", title: "Bought 420 Yes shares", description: markets[0].shortQuestion, amount: -264.6, time: "12 minutes ago" },
   { id: "act-2", type: "reward", title: "Liquidity reward received", description: "Weekly maker programme", amount: 18.42, time: "4 hours ago" },
   { id: "act-3", type: "deposit", title: "Crypto deposit confirmed", description: "USDC on Polygon", amount: 1200, time: "Yesterday" },
-  { id: "act-4", type: "resolution", title: "Position redeemed", description: "Will the research launch occur in Q2?", amount: 486, time: "Jul 31" },
+  { id: "act-4", type: "resolution", title: "Position ready to redeem", description: markets[8].shortQuestion, amount: 486, time: "Jul 31" },
   { id: "act-5", type: "withdrawal", title: "Withdrawal sent", description: "USDC to 0x48B…39C2", amount: -300, time: "Jul 29" }
 ];
 
 export const leaderboard: LeaderboardEntry[] = [
-  { rank: 1, handle: "signalcraft", displayName: "Signal Craft", initials: "SC", profit: 128420, volume: 1240000, accuracy: 71, streak: 8 },
-  { rank: 2, handle: "bayesrunner", displayName: "Bayes Runner", initials: "BR", profit: 109840, volume: 980000, accuracy: 69, streak: 11 },
-  { rank: 3, handle: "probabilitylab", displayName: "Probability Lab", initials: "PL", profit: 96310, volume: 1430000, accuracy: 66, streak: 5 },
-  { rank: 4, handle: "marketmosaic", displayName: "Market Mosaic", initials: "MM", profit: 84590, volume: 760000, accuracy: 68, streak: 7 },
-  { rank: 5, handle: "eventhorizon", displayName: "Event Horizon", initials: "EH", profit: 72150, volume: 690000, accuracy: 64, streak: 4 },
-  { rank: 6, handle: "marketpilot", displayName: "Market Pilot", initials: "MP", profit: 68120, volume: 580000, accuracy: 67, streak: 6 }
+  {
+    rank: 1,
+    handle: "signalcraft",
+    displayName: "Signal Craft",
+    initials: "SC",
+    profit: 128420,
+    weeklyProfit: 12480,
+    monthlyProfit: 48200,
+    allTimeProfit: 128420,
+    volume: 1240000,
+    accuracy: 71,
+    streak: 8,
+    categories: ["Crypto", "Technology"],
+    bio: "Macro, technology and crypto markets with patient entries and explicit exit levels.",
+    joinedAt: "May 11, 2026",
+    wallet: "0x19B60F0A4218D3E54A6FBD7A42C8B8F0D9E7A42A",
+    followers: 8412
+  },
+  {
+    rank: 2,
+    handle: "bayesrunner",
+    displayName: "Bayes Runner",
+    initials: "BR",
+    profit: 109840,
+    weeklyProfit: 15120,
+    monthlyProfit: 42180,
+    allTimeProfit: 109840,
+    volume: 980000,
+    accuracy: 69,
+    streak: 11,
+    categories: ["Politics", "Economy"],
+    bio: "Event-driven political and economic forecasts grounded in base rates and public data.",
+    joinedAt: "May 14, 2026",
+    wallet: "0xA31F89C42D09AB8E7119C8D2B73DAB66D5C13D09",
+    followers: 7190
+  },
+  {
+    rank: 3,
+    handle: "probabilitylab",
+    displayName: "Probability Lab",
+    initials: "PL",
+    profit: 96310,
+    weeklyProfit: 9380,
+    monthlyProfit: 39420,
+    allTimeProfit: 96310,
+    volume: 1430000,
+    accuracy: 66,
+    streak: 5,
+    categories: ["Science", "Technology"],
+    bio: "Research-led forecasts focused on science, AI and long-horizon technology outcomes.",
+    joinedAt: "May 22, 2026",
+    wallet: "0x71C3A9E842E6D2C5A1B14056F7D917C9F3E1842E",
+    followers: 6244
+  },
+  {
+    rank: 4,
+    handle: "marketmosaic",
+    displayName: "Market Mosaic",
+    initials: "MM",
+    profit: 84590,
+    weeklyProfit: 10820,
+    monthlyProfit: 36110,
+    allTimeProfit: 84590,
+    volume: 760000,
+    accuracy: 68,
+    streak: 7,
+    categories: ["Culture", "Sports"],
+    bio: "Cross-category trader combining cultural signals, sports data and disciplined sizing.",
+    joinedAt: "June 3, 2026",
+    wallet: "0xD81466A9C53B12E8F460A4F28CE892E566A966A9",
+    followers: 5318
+  },
+  {
+    rank: 5,
+    handle: "eventhorizon",
+    displayName: "Event Horizon",
+    initials: "EH",
+    profit: 72150,
+    weeklyProfit: 7120,
+    monthlyProfit: 29840,
+    allTimeProfit: 72150,
+    volume: 690000,
+    accuracy: 64,
+    streak: 4,
+    categories: ["Science", "Crypto"],
+    bio: "High-conviction positions in space, science and digital-asset event markets.",
+    joinedAt: "June 12, 2026",
+    wallet: "0x2E1B992A403D27C609EC61AABF2CD09A17D6992A",
+    followers: 4176
+  },
+  {
+    rank: 6,
+    handle: "marketpilot",
+    displayName: "Market Pilot",
+    initials: "MP",
+    profit: 68120,
+    weeklyProfit: 8460,
+    monthlyProfit: 27460,
+    allTimeProfit: 68120,
+    volume: 580000,
+    accuracy: 67,
+    streak: 6,
+    categories: ["Economy", "Politics", "Crypto"],
+    bio: "Diversified event-market portfolio with an emphasis on liquidity and risk control.",
+    joinedAt: "June 18, 2026",
+    wallet: "0x48B82F39C2A41B70D10F83B22D17849803D239C2",
+    followers: 3821
+  }
 ];
 
 export const adminMetrics: AdminMetric[] = [
   { label: "Total volume", value: "$48.2M", change: 12.8, hint: "Trailing 30 days" },
-  { label: "Open interest", value: "$9.84M", change: 8.4, hint: "Across 284 markets" },
+  { label: "Open interest", value: "$9.84M", change: 8.4, hint: "Across active markets" },
   { label: "Active traders", value: "38,421", change: 6.7, hint: "Trailing 30 days" },
   { label: "Pending resolutions", value: "18", change: -10.0, hint: "6 require action" }
 ];

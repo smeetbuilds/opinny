@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Activity, Bookmark, ListOrdered, PieChart, Settings2 } from "lucide-react";
+import { appConfig } from "@/lib/config";
+import { shortAddress } from "@/lib/format";
+import { useApp } from "./app-provider";
 
 const links = [
   { href: "/portfolio", label: "Portfolio", icon: PieChart },
@@ -14,16 +17,32 @@ const links = [
 
 export function AccountShell({ title, eyebrow, description, actions, children }: { title: string; eyebrow?: string; description?: string; actions?: React.ReactNode; children: React.ReactNode }) {
   const pathname = usePathname();
+  const { connected, walletAddress, setWalletOpen } = useApp();
+
   return (
     <div className="account-layout">
       <aside className="account-sidebar">
-        <div className="account-summary"><span className="profile-avatar large-avatar">MP</span><div><strong>Market Pilot</strong><span>0x19B6…7A42</span></div></div>
-        <div className="account-balance"><span>Available to trade</span><strong>$3,842.16</strong><small><i /> Wallet connected</small></div>
-        <nav aria-label="Account navigation">{links.map(({ href, label, icon: Icon }) => <Link className={pathname.startsWith(href) ? "active" : ""} href={href} key={href}><Icon size={17} /><span>{label}</span></Link>)}</nav>
+        <div className="account-summary">
+          <span className="profile-avatar large-avatar">MP</span>
+          <div><strong>Market Pilot</strong><span>{connected ? shortAddress(walletAddress) : "Wallet not connected"}</span></div>
+        </div>
+        <div className="account-balance">
+          <span>Available to trade</span>
+          <strong>{connected ? `3,842.16 ${appConfig.collateral}` : "—"}</strong>
+          {connected ? <small><i /> Wallet connected</small> : <button type="button" className="text-button" onClick={() => setWalletOpen(true)}>Connect wallet</button>}
+        </div>
+        <nav aria-label="Account navigation">
+          {links.map(({ href, label, icon: Icon }) => <Link className={pathname.startsWith(href) ? "active" : ""} href={href} key={href}><Icon size={17} /><span>{label}</span></Link>)}
+        </nav>
       </aside>
       <section className="account-content">
-        <header className="account-page-head"><div>{eyebrow ? <span className="eyebrow">{eyebrow}</span> : null}<h1>{title}</h1>{description ? <p>{description}</p> : null}</div>{actions ? <div className="page-actions">{actions}</div> : null}</header>
-        <nav className="account-tabs-mobile" aria-label="Account sections">{links.map(({ href, label }) => <Link className={pathname.startsWith(href) ? "active" : ""} href={href} key={href}>{label}</Link>)}</nav>
+        <header className="account-page-head">
+          <div>{eyebrow ? <span className="eyebrow">{eyebrow}</span> : null}<h1>{title}</h1>{description ? <p>{description}</p> : null}</div>
+          {actions ? <div className="page-actions">{actions}</div> : null}
+        </header>
+        <nav className="account-tabs-mobile" aria-label="Account sections">
+          {links.map(({ href, label }) => <Link className={pathname.startsWith(href) ? "active" : ""} href={href} key={href}>{label}</Link>)}
+        </nav>
         {children}
       </section>
     </div>

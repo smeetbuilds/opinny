@@ -58,6 +58,10 @@ export interface TradingCommandPort {
   cancelOrder(orderId: string): Promise<CommandResult>;
 }
 
+export interface AccountCommandPort {
+  redeemPosition(positionId: string): Promise<CommandResult>;
+}
+
 export interface FundingCommandPort {
   prepareFunding(intent: FundingIntent): Promise<PreparedFundingAction>;
 }
@@ -77,6 +81,7 @@ export interface OpinnyDataAdapter extends MarketDataPort, AccountDataPort, Admi
 export interface OpinnyIntegrationAdapter
   extends OpinnyDataAdapter,
     TradingCommandPort,
+    AccountCommandPort,
     FundingCommandPort,
     AdminCommandPort,
     RealtimePort {}

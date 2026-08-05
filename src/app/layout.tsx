@@ -1,38 +1,26 @@
-import type { Metadata, Viewport } from "next";
+import type { Metadata } from "next";
 import "./globals.css";
 import { AppProvider } from "@/components/app-provider";
+import { dataAdapter } from "@/lib/data";
 
 export const metadata: Metadata = {
-  applicationName: "Opinny",
   title: {
     default: "Opinny — Trade what happens next",
     template: "%s · Opinny"
   },
-  description: "A clean, crypto-only prediction-market platform interface for exploring and trading event outcomes.",
-  keywords: ["prediction markets", "event markets", "crypto trading", "probability markets"],
-  category: "finance",
+  description: "A crypto prediction-market interface for exploring event probabilities, trading outcomes and managing positions.",
   icons: {
     icon: "/favicon.svg"
-  },
-  robots: {
-    index: true,
-    follow: true
   }
 };
 
-export const viewport: Viewport = {
-  colorScheme: "light",
-  themeColor: "#f7f6f1",
-  width: "device-width",
-  initialScale: 1,
-  viewportFit: "cover"
-};
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const marketCatalog = await dataAdapter.listMarkets();
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
       <body>
-        <AppProvider>{children}</AppProvider>
+        <AppProvider initialMarkets={marketCatalog}>{children}</AppProvider>
       </body>
     </html>
   );

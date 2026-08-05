@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { CheckCircle2, X } from "lucide-react";
+import type { Market } from "@/core/contracts/domain";
 import { WalletDialog } from "./wallet-dialog";
 
 type Toast = { id: number; title: string; description?: string };
@@ -23,6 +24,7 @@ type AppContextValue = {
   setWalletOpen: (open: boolean) => void;
   connectWallet: (provider?: string) => void;
   disconnectWallet: () => void;
+  marketCatalog: Market[];
   favorites: Set<string>;
   toggleFavorite: (id: string) => void;
   notifications: PlatformNotification[];
@@ -63,38 +65,81 @@ const initialNotifications: PlatformNotification[] = [
   }
 ];
 
+const walletAddress = "0x19B60F0A4218D3E54A6FBD7A42C8B8F0D9E7A42A";
+const watchlistKey = "opinny-watchlist-v1";
+const walletSessionKey = "opinny-wallet-session-v1";
+const notificationKey = "opinny-notifications-v1";
+
 const AppContext = createContext<AppContextValue | null>(null);
 
-export function AppProvider({ children }: { children: React.ReactNode }) {
+export function AppProvider({ children, initialMarkets }: { children: React.ReactNode; initialMarkets: Market[] }) {
   const [connected, setConnected] = useState(false);
   const [walletProvider, setWalletProvider] = useState("Browser wallet");
   const [walletOpen, setWalletOpen] = useState(false);
   const [favorites, setFavorites] = useState<Set<string>>(new Set(["mkt-001"]));
   const [notifications, setNotifications] = useState<PlatformNotification[]>(initialNotifications);
   const [toasts, setToasts] = useState<Toast[]>([]);
-  const [favoritesHydrated, setFavoritesHydrated] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem("opinny-watchlist-v1");
-    if (stored) {
+    const storedFavorites = localStorage.getItem(watchlistKey);
+    if (storedFavorites) {
       try {
-        setFavorites(new Set(JSON.parse(stored) as string[]));
+        setFavorites(new Set(JSON.parse(storedFavorites) as string[]));
       } catch {
-        localStorage.removeItem("opinny-watchlist-v1");
+        localStorage.removeItem(watchlistKey);
       }
     }
-    setFavoritesHydrated(true);
+
+    const storedNotifications = localStorage.getItem(notificationKey);
+    if (storedNotifications) {
+      try {
+        setNotifications(JSON.parse(storedNotifications) as PlatformNotification[]);
+      } catch {
+        localStorage.removeItem(notificationKey);
+      }
+    }
+
+    const storedWallet = sessionStorage.getItem(walletSessionKey);
+    if (storedWallet) {
+      try {
+        const session = JSON.parse(storedWallet) as { connected?: boolean; provider?: string };
+        setConnected(Boolean(session.connected));
+        if (session.provider) setWalletProvider(session.provider);
+      } catch {
+        sessionStorage.removeItem(walletSessionKey);
+      }
+    }
+
+    setHydrated(true);
   }, []);
 
   useEffect(() => {
-    if (!favoritesHydrated) return;
-    localStorage.setItem("opinny-watchlist-v1", JSON.stringify([...favorites]));
-  }, [favorites, favoritesHydrated]);
+    if (!hydrated) return;
+    localStorage.setItem(watchlistKey, JSON.stringify([...favorites]));
+  }, [favorites, hydrated]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    localStorage.setItem(notificationKey, JSON.stringify(notifications.slice(0, 40)));
+  }, [notifications, hydrated]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    if (connected) {
+      sessionStorage.setItem(walletSessionKey, JSON.stringify({ connected: true, provider: walletProvider }));
+    } else {
+      sessionStorage.removeItem(walletSessionKey);
+    }
+  }, [connected, hydrated, walletProvider]);
 
   const notify = useCallback((title: string, description?: string, kind: PlatformNotification["kind"] = "system") => {
     const id = Date.now();
     setToasts((current) => [...current, { id, title, description }]);
-    setNotifications((current) => [{ id: `notification-${id}`, kind, title, description: description ?? "", time: "Now", read: false }, ...current]);
+    setNotifications((current) => [
+      { id: `notification-${id}`, kind, title, description: description ?? "", time: "Now", read: false },
+      ...current
+    ].slice(0, 40));
     window.setTimeout(() => setToasts((current) => current.filter((toast) => toast.id !== id)), 3200);
   }, []);
 
@@ -133,12 +178,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo(
     () => ({
       connected,
-      walletAddress: "0x19B60F0A4218D3E54A6FBD7A42C8B8F0D9E7A42A",
+      walletAddress,
       walletProvider,
       walletOpen,
       setWalletOpen,
       connectWallet,
       disconnectWallet,
+      marketCatalog: initialMarkets,
       favorites,
       toggleFavorite,
       notifications,
@@ -148,7 +194,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       clearNotifications,
       notify
     }),
-    [connected, walletProvider, walletOpen, favorites, notifications, unreadCount, connectWallet, disconnectWallet, toggleFavorite, markNotificationRead, markAllNotificationsRead, clearNotifications, notify]
+    [connected, walletProvider, walletOpen, initialMarkets, favorites, notifications, unreadCount, connectWallet, disconnectWallet, toggleFavorite, markNotificationRead, markAllNotificationsRead, clearNotifications, notify]
   );
 
   return (

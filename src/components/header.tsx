@@ -8,7 +8,6 @@ import { Logo } from "./logo";
 import { NotificationCenter } from "./notification-center";
 import { useApp } from "./app-provider";
 import { shortAddress } from "@/lib/format";
-import { markets } from "@/adapters/mock/data";
 
 const navItems = [
   { href: "/markets", label: "Markets" },
@@ -27,7 +26,7 @@ const drawerItems = [
 export function Header() {
   const pathname = usePathname();
   const router = useRouter();
-  const { connected, walletAddress, setWalletOpen, disconnectWallet } = useApp();
+  const { connected, walletAddress, setWalletOpen, disconnectWallet, marketCatalog } = useApp();
   const [searchOpen, setSearchOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -37,10 +36,10 @@ export function Header() {
   const results = useMemo(() => {
     const normalized = query.trim().toLowerCase();
     const source = normalized
-      ? markets.filter((market) => [market.question, market.shortQuestion, market.category, ...market.tags].join(" ").toLowerCase().includes(normalized))
-      : [...markets].sort((a, b) => b.volume24h - a.volume24h);
+      ? marketCatalog.filter((market) => [market.question, market.shortQuestion, market.category, ...market.tags].join(" ").toLowerCase().includes(normalized))
+      : [...marketCatalog].sort((a, b) => b.volume24h - a.volume24h);
     return source.slice(0, 6);
-  }, [query]);
+  }, [marketCatalog, query]);
 
   const closeSearch = useCallback(() => {
     setSearchOpen(false);
@@ -144,7 +143,7 @@ export function Header() {
               {results.map((market, index) => (
                 <button className={index === activeResult ? "active" : ""} role="option" aria-selected={index === activeResult} key={market.id} onMouseEnter={() => setActiveResult(index)} onClick={() => openMarket(market.slug)}>
                   <span className={`market-avatar ${market.imageTone}`}>{market.icon}</span>
-                  <span><strong>{market.shortQuestion}</strong><small>{market.category} · ${Math.round(market.volume24h / 1000)}K today</small></span>
+                  <span><strong>{market.shortQuestion}</strong><small>{market.category} · {market.status === "open" ? `$${Math.round(market.volume24h / 1000)}K today` : market.status}</small></span>
                   <em>{market.outcomes[0].probability}%</em>
                 </button>
               ))}

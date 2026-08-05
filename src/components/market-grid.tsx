@@ -3,11 +3,11 @@
 import { useMemo, useState } from "react";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import type { Market } from "@/core/contracts/domain";
-import { categories } from "@/adapters/mock/data";
 import { CategoryTabs } from "./category-tabs";
 import { MarketCard } from "./market-card";
 
 export function MarketGrid({ initialMarkets, heading = "Markets", showCategories = true }: { initialMarkets: Market[]; heading?: string; showCategories?: boolean }) {
+  const categories = useMemo(() => ["All", ...Array.from(new Set(initialMarkets.map((market) => market.category))).sort()], [initialMarkets]);
   const [category, setCategory] = useState("All");
   const [sort, setSort] = useState("trending");
   const [openOnly, setOpenOnly] = useState(true);
@@ -48,9 +48,7 @@ export function MarketGrid({ initialMarkets, heading = "Markets", showCategories
         <div className="market-results-meta" aria-live="polite"><strong>{visible.length}</strong><span>{visible.length === 1 ? "market" : "markets"}</span>{hasActiveFilters ? <button onClick={clearFilters}>Reset filters</button> : null}</div>
       </div>
       {showCategories ? <CategoryTabs categories={categories} active={category} onChange={setCategory} /> : null}
-      <div className="market-grid">
-        {visible.map((market) => <MarketCard market={market} key={market.id} />)}
-      </div>
+      <div className="market-grid">{visible.map((market) => <MarketCard market={market} key={market.id} />)}</div>
       {visible.length === 0 ? <div className="empty-state market-empty"><Search size={24} /><strong>No markets match these filters.</strong><span>Try another category, remove a keyword or include resolved markets.</span><button className="secondary-button compact" onClick={clearFilters}>Clear all filters</button></div> : null}
     </section>
   );

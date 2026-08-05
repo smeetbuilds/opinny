@@ -1,7 +1,7 @@
 import type { Market } from "@/core/contracts/domain";
 
 export const marketData: Market[] = [
-{
+  {
     id: "mkt-005",
     slug: "moon-mission-launch-2027",
     question: "Will the next crewed lunar mission launch before July 2027?",
@@ -27,7 +27,7 @@ export const marketData: Market[] = [
     resolutionRules: "Liftoff must occur before 00:00 UTC on July 1, 2027.",
     chart: [52, 50, 47, 45, 43, 46, 42, 40, 38, 36, 34]
   },
-{
+  {
     id: "mkt-006",
     slug: "championship-final-seven-games",
     question: "Will the 2027 professional basketball championship final reach Game 7?",
@@ -53,7 +53,7 @@ export const marketData: Market[] = [
     resolutionRules: "The championship series schedule and completed games determine the outcome.",
     chart: [24, 25, 25, 26, 25, 27, 28, 26, 27]
   },
-{
+  {
     id: "mkt-007",
     slug: "global-box-office-2b-2027",
     question: "Will any film earn more than $2 billion worldwide in 2027?",
@@ -79,7 +79,7 @@ export const marketData: Market[] = [
     resolutionRules: "Worldwide theatrical gross only. Re-releases are included if the film's first release was in 2027.",
     chart: [15, 16, 15, 17, 16, 18, 19, 18]
   },
-{
+  {
     id: "mkt-008",
     slug: "major-city-mayoral-turnout-60",
     question: "Will voter turnout exceed 60% in the selected 2027 mayoral election?",
@@ -104,5 +104,31 @@ export const marketData: Market[] = [
     resolutionSource: "Certified municipal election results",
     resolutionRules: "The official certified turnout percentage determines resolution.",
     chart: [49, 50, 51, 50, 52, 53, 54, 55, 56]
+  },
+  {
+    id: "mkt-009",
+    slug: "research-platform-launched-q2-2026",
+    question: "Did the research platform launch before July 1, 2026?",
+    shortQuestion: "Research platform launched in Q2 2026?",
+    description: "This market resolved Yes after the designated public launch record confirmed general availability before the deadline.",
+    category: "Technology",
+    tags: ["Research", "Launch", "Resolved"],
+    kind: "binary",
+    status: "resolved",
+    imageTone: "mint",
+    icon: "R",
+    outcomes: [
+      { id: "yes", label: "Yes", probability: 100, change24h: 0, volume24h: 0 },
+      { id: "no", label: "No", probability: 0, change24h: 0, volume24h: 0 }
+    ],
+    volume: 1840000,
+    volume24h: 0,
+    liquidity: 0,
+    traders: 2810,
+    endDate: "2026-07-01T00:00:00.000Z",
+    createdAt: "2026-04-09T00:00:00.000Z",
+    resolutionSource: "Official public launch record",
+    resolutionRules: "The platform had to be publicly available before 00:00 UTC on July 1, 2026. The designated launch record confirmed availability on June 24, 2026.",
+    chart: [42, 48, 51, 58, 63, 71, 76, 84, 91, 100]
   }
 ];

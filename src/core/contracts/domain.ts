@@ -3,6 +3,7 @@ export type MarketKind = "binary" | "multi";
 export type OrderSide = "buy" | "sell";
 export type OrderType = "market" | "limit";
 export type OrderStatus = "open" | "filled" | "partially-filled" | "cancelled";
+export type PositionStatus = "open" | "resolved" | "claimed";
 
 export interface Outcome {
   id: string;
@@ -69,6 +70,10 @@ export interface Position {
   value: number;
   pnl: number;
   pnlPercent: number;
+  status: PositionStatus;
+  claimableAmount?: number;
+  resolvedOutcome?: string;
+  resolvedAt?: string;
 }
 
 export interface UserOrder {
@@ -171,9 +176,17 @@ export interface LeaderboardEntry {
   displayName: string;
   initials: string;
   profit: number;
+  weeklyProfit: number;
+  monthlyProfit: number;
+  allTimeProfit: number;
   volume: number;
   accuracy: number;
   streak: number;
+  categories: string[];
+  bio: string;
+  joinedAt: string;
+  wallet: string;
+  followers: number;
 }
 
 export interface AdminMetric {

@@ -78,6 +78,7 @@ export const mockAdapter: OpinnyIntegrationAdapter = {
     }
   }),
   cancelOrder: (orderId) => wait({ id: orderId, status: "accepted", message: "Cancellation request accepted." }),
+  redeemPosition: (positionId) => wait({ id: positionId, status: "accepted", message: "Redemption request accepted." }),
   prepareFunding: (intent) => wait({
     requestId: `fund-${Date.now()}`,
     expiresAt: new Date(Date.now() + 60_000).toISOString(),

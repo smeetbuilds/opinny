@@ -1,15 +1,21 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { AlertCircle, CheckCircle2, Info, LoaderCircle, ShieldCheck, X } from "lucide-react";
+import { AlertCircle, CheckCircle2, Clock3, Info, LoaderCircle, PauseCircle, ShieldCheck, Trophy, X } from "lucide-react";
 import type { Market } from "@/core/contracts/domain";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatDate } from "@/lib/format";
 import { appConfig } from "@/lib/config";
 import { dataAdapter } from "@/lib/data";
 import { useApp } from "./app-provider";
 
 type TradeEvent = CustomEvent<{ outcomeId: string }>;
 const cleanNumber = (value: string) => value.replace(/[^\d.]/g, "").replace(/(\..*)\./g, "$1");
+const stateCopy: Record<Market["status"], { title: string; description: string }> = {
+  open: { title: "Trading open", description: "Orders can be prepared through the connected integration." },
+  paused: { title: "Trading paused", description: "New orders are unavailable while this market is under review or maintenance." },
+  resolved: { title: "Market resolved", description: "Trading is closed. Review the final outcome and resolution source." },
+  draft: { title: "Market unavailable", description: "This market is not published for trading." }
+};
 
 export function TradeTicket({ market }: { market: Market }) {
   const { connected, setWalletOpen, notify } = useApp();
@@ -21,6 +27,7 @@ export function TradeTicket({ market }: { market: Market }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const tradingOpen = market.status === "open";
 
   const selected = market.outcomes.find((item) => item.id === outcome) ?? market.outcomes[0];
   const price = orderType === "limit" ? (Number(limitPrice) || 0) / 100 : selected.probability / 100;
@@ -31,9 +38,18 @@ export function TradeTicket({ market }: { market: Market }) {
   const netSettlement = Math.max(grossSettlement - fee, 0);
   const potentialProfit = side === "buy" ? Math.max(shares - amountNumber - fee, 0) : 0;
   const invalidPrice = orderType === "limit" && (Number(limitPrice) <= 0 || Number(limitPrice) > 100);
-  const inputError = amountNumber <= 0 ? `Enter ${side === "buy" ? "an amount" : "a share quantity"} greater than zero.` : invalidPrice ? "Limit price must be between 1¢ and 100¢." : "";
+  const inputError = !tradingOpen ? stateCopy[market.status].description : amountNumber <= 0 ? `Enter ${side === "buy" ? "an amount" : "a share quantity"} greater than zero.` : invalidPrice ? "Limit price must be between 1¢ and 100¢." : "";
   const error = inputError || submitError;
-  const canSubmit = !inputError && price > 0 && !busy;
+  const canSubmit = tradingOpen && !inputError && price > 0 && !busy;
+
+  useEffect(() => {
+    const requestedOutcome = new URLSearchParams(window.location.search).get("outcome");
+    const next = market.outcomes.find((item) => item.id === requestedOutcome);
+    if (next) {
+      setOutcome(next.id);
+      setLimitPrice(String(next.probability));
+    }
+  }, [market.outcomes]);
 
   useEffect(() => {
     const openForOutcome = (event: Event) => {
@@ -53,8 +69,8 @@ export function TradeTicket({ market }: { market: Market }) {
   useEffect(() => {
     if (!mobileOpen) return;
     const previous = document.body.style.overflow;
+    const close = (event: KeyboardEvent) => event.key === "Escape" && setMobileOpen(false);
     document.body.style.overflow = "hidden";
-    const close = (event: KeyboardEvent) => { if (event.key === "Escape") setMobileOpen(false); };
     window.addEventListener("keydown", close);
     return () => {
       document.body.style.overflow = previous;
@@ -72,22 +88,8 @@ export function TradeTicket({ market }: { market: Market }) {
     setSubmitError("");
     try {
       const clientRequestId = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `order-${Date.now()}`;
-      const prepared = await dataAdapter.prepareOrder({
-        clientRequestId,
-        marketId: market.id,
-        outcomeId: selected.id,
-        side,
-        type: orderType,
-        collateralAmount: side === "buy" ? amountNumber : undefined,
-        shares: side === "sell" ? amountNumber : undefined,
-        limitPrice: orderType === "limit" ? price : undefined,
-        maxSlippageBps: 100
-      });
-      notify(
-        "Order request ready",
-        `${side === "buy" ? "Buy" : "Sell"} ${prepared.preview.estimatedShares.toFixed(1)} ${selected.label} shares at ${Math.round(prepared.preview.estimatedPrice * 100)}¢.`,
-        "trade"
-      );
+      const prepared = await dataAdapter.prepareOrder({ clientRequestId, marketId: market.id, outcomeId: selected.id, side, type: orderType, collateralAmount: side === "buy" ? amountNumber : undefined, shares: side === "sell" ? amountNumber : undefined, limitPrice: orderType === "limit" ? price : undefined, maxSlippageBps: 100 });
+      notify("Order request ready", `${side === "buy" ? "Buy" : "Sell"} ${prepared.preview.estimatedShares.toFixed(1)} ${selected.label} shares at ${Math.round(prepared.preview.estimatedPrice * 100)}¢.`, "trade");
       setMobileOpen(false);
     } catch {
       setSubmitError("The order request could not be prepared. Review the inputs and try again.");
@@ -96,69 +98,18 @@ export function TradeTicket({ market }: { market: Market }) {
     }
   }
 
-  const renderContent = (surface: "desktop" | "mobile") => {
+  function renderClosed() {
+    const resolved = market.status === "resolved";
+    const winner = [...market.outcomes].sort((a, b) => b.probability - a.probability)[0];
+    return <div className="ticket-content closed-ticket-content"><div className="ticket-head"><div><span className="eyebrow">Market status</span><h3>{market.shortQuestion}</h3><small><i />{stateCopy[market.status].title}</small></div><button className="icon-button mobile-ticket-close" type="button" aria-label="Close market status" onClick={() => setMobileOpen(false)}><X size={18} /></button></div><div className={`closed-market-state ${market.status}`}>{resolved ? <Trophy size={22} /> : market.status === "paused" ? <PauseCircle size={22} /> : <Clock3 size={22} />}<span><strong>{stateCopy[market.status].title}</strong><p>{stateCopy[market.status].description}</p></span></div><div className="closed-outcome-list">{market.outcomes.map((item) => <div className={resolved && item.id === winner.id ? "winner" : ""} key={item.id}><span>{item.label}</span><strong>{item.probability}%</strong>{resolved && item.id === winner.id ? <em>Final outcome</em> : null}</div>)}</div><div className="closed-resolution-card"><span>Resolution source</span><strong>{market.resolutionSource}</strong><p>{market.resolutionRules}</p><small>{resolved ? `Resolved after ${formatDate(market.endDate)}` : `Scheduled end ${formatDate(market.endDate)}`}</small></div><p className="ticket-note"><ShieldCheck size={13} />The connected integration remains authoritative for market state, settlement and redemption eligibility.</p></div>;
+  }
+
+  function renderOpen(surface: "desktop" | "mobile") {
     const amountId = `${surface}-trade-amount`;
     const limitId = `${surface}-limit-price`;
-    return (
-      <div className="ticket-content">
-        <div className="ticket-head">
-          <div><span className="eyebrow">Trade</span><h3>{market.shortQuestion}</h3><small><i />Market open · {appConfig.chainName}</small></div>
-          <button className="icon-button mobile-ticket-close" type="button" aria-label="Close trade ticket" onClick={() => setMobileOpen(false)}><X size={18} /></button>
-        </div>
+    return <div className="ticket-content"><div className="ticket-head"><div><span className="eyebrow">Trade</span><h3>{market.shortQuestion}</h3><small><i />Market open · {appConfig.chainName}</small></div><button className="icon-button mobile-ticket-close" type="button" aria-label="Close trade ticket" onClick={() => setMobileOpen(false)}><X size={18} /></button></div><div className="segmented-control" aria-label="Trade side"><button type="button" aria-pressed={side === "buy"} className={side === "buy" ? "active" : ""} onClick={() => { setSide("buy"); setSubmitError(""); }}>Buy</button><button type="button" aria-pressed={side === "sell"} className={side === "sell" ? "active" : ""} onClick={() => { setSide("sell"); setSubmitError(""); }}>Sell</button></div><div className="ticket-field"><div className="ticket-label-row"><label>Outcome</label><span>Current probability</span></div><div className="outcome-selector">{market.outcomes.map((item) => <button type="button" aria-pressed={outcome === item.id} className={outcome === item.id ? "active" : ""} onClick={() => { setOutcome(item.id); setLimitPrice(String(item.probability)); setSubmitError(""); }} key={item.id}><span>{item.label}</span><strong>{item.probability}¢</strong><small className={item.change24h >= 0 ? "positive" : "negative"}>{item.change24h >= 0 ? "+" : ""}{item.change24h.toFixed(1)} today</small></button>)}</div></div><div className="ticket-field"><div className="ticket-label-row"><label>Order type</label><span className="info-trigger" aria-label="Market orders execute against available liquidity; limit orders wait for the chosen price"><Info size={13} /></span></div><div className="order-type-control"><button type="button" aria-pressed={orderType === "market"} className={orderType === "market" ? "active" : ""} onClick={() => { setOrderType("market"); setSubmitError(""); }}><strong>Market</strong><small>Execute near {selected.probability}¢</small></button><button type="button" aria-pressed={orderType === "limit"} className={orderType === "limit" ? "active" : ""} onClick={() => { setOrderType("limit"); setSubmitError(""); }}><strong>Limit</strong><small>Choose your price</small></button></div></div>{orderType === "limit" ? <div className="ticket-field"><label htmlFor={limitId}>Limit price</label><div className={invalidPrice ? "amount-input invalid" : "amount-input"}><span>¢</span><input id={limitId} inputMode="decimal" aria-invalid={invalidPrice} value={limitPrice} onChange={(event) => { setLimitPrice(cleanNumber(event.target.value)); setSubmitError(""); }} /><em>1–100¢</em></div></div> : null}<div className="ticket-field"><div className="ticket-label-row"><label htmlFor={amountId}>{side === "buy" ? "Amount" : "Shares"}</label><span>{side === "buy" ? "Collateral" : selected.label}</span></div><div className={amountNumber <= 0 ? "amount-input invalid" : "amount-input"}><span>{side === "buy" ? "$" : "#"}</span><input id={amountId} inputMode="decimal" aria-invalid={amountNumber <= 0} value={amount} onChange={(event) => { setAmount(cleanNumber(event.target.value)); setSubmitError(""); }} /><em>{side === "buy" ? appConfig.collateral : selected.label}</em></div><div className="quick-amounts" aria-label="Quick amount selection">{[10, 50, 100, 500].map((value) => <button type="button" aria-pressed={amount === String(value)} key={value} onClick={() => setAmount(String(value))}>{side === "buy" ? "$" : ""}{value}</button>)}<button type="button" aria-pressed={amount === "1250"} onClick={() => setAmount("1250")}>Max</button></div></div>{error ? <div className="ticket-error" role="alert"><AlertCircle size={15} />{error}</div> : <div className="ticket-ready"><CheckCircle2 size={15} />Order preview ready</div>}<div className="trade-summary"><div><span>Execution price <Info size={13} /></span><strong>{Math.round(price * 100)}¢</strong></div><div><span>Estimated shares</span><strong>{shares.toFixed(2)}</strong></div><div><span>Estimated fee</span><strong>{formatCurrency(fee)}</strong></div><div><span>{side === "buy" ? "Maximum payout" : "Estimated proceeds"}</span><strong>{formatCurrency(netSettlement)}</strong></div>{side === "buy" ? <div className="summary-highlight"><span>Potential profit</span><strong>{formatCurrency(potentialProfit)}</strong></div> : null}</div><button className="primary-button ticket-submit" type="button" disabled={!canSubmit} onClick={execute}>{busy ? <><LoaderCircle className="spin" size={17} />Preparing order</> : connected ? `${side === "buy" ? "Buy" : "Sell"} ${selected.label}` : "Connect wallet to trade"}</button><p className="ticket-note"><ShieldCheck size={13} />Review price, fees and payout before wallet approval. Execution occurs only after the connected integration confirms the request.</p></div>;
+  }
 
-        <div className="segmented-control" aria-label="Trade side">
-          <button type="button" aria-pressed={side === "buy"} className={side === "buy" ? "active" : ""} onClick={() => { setSide("buy"); setSubmitError(""); }}>Buy</button>
-          <button type="button" aria-pressed={side === "sell"} className={side === "sell" ? "active" : ""} onClick={() => { setSide("sell"); setSubmitError(""); }}>Sell</button>
-        </div>
-
-        <div className="ticket-field">
-          <div className="ticket-label-row"><label>Outcome</label><span>Current probability</span></div>
-          <div className="outcome-selector">
-            {market.outcomes.map((item) => (
-              <button type="button" aria-pressed={outcome === item.id} className={outcome === item.id ? "active" : ""} onClick={() => { setOutcome(item.id); setLimitPrice(String(item.probability)); setSubmitError(""); }} key={item.id}>
-                <span>{item.label}</span><strong>{item.probability}¢</strong><small className={item.change24h >= 0 ? "positive" : "negative"}>{item.change24h >= 0 ? "+" : ""}{item.change24h.toFixed(1)} today</small>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="ticket-field">
-          <div className="ticket-label-row"><label>Order type</label><span className="info-trigger" aria-label="Market orders execute against available liquidity; limit orders wait for the chosen price"><Info size={13} /></span></div>
-          <div className="order-type-control">
-            <button type="button" aria-pressed={orderType === "market"} className={orderType === "market" ? "active" : ""} onClick={() => { setOrderType("market"); setSubmitError(""); }}><strong>Market</strong><small>Execute near {selected.probability}¢</small></button>
-            <button type="button" aria-pressed={orderType === "limit"} className={orderType === "limit" ? "active" : ""} onClick={() => { setOrderType("limit"); setSubmitError(""); }}><strong>Limit</strong><small>Choose your price</small></button>
-          </div>
-        </div>
-
-        {orderType === "limit" ? <div className="ticket-field"><label htmlFor={limitId}>Limit price</label><div className={invalidPrice ? "amount-input invalid" : "amount-input"}><span>¢</span><input id={limitId} inputMode="decimal" aria-invalid={invalidPrice} value={limitPrice} onChange={(event) => { setLimitPrice(cleanNumber(event.target.value)); setSubmitError(""); }} /><em>1–100¢</em></div></div> : null}
-
-        <div className="ticket-field">
-          <div className="ticket-label-row"><label htmlFor={amountId}>{side === "buy" ? "Amount" : "Shares"}</label><span>{side === "buy" ? "Collateral" : selected.label}</span></div>
-          <div className={amountNumber <= 0 ? "amount-input invalid" : "amount-input"}><span>{side === "buy" ? "$" : "#"}</span><input id={amountId} inputMode="decimal" aria-invalid={amountNumber <= 0} value={amount} onChange={(event) => { setAmount(cleanNumber(event.target.value)); setSubmitError(""); }} /><em>{side === "buy" ? appConfig.collateral : selected.label}</em></div>
-          <div className="quick-amounts" aria-label="Quick amount selection">{[10, 50, 100, 500].map((value) => <button type="button" aria-pressed={amount === String(value)} key={value} onClick={() => setAmount(String(value))}>{side === "buy" ? "$" : ""}{value}</button>)}<button type="button" aria-pressed={amount === "1250"} onClick={() => setAmount("1250")}>Max</button></div>
-        </div>
-
-        {error ? <div className="ticket-error" role="alert"><AlertCircle size={15} />{error}</div> : <div className="ticket-ready"><CheckCircle2 size={15} />Order preview ready</div>}
-
-        <div className="trade-summary">
-          <div><span>Execution price <Info size={13} /></span><strong>{Math.round(price * 100)}¢</strong></div>
-          <div><span>Estimated shares</span><strong>{shares.toFixed(2)}</strong></div>
-          <div><span>Estimated fee</span><strong>{formatCurrency(fee)}</strong></div>
-          <div><span>{side === "buy" ? "Maximum payout" : "Estimated proceeds"}</span><strong>{formatCurrency(netSettlement)}</strong></div>
-          {side === "buy" ? <div className="summary-highlight"><span>Potential profit</span><strong>{formatCurrency(potentialProfit)}</strong></div> : null}
-        </div>
-
-        <button className="primary-button ticket-submit" type="button" disabled={!canSubmit} onClick={execute}>{busy ? <><LoaderCircle className="spin" size={17} />Preparing order</> : connected ? `${side === "buy" ? "Buy" : "Sell"} ${selected.label}` : "Connect wallet to trade"}</button>
-        <p className="ticket-note"><ShieldCheck size={13} />Review price, fees and payout before wallet approval. Execution occurs only after the connected integration confirms the request.</p>
-      </div>
-    );
-  };
-
-  return (
-    <>
-      <aside className="trade-ticket desktop-ticket" id="trade-ticket" aria-label="Trade ticket">{renderContent("desktop")}</aside>
-      <button className="mobile-trade-button" type="button" aria-haspopup="dialog" aria-expanded={mobileOpen} onClick={() => setMobileOpen(true)}><span>Trade {selected.label}<small>{orderType === "market" ? "Market order" : `Limit · ${limitPrice}¢`}</small></span><strong>{selected.probability}¢</strong></button>
-      {mobileOpen ? <div className="overlay mobile-trade-overlay" onMouseDown={() => setMobileOpen(false)}><aside className="trade-ticket mobile-ticket" role="dialog" aria-modal="true" aria-label={`Trade ${market.shortQuestion}`} onMouseDown={(event) => event.stopPropagation()}><div className="sheet-handle" />{renderContent("mobile")}</aside></div> : null}
-    </>
-  );
+  const content = (surface: "desktop" | "mobile") => tradingOpen ? renderOpen(surface) : renderClosed();
+  return <><aside className="trade-ticket desktop-ticket" id="trade-ticket" aria-label={tradingOpen ? "Trade ticket" : "Market status"}>{content("desktop")}</aside><button className={`mobile-trade-button status-${market.status}`} type="button" aria-haspopup="dialog" aria-expanded={mobileOpen} onClick={() => setMobileOpen(true)}><span>{tradingOpen ? `Trade ${selected.label}` : stateCopy[market.status].title}<small>{tradingOpen ? orderType === "market" ? "Market order" : `Limit · ${limitPrice}¢` : market.status === "resolved" ? "View final outcome" : "View market status"}</small></span><strong>{tradingOpen ? `${selected.probability}¢` : market.status === "resolved" ? "Final" : "View"}</strong></button>{mobileOpen ? <div className="overlay mobile-trade-overlay" onMouseDown={() => setMobileOpen(false)}><aside className="trade-ticket mobile-ticket" role="dialog" aria-modal="true" aria-label={tradingOpen ? `Trade ${market.shortQuestion}` : `${market.shortQuestion} status`} onMouseDown={(event) => event.stopPropagation()}><div className="sheet-handle" />{content("mobile")}</aside></div> : null}</>;
 }
