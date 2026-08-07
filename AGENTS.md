@@ -10,7 +10,7 @@ Opinny is an open-source project developed by Aahav Labs (https://aahavlabs.in Â
 - No card, bank, Stripe, PayPal or other fiat payment gateway.
 - Public UI is branded only as Opinny; repository attribution stays in repository files.
 - Independent light-mode visual identity; do not copy another platformâ€™s branding or assets.
-- Instrument Serif is the display typeface and Inter is the UI/body typeface.
+- Instrument Serif is the only display typeface and Inter is the only UI/body/data/technical typeface. Do not add fallback, system, generic serif/sans or monospace font stacks.
 - Responsive desktop, laptop, tablet and mobile behaviour is mandatory.
 - Admin UI is a presentation and command-preparation layer, never an authorization boundary.
 
@@ -24,6 +24,7 @@ Opinny is an open-source project developed by Aahav Labs (https://aahavlabs.in Â
 - Use accessible labels, roles, focus states, Escape dismissal and reduced-motion support.
 - Do not claim mock calculations, local state, integrations or requests are authoritative.
 - Do not surface Aahav Labs, open-source, repository or demo attribution in the product UI.
+- Keep typography strictly limited to Instrument Serif and Inter; do not introduce Times, Georgia, Palatino, system UI, generic serif/sans-serif or monospace fallbacks.
 
 ## Validation
 

@@ -1,7 +1,7 @@
-/* Typography system: Instrument Serif + Inter */
+/* Typography system: strict Instrument Serif + Inter only */
 :root {
-  --font-ui: var(--font-inter), Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-display: var(--font-instrument-serif), "Instrument Serif", Georgia, serif;
+  --font-ui: var(--font-inter);
+  --font-display: var(--font-instrument-serif);
 }
 
 html,
@@ -16,12 +16,15 @@ textarea {
 body {
   font-optical-sizing: auto;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  font-synthesis: none;
 }
 
 body h1,
 body h2,
 body h3,
 body h4,
+body h5,
+body h6,
 body .brand-word {
   font-family: var(--font-display) !important;
   font-weight: 400 !important;
@@ -38,5 +41,6 @@ body .mono,
 body code,
 body pre,
 body kbd {
+  font-family: var(--font-ui) !important;
   font-feature-settings: normal;
 }

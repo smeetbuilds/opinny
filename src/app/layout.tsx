@@ -7,16 +7,20 @@ import { dataAdapter } from "@/lib/data";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
-  display: "swap",
-  preload: true
+  display: "block",
+  preload: true,
+  fallback: [],
+  adjustFontFallback: false
 });
 
 const instrumentSerif = Instrument_Serif({
   subsets: ["latin"],
   weight: "400",
   variable: "--font-instrument-serif",
-  display: "swap",
-  preload: true
+  display: "block",
+  preload: true,
+  fallback: [],
+  adjustFontFallback: false
 });
 
 export const metadata: Metadata = {
@@ -35,7 +39,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
 
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${instrumentSerif.variable}`}>
+      <body className={`${inter.className} ${inter.variable} ${instrumentSerif.variable}`}>
         <AppProvider initialMarkets={marketCatalog}>{children}</AppProvider>
       </body>
     </html>

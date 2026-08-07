@@ -1,0 +1,27 @@
+/* Final typography lock — only Inter and Instrument Serif may render. */
+html body,
+html body * {
+  font-family: var(--font-ui) !important;
+  font-synthesis: none;
+}
+
+html body h1,
+html body h2,
+html body h3,
+html body h4,
+html body h5,
+html body h6,
+html body .brand-word {
+  font-family: var(--font-display) !important;
+  font-weight: 400 !important;
+  font-synthesis: none;
+}
+
+html body .mono,
+html body code,
+html body pre,
+html body kbd,
+html body samp,
+html body var {
+  font-family: var(--font-ui) !important;
+}

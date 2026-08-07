@@ -15,7 +15,7 @@ Aahav Labs: https://aahavlabs.in · hi@aahavlabs.in
 7. Every important action needs a complete UI state: idle, loading, empty, validation, success and failure where applicable.
 8. Desktop, laptop, tablet and mobile layouts must be explicitly supported.
 9. Production dependencies must use stable supported release channels. Preview, canary, beta and release-candidate packages are not the production baseline unless explicitly approved for an experiment.
-10. Instrument Serif is the display/editorial typeface and Inter is the UI, body and data typeface. Monospace is reserved for technical identifiers.
+10. Instrument Serif is the only display/editorial typeface. Inter is the only interface, body, data and technical typeface. No fallback, system, generic serif/sans-serif or monospace font stack may be introduced.
 
 ## Capability matrix
 
@@ -92,7 +92,8 @@ Aahav Labs: https://aahavlabs.in · hi@aahavlabs.in
 
 - Light mode only unless the product requirements are intentionally revised.
 - Use Opinny’s warm neutral, forest and coral palette; do not copy another platform’s colour identity.
-- Use Instrument Serif for display/editorial typography and Inter for interface, body and market-data typography.
+- Use Instrument Serif only for display/editorial typography and Inter only for interface, body, market-data and technical typography.
+- Do not use Times, Georgia, Palatino, system UI, generic serif/sans-serif, monospace or any other fallback font family.
 - Maintain clear probability hierarchy, dense but readable market data, restrained motion and accessible focus states.
 - Prefer drawers, bottom sheets and modals for contextual tasks rather than navigating away unnecessarily.
 - Respect reduced-motion settings and keyboard dismissal for overlays.
@@ -106,5 +107,6 @@ A change is complete only when:
 - loading, error, empty and responsive states are considered;
 - keyboard and screen-reader semantics are reasonable;
 - dependency versions are from stable supported channels;
+- typography remains strictly limited to Instrument Serif and Inter with no fallback stack;
 - `bun run lint`, `bun run typecheck`, `bun test` and `bun run build` pass;
 - repository attribution rules are respected.
