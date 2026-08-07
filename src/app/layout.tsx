@@ -1,7 +1,23 @@
 import type { Metadata } from "next";
+import { Instrument_Serif, Inter } from "next/font/google";
 import "./globals.css";
 import { AppProvider } from "@/components/app-provider";
 import { dataAdapter } from "@/lib/data";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+  preload: true
+});
+
+const instrumentSerif = Instrument_Serif({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-instrument-serif",
+  display: "swap",
+  preload: true
+});
 
 export const metadata: Metadata = {
   title: {
@@ -19,7 +35,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
 
   return (
     <html lang="en">
-      <body>
+      <body className={`${inter.variable} ${instrumentSerif.variable}`}>
         <AppProvider initialMarkets={marketCatalog}>{children}</AppProvider>
       </body>
     </html>
