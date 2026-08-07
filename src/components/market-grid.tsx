@@ -44,6 +44,7 @@ export function MarketGrid({
     if (category !== "All") result = result.filter((market) => market.category === category);
     if (openOnly) result = result.filter((market) => market.status === "open");
     if (sort === "volume") result.sort((a, b) => b.volume - a.volume);
+    if (sort === "liquidity") result.sort((a, b) => b.liquidity - a.liquidity);
     if (sort === "newest") result.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
     if (sort === "ending") result.sort((a, b) => +new Date(a.endDate) - +new Date(b.endDate));
     if (sort === "trending") result.sort((a, b) => b.volume24h - a.volume24h);
@@ -73,7 +74,7 @@ export function MarketGrid({
         <div><span className="eyebrow">Explore</span><h2>{heading}</h2></div>
         <div className="market-controls">
           <label className="toggle-control"><input type="checkbox" checked={openOnly} onChange={(event) => setOpenOnly(event.target.checked)} /><span />Open only</label>
-          <label className="select-control"><SlidersHorizontal size={15} /><select aria-label="Sort markets" value={sort} onChange={(event) => setSort(event.target.value)}><option value="trending">Trending</option><option value="volume">Volume</option><option value="newest">Newest</option><option value="ending">Ending soon</option></select></label>
+          <label className="select-control"><SlidersHorizontal size={15} /><select aria-label="Sort markets" value={sort} onChange={(event) => setSort(event.target.value)}><option value="trending">Trending</option><option value="volume">Volume</option><option value="liquidity">Liquidity</option><option value="newest">Newest</option><option value="ending">Ending soon</option></select></label>
         </div>
       </div>
       <div className="market-discovery-bar">

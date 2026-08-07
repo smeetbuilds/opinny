@@ -8,17 +8,19 @@ export const metadata: Metadata = { title: "Help centre" };
 const faqs = [
   ["What does a market price mean?", "A 64¢ outcome price represents a market-implied probability near 64%. It is a tradable price, not a guarantee."],
   ["What is the difference between market and limit orders?", "Market orders prioritize immediate execution against available liquidity. Limit orders only execute at your selected price or better."],
+  ["Where can I manage open limit orders?", "Open and partially filled orders appear in your Orders account screen and, when relevant, directly on the market page so the unmatched remainder can be cancelled without leaving the market."],
+  ["How do liquidity rewards work?", "Some markets can expose adapter-supplied incentive programmes for competitive limit orders. Spread, minimum size, competition, eligibility and earnings are informational in the frontend; the connected backend or protocol performs authoritative scoring and settlement."],
   ["How are markets resolved?", "Each market publishes rules and a primary source. The connected operator reviews evidence, disputes and the final outcome."],
   ["Can I pay by card or bank transfer?", "No. Opinny is designed for crypto-only wallet funding and withdrawals. Supported assets and networks are shown before a request is prepared."],
   ["Does connecting a wallet give the platform custody?", "No. The interface prepares wallet requests, but you review and approve transactions in the connected wallet."],
-  ["Why can an order fill partially?", "A limit order can match only the available liquidity at its price. The remaining quantity stays open until matched or cancelled." ]
+  ["Why can an order fill partially?", "A limit order can match only the available liquidity at its price. The remaining quantity stays open until matched or cancelled."]
 ];
 
 export default function HelpPage() {
   return (
     <SiteShell>
       <div className="page-container help-page">
-        <header className="help-hero"><span className="eyebrow">Support</span><h1>Help centre</h1><p>Understand market prices, order types, crypto funding and resolution workflows.</p></header>
+        <header className="help-hero"><span className="eyebrow">Support</span><h1>Help centre</h1><p>Understand market prices, order types, liquidity rewards, crypto funding and resolution workflows.</p></header>
         <div className="help-topic-grid">
           <Link href="/markets"><span><BookOpen size={19} /></span><strong>Markets</strong><small>Discovery, prices and outcomes</small><ArrowRight size={16} /></Link>
           <Link href="/portfolio"><span><CircleDollarSign size={19} /></span><strong>Trading</strong><small>Orders, positions and P&amp;L</small><ArrowRight size={16} /></Link>

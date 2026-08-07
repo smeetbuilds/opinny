@@ -58,25 +58,6 @@ export interface RecentTrade {
   time: string;
 }
 
-export interface MarketComment {
-  id: string;
-  marketId: string;
-  authorHandle: string;
-  authorDisplayName: string;
-  initials: string;
-  body: string;
-  createdAt: string;
-  usefulCount: number;
-  replyCount: number;
-  replyToId?: string;
-}
-
-export interface MarketCommentInput {
-  marketId: string;
-  body: string;
-  replyToId?: string;
-}
-
 export interface Position {
   id: string;
   marketId: string;
@@ -161,6 +142,40 @@ export interface PreparedFundingAction {
   requestId: string;
   expiresAt: string;
   walletRequest: WalletTransactionRequest;
+}
+
+export interface RewardOpportunity {
+  id: string;
+  marketId: string;
+  marketSlug: string;
+  marketQuestion: string;
+  category: string;
+  maxSpreadCents: number;
+  minimumShares: number;
+  dailyReward: number;
+  competitionPercent: number;
+  earned: number;
+  outcomePrices: { label: string; price: number }[];
+  eligible: boolean;
+}
+
+export interface MarketComment {
+  id: string;
+  marketId: string;
+  authorHandle: string;
+  authorDisplayName: string;
+  initials: string;
+  body: string;
+  createdAt: string;
+  usefulCount: number;
+  replyCount: number;
+  replyToId?: string;
+}
+
+export interface MarketCommentInput {
+  marketId: string;
+  body: string;
+  replyToId?: string;
 }
 
 export type MarketStreamEvent =

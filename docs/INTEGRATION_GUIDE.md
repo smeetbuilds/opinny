@@ -6,13 +6,15 @@ Developed by Aahav Labs: https://aahavlabs.in · hi@aahavlabs.in
 
 ## Integration boundary
 
-The frontend recognizes five responsibility groups:
+The frontend recognizes seven responsibility groups:
 
 1. **Market data** — lists, detail, order book and recent trades.
-2. **Account data** — positions, orders, activity and leaderboard.
-3. **Admin data** — metrics, users, resolution queue and transactions.
-4. **Commands** — order preview/preparation, funding preparation and admin mutations.
-5. **Real time** — normalized market events and sequence numbers.
+2. **Discussion data and commands** — comments, replies and reactions.
+3. **Rewards data** — liquidity-incentive opportunities, qualification states and account earnings presentation.
+4. **Account data** — positions, orders, activity and leaderboard.
+5. **Admin data** — metrics, users, resolution queue and transactions.
+6. **Commands** — order preview/preparation/cancellation, funding preparation, redemption and admin mutations.
+7. **Real time** — normalized market events and sequence numbers.
 
 These are defined in `src/core/contracts/ports.ts` and combined by `OpinnyIntegrationAdapter`.
 
@@ -85,17 +87,40 @@ Funding is crypto only. `FundingIntent` includes action type, asset, amount, cha
 
 Do not add fiat payment gateways to the core product.
 
-## Trading
+## Trading and account orders
 
-`previewOrder` is a non-authoritative estimate for user review. `prepareOrder` returns a short-lived request and optional wallet transaction. Production implementations must handle:
+`previewOrder` is a non-authoritative estimate for user review. `prepareOrder` returns a short-lived request and optional wallet transaction. `getOrders` supplies normalized account order state used by both the account history and market-context open-order panel. `cancelOrder` prepares or submits a cancellation through the integration boundary.
+
+Production implementations must handle:
 
 - authoritative price, size, fee and slippage calculations;
 - idempotency through `clientRequestId`;
 - market status and eligibility checks;
 - signature or authorization preparation;
 - matching, cancellation, settlement and reconciliation;
+- partial fills and remaining-order quantities;
 - stale quote and expiry handling;
 - real-time order and fill updates.
+
+## Rewards and liquidity incentives
+
+`getRewardOpportunities` returns normalized `RewardOpportunity` records for the public rewards surface. The frontend can display programme rules, competition, eligibility and account earnings, but those values are never authoritative browser calculations.
+
+A production integration is responsible for:
+
+- selecting which markets participate in incentive programmes;
+- maximum-spread and minimum-size rules;
+- maker/order eligibility snapshots;
+- competition or scoring calculations;
+- account earnings and accrual state;
+- exclusions, anti-abuse rules and programme windows;
+- final reward settlement and transaction indexing.
+
+The UI should continue to work even when an operator does not support rewards: return an empty array and Opinny will render the corresponding empty state.
+
+## Discussion
+
+Discussion reads and commands are normalized independently from market data. Production implementations should handle identity, persistence, moderation, rate limits, abuse controls and authorization outside the browser.
 
 ## Real-time data
 

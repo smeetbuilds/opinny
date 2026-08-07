@@ -21,13 +21,15 @@ Aahav Labs: https://aahavlabs.in · hi@aahavlabs.in
 
 | Area | Frontend requirement | Repository status | Production integration responsibility |
 |---|---|---|---|
-| Market discovery | Featured, trending, category deep-links, search, sort, filters | Implemented | Supply authoritative market data |
+| Market discovery | Featured, trending, category deep-links, search, sort by activity/volume/liquidity/newest/ending, filters | Implemented | Supply authoritative market data |
 | Binary markets | Yes/no probability and trading states | Implemented | Token/outcome mapping and pricing |
 | Multi-outcome markets | Multiple outcome cards, depth selection and ticket selection | Implemented | Outcome identifiers and order routing |
 | Market chart | Ranges, probability series and hover inspection | Implemented | Historical and real-time series |
 | Order book | Bids, asks, spread, depth and realtime refresh boundary | Implemented | Matching-engine or exchange data |
 | Recent trades | Side, outcome, shares, price, value and realtime refresh boundary | Implemented | Indexed trade stream |
+| Market-context orders | Open/partially filled orders, fill progress and cancellation on the market page | Implemented | Account order lifecycle and authorization |
 | Discussion | Read, post, reply intent and useful reactions | Implemented | Persistent comments, moderation and identity |
+| Rewards | Searchable liquidity-incentive opportunities, qualification rules, competition and account earnings presentation | Implemented | Programme configuration, scoring, accrual and settlement |
 | Market/limit orders | Input, preview, validation and wallet request | Implemented | Preview, authorization, matching and settlement |
 | Portfolio | Balances, positions, P&L and claimable states | Implemented | Authoritative account calculations |
 | Orders | Search, filters, sorting, fill progress and cancellation | Implemented | Order lifecycle and cancellation |
@@ -53,7 +55,8 @@ Aahav Labs: https://aahavlabs.in · hi@aahavlabs.in
 - Persistent primary navigation and account controls
 - Multi-column market grids and sidebars
 - Sticky trading ticket on market detail
-- Full operational tables in admin
+- Full operational and reward tables
+- Contextual open-order management on market pages
 - Popover notification centre
 
 ### Tablet and compact laptop
@@ -62,6 +65,7 @@ Aahav Labs: https://aahavlabs.in · hi@aahavlabs.in
 - Trading ticket converted to bottom sheet
 - Two-column market and summary layouts where space permits
 - Admin sidebar converted to drawer
+- Reward and account controls reflow without horizontal page overflow
 - Tables may remain scrollable or convert to cards based on density
 
 ### Mobile
@@ -71,14 +75,16 @@ Aahav Labs: https://aahavlabs.in · hi@aahavlabs.in
 - Safe-area-aware bottom sheets
 - Labelled card representation for dense tables
 - Full-width modal actions and touch targets
+- Reward rules and order cancellation use bottom-sheet-friendly layouts
 - No horizontal page overflow
 
 ## Architecture rules
 
 - `src/core/contracts/domain.ts` owns normalized product models.
-- `src/core/contracts/ports.ts` owns read, command, discussion and real-time boundaries.
+- `src/core/contracts/ports.ts` owns market, rewards, account, command, discussion and real-time boundaries.
 - `src/lib/data.ts` selects an adapter; components import only the selected adapter or normalized props.
 - Provider SDKs and transport models belong in an adapter directory, not in UI components.
+- Reward eligibility and earnings are adapter supplied; frontend code must not present local calculations as authoritative settlement.
 - Every production command must be treated as a preparation step until the connected wallet/backend confirms execution.
 - The mock adapter must remain deterministic enough for static export and visual testing.
 

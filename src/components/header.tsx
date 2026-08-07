@@ -11,6 +11,7 @@ import { shortAddress } from "@/lib/format";
 
 const navItems = [
   { href: "/markets", label: "Markets" },
+  { href: "/rewards", label: "Rewards" },
   { href: "/portfolio", label: "Portfolio" },
   { href: "/leaderboard", label: "Leaderboard" }
 ];

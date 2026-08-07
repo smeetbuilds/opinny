@@ -9,6 +9,7 @@ import { TradeOutcomeButton } from "@/components/trade-outcome-button";
 import { MarketActions } from "@/components/market-actions";
 import { MarketDiscussion } from "@/components/market-discussion";
 import { MarketLiveData } from "@/components/market-live-data";
+import { MarketOpenOrders } from "@/components/market-open-orders";
 import { MarketCard } from "@/components/market-card";
 import { dataAdapter } from "@/lib/data";
 import { formatCurrency, formatDate, formatNumber } from "@/lib/format";
@@ -92,6 +93,7 @@ export default async function MarketPage({ params }: { params: Promise<{ slug: s
               <nav className="content-tabs" aria-label="Market sections">
                 <a className="active" href="#overview">Overview</a>
                 <a href="#market-depth">Market depth</a>
+                <a href="#market-open-orders">Orders</a>
                 <a href="#recent-trades">Trades</a>
                 <a href="#discussion">Discussion</a>
               </nav>
@@ -106,6 +108,7 @@ export default async function MarketPage({ params }: { params: Promise<{ slug: s
             </section>
 
             <MarketLiveData market={market} initialBook={book} initialTrades={trades} />
+            <div id="market-open-orders"><MarketOpenOrders marketSlug={market.slug} /></div>
             <MarketDiscussion marketId={market.id} initialComments={comments} />
 
             {related.length ? <section className="related-section"><div className="section-heading-row"><div><span className="eyebrow">Continue exploring</span><h2>Related markets</h2></div></div><div className="market-grid related-grid">{related.map((item) => <MarketCard market={item} key={item.id} />)}</div></section> : null}

@@ -18,6 +18,7 @@ import type {
   PreparedOrder,
   RecentTrade,
   ResolutionCase,
+  RewardOpportunity,
   TransactionRecord,
   UserOrder
 } from "./domain";
@@ -25,7 +26,7 @@ import type {
 export interface MarketQuery {
   category?: string;
   search?: string;
-  sort?: "trending" | "volume" | "newest" | "ending";
+  sort?: "trending" | "volume" | "liquidity" | "newest" | "ending";
   status?: "open" | "resolved";
   bookmarked?: boolean;
 }
@@ -42,6 +43,15 @@ export interface MarketDataPort {
 
 export interface DiscussionDataPort {
   getMarketComments(marketId: string): Promise<MarketComment[]>;
+}
+
+export interface DiscussionCommandPort {
+  createMarketComment(input: MarketCommentInput): Promise<MarketComment>;
+  markCommentUseful(commentId: string, useful: boolean): Promise<CommandResult>;
+}
+
+export interface RewardsDataPort {
+  getRewardOpportunities(): Promise<RewardOpportunity[]>;
 }
 
 export interface AccountDataPort {
@@ -64,11 +74,6 @@ export interface TradingCommandPort {
   cancelOrder(orderId: string): Promise<CommandResult>;
 }
 
-export interface DiscussionCommandPort {
-  createMarketComment(input: MarketCommentInput): Promise<MarketComment>;
-  markCommentUseful(commentId: string, useful: boolean): Promise<CommandResult>;
-}
-
 export interface AccountCommandPort {
   redeemPosition(positionId: string): Promise<CommandResult>;
 }
@@ -87,17 +92,13 @@ export interface RealtimePort {
   subscribeToMarket(marketId: string, onEvent: (event: MarketStreamEvent) => void): () => void;
 }
 
-export interface OpinnyDataAdapter
-  extends MarketDataPort,
-    DiscussionDataPort,
-    AccountDataPort,
-    AdminDataPort {}
+export interface OpinnyDataAdapter extends MarketDataPort, DiscussionDataPort, RewardsDataPort, AccountDataPort, AdminDataPort {}
 
 export interface OpinnyIntegrationAdapter
   extends OpinnyDataAdapter,
     TradingCommandPort,
-    DiscussionCommandPort,
     AccountCommandPort,
     FundingCommandPort,
+    DiscussionCommandPort,
     AdminCommandPort,
     RealtimePort {}

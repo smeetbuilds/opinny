@@ -5,6 +5,7 @@ import { appConfig } from "@/lib/config";
 
 const productLinks = [
   ["Markets", "/markets"],
+  ["Rewards", "/rewards"],
   ["Portfolio", "/portfolio"],
   ["Orders", "/orders"],
   ["Leaderboard", "/leaderboard"]

@@ -1,4 +1,4 @@
-import type { MarketComment, OrderIntent, OrderPreview } from "@/core/contracts/domain";
+import type { MarketComment, OrderIntent, OrderPreview, RewardOpportunity } from "@/core/contracts/domain";
 import type { MarketQuery, OpinnyIntegrationAdapter } from "@/core/contracts/ports";
 import { appConfig } from "@/lib/config";
 import {
@@ -70,6 +70,29 @@ function buildReferenceComments(marketId: string): MarketComment[] {
   ];
 }
 
+function buildRewardOpportunities(): RewardOpportunity[] {
+  return markets
+    .filter((market) => market.status === "open")
+    .slice(0, 12)
+    .map((market, index) => {
+      const dailyReward = 40 + (index % 5) * 20;
+      return {
+        id: `reward-${market.id}`,
+        marketId: market.id,
+        marketSlug: market.slug,
+        marketQuestion: market.shortQuestion,
+        category: market.category,
+        maxSpreadCents: 3 + (index % 3),
+        minimumShares: 20 + (index % 4) * 10,
+        dailyReward,
+        competitionPercent: Math.min(94, 34 + (index * 9) % 58),
+        earned: index % 4 === 0 ? Number((dailyReward * 0.18).toFixed(2)) : 0,
+        outcomePrices: market.outcomes.slice(0, 3).map((outcome) => ({ label: outcome.label, price: outcome.probability / 100 })),
+        eligible: index % 3 !== 2
+      };
+    });
+}
+
 export const mockAdapter: OpinnyIntegrationAdapter = {
   async listMarkets(query?: MarketQuery) {
     let result = [...markets];
@@ -81,6 +104,7 @@ export const mockAdapter: OpinnyIntegrationAdapter = {
     if (query?.bookmarked) result = result.filter((market) => market.bookmarked);
     if (query?.status) result = result.filter((market) => market.status === query.status);
     if (query?.sort === "volume") result.sort((a, b) => b.volume - a.volume);
+    if (query?.sort === "liquidity") result.sort((a, b) => b.liquidity - a.liquidity);
     if (query?.sort === "newest") result.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
     if (query?.sort === "ending") result.sort((a, b) => +new Date(a.endDate) - +new Date(b.endDate));
     if (!query?.sort || query.sort === "trending") result.sort((a, b) => b.volume24h - a.volume24h);
@@ -90,6 +114,7 @@ export const mockAdapter: OpinnyIntegrationAdapter = {
   getOrderBook: () => wait(orderBook),
   getRecentTrades: () => wait(recentTrades),
   getMarketComments: (marketId) => wait(buildReferenceComments(marketId)),
+  getRewardOpportunities: () => wait(buildRewardOpportunities()),
   getPositions: () => wait(positions),
   getOrders: () => wait(orders),
   getActivity: () => wait(activity),

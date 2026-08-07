@@ -16,20 +16,24 @@ Developed and maintained by **Aahav Labs**.
 - **Platform presentation:** the application UI is branded only as Opinny. Open-source and Aahav Labs attribution is kept in repository documentation and metadata rather than the public product interface.
 - **Independent design:** the product follows proven prediction-market interaction patterns without copying another platform’s branding, assets or proprietary implementation.
 - **Light mode:** a distinctive warm-neutral, forest and coral colour system with no dark-mode dependency.
+- **Typography:** Instrument Serif for display/editorial hierarchy and Inter for UI, body and market data.
 - **Responsive by default:** desktop, laptop, tablet and mobile layouts use tables, cards, drawers, bottom sheets, modals and sticky actions appropriate to each viewport.
+- **Stable release baseline:** production dependencies stay on supported stable release channels rather than preview/canary builds.
 
 ## Included product surfaces
 
 ### Public market experience
 
 - Homepage with featured, trending and live-market discovery
-- Category navigation, search command palette, sorting and filtering
+- Category navigation, search command palette, filtering and sorting by activity, volume, liquidity, newest and ending soon
 - Binary and multi-outcome markets
 - Watchlists and saved-market state
 - Market detail with probability history, ranges and hover inspection
 - Outcome probabilities, daily movement, volume, liquidity and participation
-- Order book, spread, best bid/ask and recent trades
+- Order book, spread, best bid/ask and recent trades with a realtime adapter boundary
+- Market-context open orders with fill progress and cancellation
 - Resolution rules, source, discussion and related markets
+- Searchable rewards/liquidity-incentive opportunities with programme rules and competition states
 - Leaderboard and statically generated trader profiles
 - Notification centre, help centre and platform policy surfaces
 
@@ -43,12 +47,14 @@ Developed and maintained by **Aahav Labs**.
 - Estimated shares, collateral, fees, payout, profit and price impact
 - Mobile trading bottom sheet and outcome-to-ticket deep interaction
 - Portfolio, positions, order history, activity and claimable states
+- Open-order cancellation from both market context and account history
+- Rewards earnings presentation supplied through a normalized adapter contract
 - User-controlled trading, notification and slippage preferences
 - Persistent browser watchlist and preference states
 
 ### Administration experience
 
-- Operational overview and health/attention queues
+- Operational overview and attention queues
 - Market search, filters, sort, create and moderation states
 - User search, risk filters, CSV export and status transitions
 - Resolution evidence review, disputes and adapter-backed approval
@@ -74,7 +80,7 @@ docs/
   INTEGRATION_GUIDE.md     How to connect any backend or chain stack
 ```
 
-UI components consume normalized domain models and command results, never provider-specific payloads. Read operations, order commands, funding commands, admin commands and real-time subscriptions are separate interfaces in `src/core/contracts/ports.ts`.
+UI components consume normalized domain models and command results, never provider-specific payloads. Market reads, reward opportunities, account reads, order commands, funding commands, discussion actions, admin commands and real-time subscriptions are separate interfaces in `src/core/contracts/ports.ts`.
 
 ## Getting started
 
@@ -123,9 +129,10 @@ Opinny intentionally does **not** implement or claim to implement:
 - order matching, authoritative pricing or settlement
 - smart contracts or blockchain indexing
 - market creation governance or authoritative resolution
+- reward scoring, accrual or payout settlement
 - sanctions, KYC/KYB, geofencing, fraud controls or rate limits
 - authoritative balances, P&L, fees or tax calculations
-- persistent user, market, transaction or notification storage
+- persistent user, market, transaction, discussion or notification storage
 
 Production adopters must provide those capabilities server-side and/or onchain and return normalized data through an adapter. See `docs/INTEGRATION_GUIDE.md`.
 

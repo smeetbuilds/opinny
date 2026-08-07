@@ -1,10 +1,13 @@
 import { expect, test } from "bun:test";
 import { mockAdapter } from "./index";
 
-test("mock adapter exposes market, discussion, trading, account and crypto funding contracts", async () => {
+test("mock adapter exposes market, rewards, discussion, trading, account and crypto funding contracts", async () => {
   const markets = await mockAdapter.listMarkets();
   expect(markets.length).toBeGreaterThan(0);
   expect(markets.some((market) => market.status === "resolved")).toBe(true);
+
+  const byLiquidity = await mockAdapter.listMarkets({ sort: "liquidity" });
+  expect(byLiquidity[0].liquidity).toBeGreaterThanOrEqual(byLiquidity.at(-1)?.liquidity ?? 0);
 
   const market = await mockAdapter.getMarket(markets[0].slug);
   expect(market?.id).toBe(markets[0].id);
@@ -18,6 +21,10 @@ test("mock adapter exposes market, discussion, trading, account and crypto fundi
   expect(comment.marketId).toBe(markets[0].id);
   expect(comment.body).toBe("Test discussion comment");
 
+  const rewards = await mockAdapter.getRewardOpportunities();
+  expect(rewards.length).toBeGreaterThan(0);
+  expect(rewards.every((reward) => reward.dailyReward > 0)).toBe(true);
+
   const preview = await mockAdapter.previewOrder({
     clientRequestId: "test-order",
     marketId: markets[0].id,
@@ -28,12 +35,13 @@ test("mock adapter exposes market, discussion, trading, account and crypto fundi
   });
   expect(preview.estimatedShares).toBeGreaterThan(0);
 
-  const cancelled = await mockAdapter.cancelOrder("ord-1");
-  expect(cancelled.status).toBe("accepted");
+  const cancellation = await mockAdapter.cancelOrder("ord-1");
+  expect(cancellation.status).toBe("accepted");
 
-  const resolved = (await mockAdapter.getPositions()).find((position) => position.status === "resolved");
-  expect(resolved?.claimableAmount).toBeGreaterThan(0);
-  const redemption = await mockAdapter.redeemPosition(resolved?.id ?? "missing");
+  const positions = await mockAdapter.getPositions();
+  const claimable = positions.find((position) => position.status === "resolved" && (position.claimableAmount ?? 0) > 0);
+  expect(claimable).toBeDefined();
+  const redemption = await mockAdapter.redeemPosition(claimable!.id);
   expect(redemption.status).toBe("accepted");
 
   const funding = await mockAdapter.prepareFunding({
