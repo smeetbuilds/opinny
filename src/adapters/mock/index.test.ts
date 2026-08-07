@@ -1,13 +1,22 @@
 import { expect, test } from "bun:test";
 import { mockAdapter } from "./index";
 
-test("mock adapter exposes market, trading, account and crypto funding contracts", async () => {
+test("mock adapter exposes market, discussion, trading, account and crypto funding contracts", async () => {
   const markets = await mockAdapter.listMarkets();
   expect(markets.length).toBeGreaterThan(0);
   expect(markets.some((market) => market.status === "resolved")).toBe(true);
 
   const market = await mockAdapter.getMarket(markets[0].slug);
   expect(market?.id).toBe(markets[0].id);
+
+  const comments = await mockAdapter.getMarketComments(markets[0].id);
+  expect(comments.length).toBeGreaterThan(0);
+  const comment = await mockAdapter.createMarketComment({
+    marketId: markets[0].id,
+    body: "Test discussion comment"
+  });
+  expect(comment.marketId).toBe(markets[0].id);
+  expect(comment.body).toBe("Test discussion comment");
 
   const preview = await mockAdapter.previewOrder({
     clientRequestId: "test-order",

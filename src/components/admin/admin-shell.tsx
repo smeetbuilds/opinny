@@ -54,7 +54,6 @@ export function AdminShell({ title, description, actions, children }: { title: s
           <button className="icon-button admin-menu-button" type="button" aria-label="Open admin navigation" aria-expanded={mobileOpen} onClick={() => setMobileOpen(true)}><Menu size={20} /></button>
           <div className="admin-heading"><span className="eyebrow">Operations</span><h1>{title}</h1>{description ? <p>{description}</p> : null}</div>
           {actions ? <div className="page-actions">{actions}</div> : null}
-          <div className="admin-health" role="status"><i /><span><strong>All systems operational</strong><small>Mock adapter · healthy</small></span></div>
         </header>
         <main className="admin-content" id="admin-main-content" tabIndex={-1}>{children}</main>
       </div>

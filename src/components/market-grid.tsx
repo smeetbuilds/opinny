@@ -1,17 +1,41 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import type { Market } from "@/core/contracts/domain";
 import { CategoryTabs } from "./category-tabs";
 import { MarketCard } from "./market-card";
 
-export function MarketGrid({ initialMarkets, heading = "Markets", showCategories = true }: { initialMarkets: Market[]; heading?: string; showCategories?: boolean }) {
+export function MarketGrid({
+  initialMarkets,
+  heading = "Markets",
+  showCategories = true,
+  syncCategoryFromUrl = false
+}: {
+  initialMarkets: Market[];
+  heading?: string;
+  showCategories?: boolean;
+  syncCategoryFromUrl?: boolean;
+}) {
   const categories = useMemo(() => ["All", ...Array.from(new Set(initialMarkets.map((market) => market.category))).sort()], [initialMarkets]);
   const [category, setCategory] = useState("All");
   const [sort, setSort] = useState("trending");
   const [openOnly, setOpenOnly] = useState(true);
   const [query, setQuery] = useState("");
+
+  useEffect(() => {
+    if (!syncCategoryFromUrl) return;
+
+    const readCategory = () => {
+      const requested = new URLSearchParams(window.location.search).get("category");
+      if (requested && categories.includes(requested)) setCategory(requested);
+      else setCategory("All");
+    };
+
+    readCategory();
+    window.addEventListener("popstate", readCategory);
+    return () => window.removeEventListener("popstate", readCategory);
+  }, [categories, syncCategoryFromUrl]);
 
   const visible = useMemo(() => {
     let result = [...initialMarkets];
@@ -26,9 +50,18 @@ export function MarketGrid({ initialMarkets, heading = "Markets", showCategories
     return result;
   }, [initialMarkets, category, sort, openOnly, query]);
 
+  function changeCategory(nextCategory: string) {
+    setCategory(nextCategory);
+    if (!syncCategoryFromUrl) return;
+    const url = new URL(window.location.href);
+    if (nextCategory === "All") url.searchParams.delete("category");
+    else url.searchParams.set("category", nextCategory);
+    window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+  }
+
   const hasActiveFilters = category !== "All" || sort !== "trending" || !openOnly || Boolean(query.trim());
   const clearFilters = () => {
-    setCategory("All");
+    changeCategory("All");
     setSort("trending");
     setOpenOnly(true);
     setQuery("");
@@ -47,7 +80,7 @@ export function MarketGrid({ initialMarkets, heading = "Markets", showCategories
         <label className="market-search-field"><Search size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search within markets" aria-label="Search within markets" />{query ? <button onClick={() => setQuery("")} aria-label="Clear market search"><X size={14} /></button> : null}</label>
         <div className="market-results-meta" aria-live="polite"><strong>{visible.length}</strong><span>{visible.length === 1 ? "market" : "markets"}</span>{hasActiveFilters ? <button onClick={clearFilters}>Reset filters</button> : null}</div>
       </div>
-      {showCategories ? <CategoryTabs categories={categories} active={category} onChange={setCategory} /> : null}
+      {showCategories ? <CategoryTabs categories={categories} active={category} onChange={changeCategory} /> : null}
       <div className="market-grid">{visible.map((market) => <MarketCard market={market} key={market.id} />)}</div>
       {visible.length === 0 ? <div className="empty-state market-empty"><Search size={24} /><strong>No markets match these filters.</strong><span>Try another category, remove a keyword or include resolved markets.</span><button className="secondary-button compact" onClick={clearFilters}>Clear all filters</button></div> : null}
     </section>

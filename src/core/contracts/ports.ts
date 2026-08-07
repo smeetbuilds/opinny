@@ -7,6 +7,8 @@ import type {
   FundingIntent,
   LeaderboardEntry,
   Market,
+  MarketComment,
+  MarketCommentInput,
   MarketStreamEvent,
   OrderBookLevel,
   OrderIntent,
@@ -38,6 +40,10 @@ export interface MarketDataPort {
   getRecentTrades(marketId: string): Promise<RecentTrade[]>;
 }
 
+export interface DiscussionDataPort {
+  getMarketComments(marketId: string): Promise<MarketComment[]>;
+}
+
 export interface AccountDataPort {
   getPositions(): Promise<Position[]>;
   getOrders(): Promise<UserOrder[]>;
@@ -58,6 +64,11 @@ export interface TradingCommandPort {
   cancelOrder(orderId: string): Promise<CommandResult>;
 }
 
+export interface DiscussionCommandPort {
+  createMarketComment(input: MarketCommentInput): Promise<MarketComment>;
+  markCommentUseful(commentId: string, useful: boolean): Promise<CommandResult>;
+}
+
 export interface AccountCommandPort {
   redeemPosition(positionId: string): Promise<CommandResult>;
 }
@@ -76,11 +87,16 @@ export interface RealtimePort {
   subscribeToMarket(marketId: string, onEvent: (event: MarketStreamEvent) => void): () => void;
 }
 
-export interface OpinnyDataAdapter extends MarketDataPort, AccountDataPort, AdminDataPort {}
+export interface OpinnyDataAdapter
+  extends MarketDataPort,
+    DiscussionDataPort,
+    AccountDataPort,
+    AdminDataPort {}
 
 export interface OpinnyIntegrationAdapter
   extends OpinnyDataAdapter,
     TradingCommandPort,
+    DiscussionCommandPort,
     AccountCommandPort,
     FundingCommandPort,
     AdminCommandPort,

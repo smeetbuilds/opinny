@@ -1,15 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Activity, CalendarDays, ChevronRight, CircleDollarSign, Clock3, MessageCircle, ShieldCheck, TrendingUp, Users } from "lucide-react";
+import { Activity, CalendarDays, ChevronRight, CircleDollarSign, Clock3, ShieldCheck, TrendingUp, Users } from "lucide-react";
 import { SiteShell } from "@/components/site-shell";
 import { PriceChart } from "@/components/price-chart";
 import { TradeTicket } from "@/components/trade-ticket";
 import { TradeOutcomeButton } from "@/components/trade-outcome-button";
 import { MarketActions } from "@/components/market-actions";
-import { MarketCommentComposer } from "@/components/market-comment-composer";
-import { OrderBook } from "@/components/order-book";
-import { RecentTrades } from "@/components/recent-trades";
+import { MarketDiscussion } from "@/components/market-discussion";
+import { MarketLiveData } from "@/components/market-live-data";
 import { MarketCard } from "@/components/market-card";
 import { dataAdapter } from "@/lib/data";
 import { formatCurrency, formatDate, formatNumber } from "@/lib/format";
@@ -29,12 +28,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function MarketPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const marketResult = await dataAdapter.getMarket(slug);
-  if (!marketResult) notFound();
-  const market = marketResult!;
-  const [book, trades, allMarkets] = await Promise.all([
+  const market = await dataAdapter.getMarket(slug);
+  if (!market) notFound();
+
+  const [book, trades, comments, allMarkets] = await Promise.all([
     dataAdapter.getOrderBook(market.id, market.outcomes[0].id),
     dataAdapter.getRecentTrades(market.id),
+    dataAdapter.getMarketComments(market.id),
     dataAdapter.listMarkets({ category: market.category })
   ]);
   const related = allMarkets.filter((item) => item.id !== market.id).slice(0, 3);
@@ -45,7 +45,7 @@ export default async function MarketPage({ params }: { params: Promise<{ slug: s
       <div className="page-container market-page">
         <nav className="breadcrumb" aria-label="Breadcrumb">
           <Link href="/markets">Markets</Link><ChevronRight size={14} />
-          <Link href={`/markets?category=${market.category}`}>{market.category}</Link><ChevronRight size={14} />
+          <Link href={`/markets?category=${encodeURIComponent(market.category)}`}>{market.category}</Link><ChevronRight size={14} />
           <span aria-current="page">{market.shortQuestion}</span>
         </nav>
 
@@ -64,7 +64,7 @@ export default async function MarketPage({ params }: { params: Promise<{ slug: s
               <div className="market-signal-strip">
                 <div><TrendingUp size={17} /><span><small>Market leader</small><strong>{leader.label} · {leader.probability}%</strong></span></div>
                 <div><Activity size={17} /><span><small>24h activity</small><strong>{formatCurrency(market.volume24h, { compact: true })}</strong></span></div>
-                <div><Clock3 size={17} /><span><small>Resolution</small><strong>{market.status === "open" ? "Trading open" : market.status}</strong></span></div>
+                <div><Clock3 size={17} /><span><small>Status</small><strong>{market.status === "open" ? "Trading open" : market.status}</strong></span></div>
               </div>
 
               <div className="headline-outcomes">
@@ -73,7 +73,7 @@ export default async function MarketPage({ params }: { params: Promise<{ slug: s
                     <span>{outcome.label}</span>
                     <strong>{outcome.probability}%</strong>
                     <em className={outcome.change24h >= 0 ? "positive" : "negative"}>{outcome.change24h >= 0 ? "+" : ""}{outcome.change24h.toFixed(1)} today</em>
-                    <TradeOutcomeButton outcomeId={outcome.id} label={outcome.label} className={index === 0 ? "yes-button" : "no-button"} />
+                    {market.status === "open" ? <TradeOutcomeButton outcomeId={outcome.id} label={outcome.label} className={index === 0 ? "yes-button" : "no-button"} /> : <span className="outcome-closed-action">{market.status === "resolved" ? "Final" : "Unavailable"}</span>}
                   </div>
                 ))}
               </div>
@@ -93,7 +93,7 @@ export default async function MarketPage({ params }: { params: Promise<{ slug: s
                 <a className="active" href="#overview">Overview</a>
                 <a href="#market-depth">Market depth</a>
                 <a href="#recent-trades">Trades</a>
-                <a href="#discussion">Discussion <span>84</span></a>
+                <a href="#discussion">Discussion</a>
               </nav>
               <div className="market-description">
                 <div className="section-copy-head"><div><span className="eyebrow">Market context</span><h2>About this market</h2></div><span className="verified-source"><ShieldCheck size={15} />Defined resolution</span></div>
@@ -105,21 +105,8 @@ export default async function MarketPage({ params }: { params: Promise<{ slug: s
               </div>
             </section>
 
-            <div className="market-data-grid" id="market-depth">
-              <OrderBook bids={book.bids} asks={book.asks} />
-              <div id="recent-trades"><RecentTrades trades={trades} /></div>
-            </div>
-
-            <section className="comments-card" id="discussion">
-              <div className="table-title"><div><h3>Discussion</h3><span>84 comments · Community analysis</span></div><MessageCircle size={17} /></div>
-              <MarketCommentComposer />
-              {["The recent momentum looks strong, but the deadline still leaves enough time for a major reversal.", "Liquidity has improved considerably this week. Watch the spread before placing a larger order."].map((text, index) => (
-                <article className="comment" key={text}>
-                  <span className="profile-avatar">{index === 0 ? "BR" : "MM"}</span>
-                  <div><header><strong>{index === 0 ? "Bayes Runner" : "Market Mosaic"}</strong><span>{index === 0 ? "18 min" : "1 hr"}</span></header><p>{text}</p><footer><button type="button"><MessageCircle size={14} />Reply</button><button type="button">Useful · {index === 0 ? 18 : 11}</button></footer></div>
-                </article>
-              ))}
-            </section>
+            <MarketLiveData market={market} initialBook={book} initialTrades={trades} />
+            <MarketDiscussion marketId={market.id} initialComments={comments} />
 
             {related.length ? <section className="related-section"><div className="section-heading-row"><div><span className="eyebrow">Continue exploring</span><h2>Related markets</h2></div></div><div className="market-grid related-grid">{related.map((item) => <MarketCard market={item} key={item.id} />)}</div></section> : null}
           </div>

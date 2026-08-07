@@ -58,6 +58,25 @@ export interface RecentTrade {
   time: string;
 }
 
+export interface MarketComment {
+  id: string;
+  marketId: string;
+  authorHandle: string;
+  authorDisplayName: string;
+  initials: string;
+  body: string;
+  createdAt: string;
+  usefulCount: number;
+  replyCount: number;
+  replyToId?: string;
+}
+
+export interface MarketCommentInput {
+  marketId: string;
+  body: string;
+  replyToId?: string;
+}
+
 export interface Position {
   id: string;
   marketId: string;

@@ -1,4 +1,4 @@
-import type { OrderIntent, OrderPreview } from "@/core/contracts/domain";
+import type { MarketComment, OrderIntent, OrderPreview } from "@/core/contracts/domain";
 import type { MarketQuery, OpinnyIntegrationAdapter } from "@/core/contracts/ports";
 import { appConfig } from "@/lib/config";
 import {
@@ -38,6 +38,38 @@ function buildOrderPreview(intent: OrderIntent): OrderPreview {
   };
 }
 
+function buildReferenceComments(marketId: string): MarketComment[] {
+  const marketIndex = Math.max(markets.findIndex((market) => market.id === marketId), 0);
+  const first = leaderboard[marketIndex % leaderboard.length];
+  const second = leaderboard[(marketIndex + 2) % leaderboard.length];
+  const now = Date.now();
+
+  return [
+    {
+      id: `${marketId}-comment-1`,
+      marketId,
+      authorHandle: first.handle,
+      authorDisplayName: first.displayName,
+      initials: first.initials,
+      body: "The current probability looks reasonable, but I am watching liquidity and the resolution source before increasing exposure.",
+      createdAt: new Date(now - 18 * 60_000).toISOString(),
+      usefulCount: 18 + marketIndex,
+      replyCount: 3
+    },
+    {
+      id: `${marketId}-comment-2`,
+      marketId,
+      authorHandle: second.handle,
+      authorDisplayName: second.displayName,
+      initials: second.initials,
+      body: "The spread has tightened compared with earlier in the session. Limit orders still look preferable for larger positions.",
+      createdAt: new Date(now - 67 * 60_000).toISOString(),
+      usefulCount: 11 + marketIndex,
+      replyCount: 1
+    }
+  ];
+}
+
 export const mockAdapter: OpinnyIntegrationAdapter = {
   async listMarkets(query?: MarketQuery) {
     let result = [...markets];
@@ -57,6 +89,7 @@ export const mockAdapter: OpinnyIntegrationAdapter = {
   getMarket: (slug) => wait(markets.find((market) => market.slug === slug) ?? null),
   getOrderBook: () => wait(orderBook),
   getRecentTrades: () => wait(recentTrades),
+  getMarketComments: (marketId) => wait(buildReferenceComments(marketId)),
   getPositions: () => wait(positions),
   getOrders: () => wait(orders),
   getActivity: () => wait(activity),
@@ -78,6 +111,26 @@ export const mockAdapter: OpinnyIntegrationAdapter = {
     }
   }),
   cancelOrder: (orderId) => wait({ id: orderId, status: "accepted", message: "Cancellation request accepted." }),
+  createMarketComment: (input) => {
+    const author = leaderboard.at(-1) ?? leaderboard[0];
+    return wait({
+      id: `comment-${Date.now()}`,
+      marketId: input.marketId,
+      authorHandle: author.handle,
+      authorDisplayName: author.displayName,
+      initials: author.initials,
+      body: input.body,
+      createdAt: new Date().toISOString(),
+      usefulCount: 0,
+      replyCount: 0,
+      replyToId: input.replyToId
+    });
+  },
+  markCommentUseful: (commentId, useful) => wait({
+    id: commentId,
+    status: "accepted",
+    message: useful ? "Comment marked useful." : "Useful mark removed."
+  }),
   redeemPosition: (positionId) => wait({ id: positionId, status: "accepted", message: "Redemption request accepted." }),
   prepareFunding: (intent) => wait({
     requestId: `fund-${Date.now()}`,

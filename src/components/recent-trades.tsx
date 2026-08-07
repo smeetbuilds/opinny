@@ -2,7 +2,7 @@ import { Activity } from "lucide-react";
 import type { RecentTrade } from "@/core/contracts/domain";
 import { formatCurrency, formatNumber } from "@/lib/format";
 
-export function RecentTrades({ trades }: { trades: RecentTrade[] }) {
+export function RecentTrades({ trades, statusLabel = "Latest matched activity" }: { trades: RecentTrade[]; statusLabel?: string }) {
   const totalShares = trades.reduce((sum, trade) => sum + trade.shares, 0);
   const totalValue = trades.reduce((sum, trade) => sum + trade.value, 0);
   const averagePrice = totalShares ? trades.reduce((sum, trade) => sum + trade.price * trade.shares, 0) / totalShares : 0;
@@ -11,7 +11,7 @@ export function RecentTrades({ trades }: { trades: RecentTrade[] }) {
   return (
     <section className="trades-card" aria-labelledby="recent-trades-title">
       <div className="table-title">
-        <div><h3 id="recent-trades-title">Recent trades</h3><span><i className="live-pulse" />Updates automatically</span></div>
+        <div><h3 id="recent-trades-title">Recent trades</h3><span><i className="live-pulse" />{statusLabel}</span></div>
         <Activity size={17} />
       </div>
       <div className="trade-activity-summary">

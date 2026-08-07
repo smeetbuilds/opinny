@@ -16,9 +16,9 @@ export default async function AdminOverviewPage() {
   const pendingTransactions = transactions.filter((tx) => tx.status === "pending" || tx.status === "failed").length;
 
   return (
-    <AdminShell title="Overview" description="Platform health, market operations and settlement activity." actions={<Link className="primary-button compact" href="/admin/markets">Manage markets</Link>}>
+    <AdminShell title="Overview" description="Market operations, account review and settlement activity." actions={<Link className="primary-button compact" href="/admin/markets">Manage markets</Link>}>
       <div className="admin-attention-bar">
-        <div><CheckCircle2 size={18} /><span><strong>Core services healthy</strong><small>Indexing, pricing and settlement are responding normally.</small></span></div>
+        <div><CheckCircle2 size={18} /><span><strong>Operational review</strong><small>Review the resolution, risk and transaction queues supplied by the connected integration.</small></span></div>
         <Link href="/admin/resolutions"><Clock3 size={16} /><span>Resolution review</span><strong>{attentionCases}</strong></Link>
         <Link href="/admin/users"><ShieldAlert size={16} /><span>Elevated-risk users</span><strong>{elevatedUsers}</strong></Link>
         <Link href="/admin/transactions"><AlertTriangle size={16} /><span>Transaction attention</span><strong>{pendingTransactions}</strong></Link>
