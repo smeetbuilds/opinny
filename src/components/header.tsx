@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ChevronDown, Menu, Search, Wallet, X } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { Logo } from "./logo";
 import { NotificationCenter } from "./notification-center";
 import { useApp } from "./app-provider";
@@ -77,25 +77,29 @@ export function Header() {
         if (searchOpen) closeSearch();
         setMenuOpen(false);
         setAccountOpen(false);
-        return;
-      }
-      if (!searchOpen || results.length === 0) return;
-      if (event.key === "ArrowDown") {
-        event.preventDefault();
-        setActiveResult((index) => (index + 1) % results.length);
-      }
-      if (event.key === "ArrowUp") {
-        event.preventDefault();
-        setActiveResult((index) => (index - 1 + results.length) % results.length);
-      }
-      if (event.key === "Enter") {
-        event.preventDefault();
-        openMarket(results[activeResult]?.slug ?? results[0].slug);
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [activeResult, closeSearch, openMarket, results, searchOpen]);
+  }, [closeSearch, searchOpen]);
+
+  function handleSearchKeyDown(event: ReactKeyboardEvent<HTMLInputElement>) {
+    if (!results.length) return;
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setActiveResult((index) => (index + 1) % results.length);
+      return;
+    }
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setActiveResult((index) => (index - 1 + results.length) % results.length);
+      return;
+    }
+    if (event.key === "Enter") {
+      event.preventDefault();
+      openMarket(results[activeResult]?.slug ?? results[0].slug);
+    }
+  }
 
   return (
     <>
@@ -120,7 +124,7 @@ export function Header() {
                     <Link href="/portfolio" role="menuitem" onClick={() => setAccountOpen(false)}>Portfolio</Link>
                     <Link href="/orders" role="menuitem" onClick={() => setAccountOpen(false)}>Orders</Link>
                     <Link href="/settings" role="menuitem" onClick={() => setAccountOpen(false)}>Settings</Link>
-                    <button role="menuitem" onClick={() => { disconnectWallet(); setAccountOpen(false); }}>Disconnect</button>
+                    <button role="menuitem" onClick={() => { void disconnectWallet(); setAccountOpen(false); }}>Disconnect</button>
                   </div>
                 ) : null}
               </div>
@@ -135,17 +139,17 @@ export function Header() {
           <div className="command-dialog" role="dialog" aria-modal="true" aria-label="Search markets" onMouseDown={(event) => event.stopPropagation()}>
             <div className="command-input-wrap">
               <Search size={20} />
-              <input autoFocus placeholder="Search questions, categories or tags" value={query} onChange={(event) => setQuery(event.target.value)} aria-label="Search markets" />
+              <input autoFocus placeholder="Search questions, categories or tags" value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={handleSearchKeyDown} aria-label="Search markets" aria-controls="market-search-results" />
               {query ? <button className="clear-search" aria-label="Clear search" onClick={() => setQuery("")}><X size={15} /></button> : null}
               <button className="icon-button" aria-label="Close search" onClick={closeSearch}><X size={17} /></button>
             </div>
-            <div className="command-results" role="listbox" aria-label="Market search results">
+            <div className="command-results" id="market-search-results" role="listbox" aria-label="Market search results">
               <div className="command-results-head"><span className="command-label">{query ? "Matching markets" : "Trending now"}</span><small>{results.length} shown</small></div>
               {results.map((market, index) => (
                 <button className={index === activeResult ? "active" : ""} role="option" aria-selected={index === activeResult} key={market.id} onMouseEnter={() => setActiveResult(index)} onClick={() => openMarket(market.slug)}>
                   <span className={`market-avatar ${market.imageTone}`}>{market.icon}</span>
                   <span><strong>{market.shortQuestion}</strong><small>{market.category} · {market.status === "open" ? `$${Math.round(market.volume24h / 1000)}K today` : market.status}</small></span>
-                  <em>{market.outcomes[0].probability}%</em>
+                  <em>{Math.max(...market.outcomes.map((outcome) => outcome.probability))}%</em>
                 </button>
               ))}
               {results.length === 0 ? <div className="command-empty"><Search size={22} /><strong>No markets found</strong><span>Try a category, topic or shorter keyword.</span></div> : null}

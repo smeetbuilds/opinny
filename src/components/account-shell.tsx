@@ -17,7 +17,8 @@ const links = [
 
 export function AccountShell({ title, eyebrow, description, actions, children }: { title: string; eyebrow?: string; description?: string; actions?: React.ReactNode; children: React.ReactNode }) {
   const pathname = usePathname();
-  const { connected, walletAddress, setWalletOpen } = useApp();
+  const { connected, walletAddress, setWalletOpen, balances, balanceError } = useApp();
+  const balance = balances.find((item) => item.asset === appConfig.collateral);
 
   return (
     <div className="account-layout">
@@ -28,8 +29,8 @@ export function AccountShell({ title, eyebrow, description, actions, children }:
         </div>
         <div className="account-balance">
           <span>Available to trade</span>
-          <strong>{connected ? `3,842.16 ${appConfig.collateral}` : "—"}</strong>
-          {connected ? <small><i /> Wallet connected</small> : <button type="button" className="text-button" onClick={() => setWalletOpen(true)}>Connect wallet</button>}
+          <strong>{connected ? balance ? `${balance.available.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${appConfig.collateral}` : balanceError ? "Unavailable" : "Loading…" : "—"}</strong>
+          {connected ? <small><i /> {balanceError || "Wallet connected"}</small> : <button type="button" className="text-button" onClick={() => setWalletOpen(true)}>Connect wallet</button>}
         </div>
         <nav aria-label="Account navigation">
           {links.map(({ href, label, icon: Icon }) => <Link className={pathname.startsWith(href) ? "active" : ""} href={href} key={href}><Icon size={17} /><span>{label}</span></Link>)}

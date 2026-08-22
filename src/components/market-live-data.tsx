@@ -1,9 +1,10 @@
 "use client";
 
 import { RefreshCw } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Market, OrderBookLevel, RecentTrade } from "@/core/contracts/domain";
 import { dataAdapter } from "@/lib/data";
+import { captureException } from "@/lib/observability";
 import { OrderBook } from "./order-book";
 import { RecentTrades } from "./recent-trades";
 
@@ -24,23 +25,46 @@ export function MarketLiveData({
   const [trades, setTrades] = useState(initialTrades);
   const [syncState, setSyncState] = useState<SyncState>("ready");
   const [sequence, setSequence] = useState(0);
+  const generation = useRef(0);
+  const selectedOutcome = useRef(outcomeId);
+  const refreshTimer = useRef<number | null>(null);
+  const pendingSequence = useRef(0);
+
+  useEffect(() => {
+    selectedOutcome.current = outcomeId;
+  }, [outcomeId]);
 
   const refresh = useCallback(async (nextOutcomeId: string, nextSequence?: number) => {
     if (!nextOutcomeId) return;
+    const currentGeneration = ++generation.current;
     setSyncState("syncing");
     try {
       const [nextBook, nextTrades] = await Promise.all([
         dataAdapter.getOrderBook(market.id, nextOutcomeId),
         dataAdapter.getRecentTrades(market.id)
       ]);
+      if (currentGeneration !== generation.current || selectedOutcome.current !== nextOutcomeId) return;
       setBook(nextBook);
       setTrades(nextTrades);
       if (nextSequence !== undefined) setSequence((current) => Math.max(current, nextSequence));
       setSyncState("ready");
-    } catch {
+    } catch (cause) {
+      if (currentGeneration !== generation.current || selectedOutcome.current !== nextOutcomeId) return;
+      captureException(cause, { operation: "refreshMarketLiveData", marketId: market.id, outcomeId: nextOutcomeId });
       setSyncState("stale");
     }
   }, [market.id]);
+
+  const scheduleRefresh = useCallback((nextOutcomeId: string, nextSequence: number) => {
+    pendingSequence.current = Math.max(pendingSequence.current, nextSequence);
+    if (refreshTimer.current !== null) return;
+    refreshTimer.current = window.setTimeout(() => {
+      refreshTimer.current = null;
+      const sequenceToApply = pendingSequence.current;
+      pendingSequence.current = 0;
+      void refresh(nextOutcomeId, sequenceToApply);
+    }, 100);
+  }, [refresh]);
 
   useEffect(() => {
     if (!outcomeId) return;
@@ -48,13 +72,27 @@ export function MarketLiveData({
       if (event.marketId !== market.id) return;
       if (event.type === "order-book" && event.outcomeId !== outcomeId) return;
       if (event.type === "price" && event.outcomeId !== outcomeId) return;
-      void refresh(outcomeId, event.sequence);
+      scheduleRefresh(outcomeId, event.sequence);
     });
-    return unsubscribe;
-  }, [market.id, outcomeId, refresh]);
+    return () => {
+      unsubscribe();
+      if (refreshTimer.current !== null) {
+        window.clearTimeout(refreshTimer.current);
+        refreshTimer.current = null;
+      }
+      pendingSequence.current = 0;
+    };
+  }, [market.id, outcomeId, scheduleRefresh]);
 
   function selectOutcome(nextOutcomeId: string) {
     if (nextOutcomeId === outcomeId) return;
+    if (refreshTimer.current !== null) {
+      window.clearTimeout(refreshTimer.current);
+      refreshTimer.current = null;
+    }
+    pendingSequence.current = 0;
+    generation.current += 1;
+    selectedOutcome.current = nextOutcomeId;
     setOutcomeId(nextOutcomeId);
     void refresh(nextOutcomeId);
   }

@@ -7,12 +7,13 @@ import type { Position } from "@/core/contracts/domain";
 import { dataAdapter } from "@/lib/data";
 import { appConfig } from "@/lib/config";
 import { formatCurrency } from "@/lib/format";
+import { captureException } from "@/lib/observability";
 import { useApp } from "./app-provider";
 
 type Tab = "open" | "resolved";
 
 export function PortfolioConsole({ positions }: { positions: Position[] }) {
-  const { connected, setWalletOpen, notify } = useApp();
+  const { connected, setWalletOpen, notify, balances, balanceError } = useApp();
   const [items, setItems] = useState(positions);
   const [tab, setTab] = useState<Tab>("open");
   const [selected, setSelected] = useState<Position[]>([]);
@@ -30,6 +31,7 @@ export function PortfolioConsole({ positions }: { positions: Position[] }) {
   const claimableTotal = claimable.reduce((sum, position) => sum + (position.claimableAmount ?? 0), 0);
   const visible = tab === "open" ? open : resolved;
   const redeemTotal = selected.reduce((sum, position) => sum + (position.claimableAmount ?? 0), 0);
+  const availableBalance = balances.find((balance) => balance.asset === appConfig.collateral)?.available;
 
   useEffect(() => {
     if (!selected.length) return;
@@ -56,28 +58,49 @@ export function PortfolioConsole({ positions }: { positions: Position[] }) {
     if (!selected.length) return;
     setBusy(true);
     setError("");
+    const acceptedIds = new Set<string>();
+    const failures: string[] = [];
+    let acceptedTotal = 0;
+
     try {
-      const results = await Promise.all(selected.map((position) => dataAdapter.redeemPosition(position.id)));
-      const rejected = results.find((result) => result.status === "rejected");
-      if (rejected) throw new Error(rejected.message);
-      const ids = new Set(selected.map((position) => position.id));
-      setItems((current) => current.map((position) => ids.has(position.id) ? { ...position, status: "claimed", claimableAmount: 0 } : position));
-      notify("Redemption prepared", `${formatCurrency(redeemTotal)} ${appConfig.collateral} is ready for settlement confirmation.`, "funding");
-      setSelected([]);
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "The redemption request could not be prepared.");
+      for (const position of selected) {
+        try {
+          const result = await dataAdapter.redeemPosition(position.id);
+          if (result.status === "rejected") {
+            failures.push(`${position.id}: ${result.message}`);
+            continue;
+          }
+          acceptedIds.add(position.id);
+          acceptedTotal += position.claimableAmount ?? 0;
+        } catch (cause) {
+          captureException(cause, { operation: "redeemPosition", positionId: position.id });
+          failures.push(`${position.id}: request failed`);
+        }
+      }
+
+      if (acceptedIds.size) {
+        setItems((current) => current.map((position) => acceptedIds.has(position.id) ? { ...position, status: "claimed", claimableAmount: 0 } : position));
+        notify("Redemption prepared", `${formatCurrency(acceptedTotal)} ${appConfig.collateral} is ready for settlement confirmation.`, "funding", "resolutionEvents");
+      }
+
+      if (failures.length) {
+        setError(`${failures.length} redemption ${failures.length === 1 ? "request was" : "requests were"} not accepted. Accepted positions were updated; retry only the remaining positions.`);
+        setSelected((current) => current.filter((position) => !acceptedIds.has(position.id)));
+      } else {
+        setSelected([]);
+      }
     } finally {
       setBusy(false);
     }
   }
 
-  const summaries = useMemo(() => ({ total: value + 3842.16 + claimableTotal, claimableTotal }), [claimableTotal, value]);
+  const summaries = useMemo(() => ({ total: value + (availableBalance ?? 0) + claimableTotal, claimableTotal }), [availableBalance, claimableTotal, value]);
 
   return (
     <>
       <div className="portfolio-summary-grid">
         <article className="balance-card featured-balance"><div><span>Portfolio value</span><strong>{formatCurrency(summaries.total)}</strong><em className={pnl >= 0 ? "positive" : "negative"}>{pnl >= 0 ? "+" : ""}{formatCurrency(pnl)} open P&amp;L · {returnPercent.toFixed(1)}%</em></div><div className="mini-chart" aria-label="Portfolio value trend"><svg viewBox="0 0 240 76" preserveAspectRatio="none"><polyline points="0,65 24,58 48,61 72,46 96,50 120,38 144,42 168,29 192,34 216,19 240,12" /></svg></div></article>
-        <article className="balance-card"><CircleDollarSign size={18} /><span>Available collateral</span><strong>$3,842.16</strong><small>{appConfig.collateral} ready to deploy</small></article>
+        <article className="balance-card"><CircleDollarSign size={18} /><span>Available collateral</span><strong>{availableBalance === undefined ? balanceError ? "Unavailable" : "—" : formatCurrency(availableBalance)}</strong><small>{appConfig.collateral} ready to deploy</small></article>
         <article className="balance-card"><TrendingUp size={18} /><span>Open positions</span><strong>{open.length}</strong><small>{formatCurrency(value)} market value</small></article>
         <article className={`balance-card claimable-card ${claimableTotal ? "active" : ""}`}><WalletCards size={18} /><span>Claimable</span><strong>{formatCurrency(claimableTotal)}</strong><small>{claimable.length} resolved {claimable.length === 1 ? "position" : "positions"}</small>{claimableTotal ? <button type="button" onClick={() => requestRedeem(claimable)}>Redeem all</button> : null}</article>
       </div>
@@ -89,7 +112,7 @@ export function PortfolioConsole({ positions }: { positions: Position[] }) {
         {visible.length ? <div className="responsive-table account-data-table portfolio-responsive-table"><table><thead><tr><th>Market</th><th>Outcome</th><th>Shares</th><th>{tab === "open" ? "Avg. price" : "Result"}</th><th>{tab === "open" ? "Current" : "Claimable"}</th><th>Value</th><th>{tab === "open" ? "P&L" : "Status"}</th><th /></tr></thead><tbody>{visible.map((position) => <tr key={position.id}><td className="wide-cell" data-label="Market"><Link href={`/market/${position.marketSlug}`}>{position.marketQuestion}<small>Position {position.id}</small></Link></td><td data-label="Outcome"><span className="outcome-chip">{position.outcome}</span></td><td data-label="Shares">{position.shares.toLocaleString()}</td><td data-label={tab === "open" ? "Avg. price" : "Result"}>{tab === "open" ? `${Math.round(position.averagePrice * 100)}¢` : position.resolvedOutcome}</td><td data-label={tab === "open" ? "Current" : "Claimable"}>{tab === "open" ? `${Math.round(position.currentPrice * 100)}¢` : formatCurrency(position.claimableAmount ?? 0)}</td><td data-label="Value">{formatCurrency(position.value)}</td><td data-label={tab === "open" ? "P&L" : "Status"}>{tab === "open" ? <span className={position.pnl >= 0 ? "positive" : "negative"}>{position.pnl >= 0 ? "+" : ""}{formatCurrency(position.pnl)}<small>{position.pnlPercent.toFixed(1)}%</small></span> : <span className={`status-pill ${position.status}`}>{position.status}</span>}</td><td>{position.status === "resolved" && (position.claimableAmount ?? 0) > 0 ? <button className="row-action claim-action" type="button" onClick={() => requestRedeem([position])}>Redeem</button> : position.status === "open" ? <Link className="row-action" href={`/market/${position.marketSlug}`}>Trade <ArrowUpRight size={14} /></Link> : <span className="settled-label"><CheckCircle2 size={14} />Settled</span>}</td></tr>)}</tbody></table></div> : <div className="table-empty large"><CheckCircle2 size={24} /><strong>{tab === "open" ? "No open positions" : "No resolved positions"}</strong><span>{tab === "open" ? "Explore a market to start building a position." : "Resolved and claimed positions will appear here."}</span>{tab === "open" ? <Link href="/markets">Explore markets</Link> : null}</div>}
       </section>
 
-      {selected.length ? <div className="overlay operation-overlay" onMouseDown={() => !busy && setSelected([])}><section className="operation-dialog redeem-dialog" role="dialog" aria-modal="true" aria-labelledby="redeem-title" onMouseDown={(event) => event.stopPropagation()}><div className="sheet-handle" /><header><span className="operation-icon success"><WalletCards size={21} /></span><div><span className="eyebrow">Resolved positions</span><h2 id="redeem-title">Redeem {formatCurrency(redeemTotal)}</h2><p>Prepare settlement for {selected.length} winning {selected.length === 1 ? "position" : "positions"} through the connected integration.</p></div><button className="icon-button" type="button" disabled={busy} onClick={() => setSelected([])} aria-label="Close redemption dialog"><X size={17} /></button></header><div className="operation-summary"><span><small>Positions</small><strong>{selected.length}</strong></span><span><small>Collateral</small><strong>{appConfig.collateral}</strong></span><span><small>Claimable</small><strong>{formatCurrency(redeemTotal)}</strong></span><span><small>Network</small><strong>{appConfig.chainName}</strong></span></div><div className="operation-notice"><AlertCircle size={16} /><span>The final amount and settlement transaction must be confirmed by the connected backend or smart contract.</span></div>{error ? <p className="dialog-error" role="alert">{error}</p> : null}<footer><button className="secondary-button" type="button" disabled={busy} onClick={() => setSelected([])}>Not now</button><button className="primary-button" type="button" disabled={busy} onClick={redeem}>{busy ? <><LoaderCircle className="spin" size={16} />Preparing</> : "Prepare redemption"}</button></footer></section></div> : null}
+      {selected.length ? <div className="overlay operation-overlay" onMouseDown={() => !busy && setSelected([])}><section className="operation-dialog redeem-dialog" role="dialog" aria-modal="true" aria-labelledby="redeem-title" onMouseDown={(event) => event.stopPropagation()}><div className="sheet-handle" /><header><span className="operation-icon success"><WalletCards size={21} /></span><div><span className="eyebrow">Resolved positions</span><h2 id="redeem-title">Redeem {formatCurrency(redeemTotal)}</h2><p>Prepare settlement for {selected.length} winning {selected.length === 1 ? "position" : "positions"} through the connected integration.</p></div><button className="icon-button" type="button" disabled={busy} onClick={() => setSelected([])} aria-label="Close redemption dialog"><X size={17} /></button></header><div className="operation-summary"><span><small>Positions</small><strong>{selected.length}</strong></span><span><small>Collateral</small><strong>{appConfig.collateral}</strong></span><span><small>Claimable</small><strong>{formatCurrency(redeemTotal)}</strong></span><span><small>Network</small><strong>{appConfig.chainName}</strong></span></div><div className="operation-notice"><AlertCircle size={16} /><span>The final amount and settlement transaction must be confirmed by the connected backend or smart contract.</span></div>{error ? <p className="dialog-error" role="alert">{error}</p> : null}<footer><button className="secondary-button" type="button" disabled={busy} onClick={() => setSelected([])}>Not now</button><button className="primary-button" type="button" disabled={busy} onClick={() => void redeem()}>{busy ? <><LoaderCircle className="spin" size={16} />Preparing</> : "Prepare redemption"}</button></footer></section></div> : null}
     </>
   );
 }

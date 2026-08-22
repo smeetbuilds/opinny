@@ -5,6 +5,7 @@ test("mock adapter exposes market, rewards, discussion, trading, account and cry
   const markets = await mockAdapter.listMarkets();
   expect(markets.length).toBeGreaterThan(0);
   expect(markets.some((market) => market.status === "resolved")).toBe(true);
+  expect(markets.every((market) => typeof market.commentCount === "number")).toBe(true);
 
   const byLiquidity = await mockAdapter.listMarkets({ sort: "liquidity" });
   expect(byLiquidity[0].liquidity).toBeGreaterThanOrEqual(byLiquidity.at(-1)?.liquidity ?? 0);
@@ -25,6 +26,9 @@ test("mock adapter exposes market, rewards, discussion, trading, account and cry
   expect(rewards.length).toBeGreaterThan(0);
   expect(rewards.every((reward) => reward.dailyReward > 0)).toBe(true);
 
+  const balances = await mockAdapter.getBalances();
+  expect(balances.some((balance) => balance.asset === "USDC" && balance.available > 0)).toBe(true);
+
   const preview = await mockAdapter.previewOrder({
     clientRequestId: "test-order",
     marketId: markets[0].id,
@@ -34,15 +38,21 @@ test("mock adapter exposes market, rewards, discussion, trading, account and cry
     collateralAmount: 100
   });
   expect(preview.estimatedShares).toBeGreaterThan(0);
+  expect(preview.estimatedFee).toBeGreaterThan(0);
+  expect(preview.estimatedPayout).toBeGreaterThan(0);
 
   const cancellation = await mockAdapter.cancelOrder("ord-1");
   expect(cancellation.status).toBe("accepted");
+  const repeatedCancellation = await mockAdapter.cancelOrder("ord-1");
+  expect(repeatedCancellation.status).toBe("rejected");
 
   const positions = await mockAdapter.getPositions();
   const claimable = positions.find((position) => position.status === "resolved" && (position.claimableAmount ?? 0) > 0);
   expect(claimable).toBeDefined();
   const redemption = await mockAdapter.redeemPosition(claimable!.id);
   expect(redemption.status).toBe("accepted");
+  const repeatedRedemption = await mockAdapter.redeemPosition(claimable!.id);
+  expect(repeatedRedemption.status).toBe("rejected");
 
   const funding = await mockAdapter.prepareFunding({
     type: "deposit",
@@ -52,4 +62,8 @@ test("mock adapter exposes market, rewards, discussion, trading, account and cry
   });
   expect(funding.walletRequest.chainId).toBe(137);
   expect(funding.requestId.startsWith("fund-")).toBe(true);
+
+  const analytics = await mockAdapter.getAnalytics();
+  expect(analytics.volumeSeries.length).toBeGreaterThan(0);
+  expect(analytics.categories.reduce((sum, row) => sum + row.value, 0)).toBe(100);
 });

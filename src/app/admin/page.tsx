@@ -5,8 +5,9 @@ import { CategoryBreakdown, VolumeChart } from "@/components/admin/admin-charts"
 import { dataAdapter } from "@/lib/data";
 
 export default async function AdminOverviewPage() {
-  const [metrics, resolutions, users, transactions] = await Promise.all([
+  const [metrics, analytics, resolutions, users, transactions] = await Promise.all([
     dataAdapter.getMetrics(),
+    dataAdapter.getAnalytics(),
     dataAdapter.getResolutionQueue(),
     dataAdapter.getUsers(),
     dataAdapter.getTransactions()
@@ -33,7 +34,7 @@ export default async function AdminOverviewPage() {
         </article>
       ))}</div>
 
-      <div className="admin-dashboard-grid"><VolumeChart /><CategoryBreakdown /></div>
+      <div className="admin-dashboard-grid"><VolumeChart analytics={analytics} changePercent={metrics[0]?.change ?? 0} /><CategoryBreakdown analytics={analytics} /></div>
 
       <div className="admin-dashboard-grid lower-grid">
         <section className="admin-panel">

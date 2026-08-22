@@ -31,6 +31,7 @@ export interface Market {
   volume24h: number;
   liquidity: number;
   traders: number;
+  commentCount?: number;
   endDate: string;
   createdAt: string;
   featured?: boolean;
@@ -90,6 +91,12 @@ export interface UserOrder {
   createdAt: string;
 }
 
+export interface AccountBalance {
+  asset: string;
+  available: number;
+  locked: number;
+}
+
 export interface OrderIntent {
   clientRequestId: string;
   marketId: string;
@@ -107,6 +114,7 @@ export interface OrderPreview {
   estimatedShares: number;
   estimatedCollateral: number;
   estimatedFee: number;
+  estimatedPayout: number;
   priceImpactBps: number;
 }
 
@@ -230,6 +238,16 @@ export interface AdminMetric {
   hint: string;
 }
 
+export interface AdminAnalytics {
+  volumeSeries: number[];
+  volumeTotal: number;
+  dailyAverage: number;
+  peakDay: number;
+  settlementRate: number;
+  categoryTotal: number;
+  categories: { label: string; value: number }[];
+}
+
 export interface AdminUser {
   id: string;
   handle: string;
@@ -260,4 +278,5 @@ export interface TransactionRecord {
   txHash: string;
   status: "confirmed" | "pending" | "failed";
   time: string;
+  createdAt?: string;
 }

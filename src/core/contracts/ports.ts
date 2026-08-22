@@ -1,5 +1,7 @@
 import type {
+  AccountBalance,
   ActivityItem,
+  AdminAnalytics,
   AdminMarketInput,
   AdminMetric,
   AdminUser,
@@ -9,6 +11,7 @@ import type {
   Market,
   MarketComment,
   MarketCommentInput,
+  MarketStatus,
   MarketStreamEvent,
   OrderBookLevel,
   OrderIntent,
@@ -55,6 +58,7 @@ export interface RewardsDataPort {
 }
 
 export interface AccountDataPort {
+  getBalances(): Promise<AccountBalance[]>;
   getPositions(): Promise<Position[]>;
   getOrders(): Promise<UserOrder[]>;
   getActivity(): Promise<ActivityItem[]>;
@@ -63,6 +67,7 @@ export interface AccountDataPort {
 
 export interface AdminDataPort {
   getMetrics(): Promise<AdminMetric[]>;
+  getAnalytics(): Promise<AdminAnalytics>;
   getUsers(): Promise<AdminUser[]>;
   getResolutionQueue(): Promise<ResolutionCase[]>;
   getTransactions(): Promise<TransactionRecord[]>;
@@ -84,6 +89,7 @@ export interface FundingCommandPort {
 
 export interface AdminCommandPort {
   createMarket(input: AdminMarketInput): Promise<CommandResult>;
+  updateMarketStatus(marketId: string, status: MarketStatus): Promise<CommandResult>;
   updateUserStatus(userId: string, status: AdminUser["status"]): Promise<CommandResult>;
   resolveMarket(caseId: string, outcome: string): Promise<CommandResult>;
 }

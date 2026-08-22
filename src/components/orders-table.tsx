@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { UserOrder } from "@/core/contracts/domain";
 import { dataAdapter } from "@/lib/data";
 import { formatDate } from "@/lib/format";
+import { captureException } from "@/lib/observability";
 import { useApp } from "./app-provider";
 
 type Filter = "all" | "open" | "filled" | "cancelled";
@@ -80,9 +81,10 @@ export function OrdersTable({ orders }: { orders: UserOrder[] }) {
       const result = await dataAdapter.cancelOrder(selected.id);
       if (result.status === "rejected") throw new Error(result.message);
       setItems((current) => current.map((order) => order.id === selected.id ? { ...order, status: "cancelled" } : order));
-      notify("Cancellation requested", result.message, "trade");
+      notify("Cancellation requested", result.message, "trade", "orderEvents");
       setSelected(null);
     } catch (cause) {
+      captureException(cause, { operation: "cancelOrder", orderId: selected.id });
       setError(cause instanceof Error ? cause.message : "The order could not be cancelled. Try again.");
     } finally {
       setBusy(false);
@@ -138,7 +140,7 @@ export function OrdersTable({ orders }: { orders: UserOrder[] }) {
             <header><span className="operation-icon warning"><AlertTriangle size={21} /></span><div><span className="eyebrow">Order action</span><h2 id="cancel-order-title">Cancel remaining order?</h2><p>Filled shares stay in your position. Only the unmatched remainder will be cancelled.</p></div><button className="icon-button" type="button" disabled={busy} onClick={() => setSelected(null)} aria-label="Close cancellation dialog"><X size={17} /></button></header>
             <div className="operation-summary"><span><small>Market</small><strong>{selected.marketQuestion}</strong></span><span><small>Outcome</small><strong>{selected.outcome}</strong></span><span><small>Filled</small><strong>{selected.filled.toLocaleString()} / {selected.shares.toLocaleString()}</strong></span><span><small>Remaining</small><strong>{Math.max(selected.shares - selected.filled, 0).toLocaleString()} shares</strong></span></div>
             {error ? <p className="dialog-error" role="alert">{error}</p> : null}
-            <footer><button className="secondary-button" type="button" disabled={busy} onClick={() => setSelected(null)}>Keep order</button><button className="primary-button destructive-button" type="button" disabled={busy} onClick={cancelSelected}>{busy ? <><LoaderCircle className="spin" size={16} />Cancelling</> : "Cancel remainder"}</button></footer>
+            <footer><button className="secondary-button" type="button" disabled={busy} onClick={() => setSelected(null)}>Keep order</button><button className="primary-button destructive-button" type="button" disabled={busy} onClick={() => void cancelSelected()}>{busy ? <><LoaderCircle className="spin" size={16} />Cancelling</> : "Cancel remainder"}</button></footer>
           </section>
         </div>
       ) : null}

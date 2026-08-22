@@ -5,6 +5,7 @@ import { AlertTriangle, ArrowUpRight, LoaderCircle, RefreshCw, Wallet, X } from 
 import { useEffect, useMemo, useState } from "react";
 import type { UserOrder } from "@/core/contracts/domain";
 import { dataAdapter } from "@/lib/data";
+import { captureException } from "@/lib/observability";
 import { useApp } from "./app-provider";
 
 export function MarketOpenOrders({ marketSlug }: { marketSlug: string }) {
@@ -34,8 +35,9 @@ export function MarketOpenOrders({ marketSlug }: { marketSlug: string }) {
         if (!active) return;
         setOrders(items.filter((order) => order.marketSlug === marketSlug));
       })
-      .catch(() => {
+      .catch((cause) => {
         if (!active) return;
+        captureException(cause, { operation: "getMarketOpenOrders", marketSlug });
         setLoadError("Account orders could not be loaded from the connected integration.");
       })
       .finally(() => {
@@ -74,9 +76,10 @@ export function MarketOpenOrders({ marketSlug }: { marketSlug: string }) {
       const result = await dataAdapter.cancelOrder(selected.id);
       if (result.status === "rejected") throw new Error(result.message);
       setOrders((current) => current.map((order) => order.id === selected.id ? { ...order, status: "cancelled" } : order));
-      notify("Cancellation requested", result.message, "trade");
+      notify("Cancellation requested", result.message, "trade", "orderEvents");
       setSelected(null);
     } catch (cause) {
+      captureException(cause, { operation: "cancelMarketOrder", orderId: selected.id });
       setError(cause instanceof Error ? cause.message : "The order could not be cancelled. Try again.");
     } finally {
       setBusy(false);

@@ -23,6 +23,9 @@ export function PriceChart({ values }: { values: number[] }) {
     const width = 800;
     const height = 260;
     const visibleValues = values.slice(-Math.min(values.length, windows[range]));
+    if (!visibleValues.length) {
+      return { width, height, values: visibleValues, points: [] as { x: number; y: number; value: number }[], polyline: "", low: 0, high: 0, open: 0, current: 0 };
+    }
     const low = Math.min(...visibleValues);
     const high = Math.max(...visibleValues);
     const min = low - Math.max((high - low) * 0.18, 3);
@@ -51,10 +54,20 @@ export function PriceChart({ values }: { values: number[] }) {
   const positive = change >= 0;
 
   const inspect = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!chart.points.length) return;
     const rect = event.currentTarget.getBoundingClientRect();
     const ratio = Math.min(Math.max((event.clientX - rect.left) / Math.max(rect.width, 1), 0), 1);
     setHoverIndex(Math.round(ratio * Math.max(chart.points.length - 1, 0)));
   };
+
+  if (!chart.values.length) {
+    return (
+      <section className="chart-card" aria-labelledby="probability-chart-title">
+        <div className="chart-head"><div><span id="probability-chart-title">Implied probability</span><strong>—</strong><em>No history available</em></div></div>
+        <div className="table-empty large" role="status"><Activity size={22} /><strong>No probability history</strong><span>The connected integration has not supplied chart data for this market.</span></div>
+      </section>
+    );
+  }
 
   return (
     <section className="chart-card" aria-labelledby="probability-chart-title">

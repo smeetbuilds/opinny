@@ -6,9 +6,9 @@ Opinny uses one light-mode visual language: warm neutral canvas, white informati
 
 ## Typography
 
-- Interface: system sans-serif stack for speed and broad platform consistency.
-- Editorial/display: Iowan Old Style, Palatino or Georgia for questions and major headings.
-- Numeric and wallet identifiers: system monospace.
+- Interface, body, market data and technical identifiers: Inter only.
+- Editorial/display hierarchy, questions and major headings: Instrument Serif only.
+- Do not introduce system, generic serif/sans-serif, monospace, Georgia, Palatino, Times or other fallback font stacks.
 
 ## Core patterns
 
@@ -32,4 +32,5 @@ Opinny uses one light-mode visual language: warm neutral canvas, white informati
 - Interactive targets generally meet or exceed 38px, with primary mobile actions at 44–52px.
 - Reduced-motion preferences disable non-essential animation.
 - Statuses use labels and icons in addition to color.
+- Normal-size text must maintain at least 4.5:1 contrast against its rendered background.
 - Horizontal overflow is intentionally contained within tabs and tables.

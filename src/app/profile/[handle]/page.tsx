@@ -23,5 +23,9 @@ export default async function ProfilePage({ params }: { params: Promise<{ handle
   const [entries, markets, activity] = await Promise.all([dataAdapter.getLeaderboard(), dataAdapter.listMarkets(), dataAdapter.getActivity()]);
   const profile = entries.find((entry) => entry.handle === handle);
   if (!profile) notFound();
-  return <SiteShell><div className="page-container inner-page"><TraderProfile profile={profile} markets={markets} activity={activity} /></div></SiteShell>;
+  const relevantMarkets = markets.filter((market) => profile.categories.includes(market.category)).slice(0, 6);
+  const comments = (await Promise.all(relevantMarkets.map((market) => dataAdapter.getMarketComments(market.id))))
+    .flat()
+    .filter((comment) => comment.authorHandle === profile.handle);
+  return <SiteShell><div className="page-container inner-page"><TraderProfile profile={profile} markets={markets} activity={activity} comments={comments} /></div></SiteShell>;
 }

@@ -1,6 +1,7 @@
 export default function Loading() {
   return (
-    <div className="loading-shell" aria-label="Loading page">
+    <div className="loading-shell" role="status" aria-live="polite" aria-busy="true">
+      <span className="sr-only">Loading page…</span>
       <div className="loading-topbar" />
       <div className="loading-container">
         <div className="skeleton skeleton-kicker" />
