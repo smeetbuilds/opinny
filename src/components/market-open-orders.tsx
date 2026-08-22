@@ -2,50 +2,43 @@
 
 import Link from "next/link";
 import { AlertTriangle, ArrowUpRight, LoaderCircle, RefreshCw, Wallet, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { UserOrder } from "@/core/contracts/domain";
 import { dataAdapter } from "@/lib/data";
 import { captureException } from "@/lib/observability";
 import { useApp } from "./app-provider";
 
+type OrdersLoadState = { key: string; orders: UserOrder[]; error: string };
+
 export function MarketOpenOrders({ marketSlug }: { marketSlug: string }) {
-  const { connected, setWalletOpen, notify } = useApp();
-  const [orders, setOrders] = useState<UserOrder[]>([]);
+  const { connected, walletAddress, setWalletOpen, notify } = useApp();
+  const [loadState, setLoadState] = useState<OrdersLoadState | null>(null);
   const [selected, setSelected] = useState<UserOrder | null>(null);
   const [busy, setBusy] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [loadError, setLoadError] = useState("");
   const [reloadToken, setReloadToken] = useState(0);
   const [error, setError] = useState("");
-
-  const openOrders = useMemo(() => orders.filter((order) => order.status === "open" || order.status === "partially-filled"), [orders]);
+  const requestKey = connected ? `${walletAddress}:${marketSlug}:${reloadToken}` : "";
+  const currentLoad = loadState?.key === requestKey ? loadState : null;
+  const orders = currentLoad?.orders ?? [];
+  const loading = connected && !currentLoad;
+  const loadError = currentLoad?.error ?? "";
+  const openOrders = orders.filter((order) => order.status === "open" || order.status === "partially-filled");
 
   useEffect(() => {
-    if (!connected) {
-      setOrders([]);
-      setLoadError("");
-      return;
-    }
-
+    if (!connected) return;
     let active = true;
-    setLoading(true);
-    setLoadError("");
     void dataAdapter.getOrders()
       .then((items) => {
         if (!active) return;
-        setOrders(items.filter((order) => order.marketSlug === marketSlug));
+        setLoadState({ key: requestKey, orders: items.filter((order) => order.marketSlug === marketSlug), error: "" });
       })
       .catch((cause) => {
         if (!active) return;
         captureException(cause, { operation: "getMarketOpenOrders", marketSlug });
-        setLoadError("Account orders could not be loaded from the connected integration.");
-      })
-      .finally(() => {
-        if (active) setLoading(false);
+        setLoadState({ key: requestKey, orders: [], error: "Account orders could not be loaded from the connected integration." });
       });
-
     return () => { active = false; };
-  }, [connected, marketSlug, reloadToken]);
+  }, [connected, marketSlug, requestKey]);
 
   useEffect(() => {
     if (!selected) return;
@@ -75,7 +68,7 @@ export function MarketOpenOrders({ marketSlug }: { marketSlug: string }) {
     try {
       const result = await dataAdapter.cancelOrder(selected.id);
       if (result.status === "rejected") throw new Error(result.message);
-      setOrders((current) => current.map((order) => order.id === selected.id ? { ...order, status: "cancelled" } : order));
+      setLoadState((current) => current?.key === requestKey ? { ...current, orders: current.orders.map((order) => order.id === selected.id ? { ...order, status: "cancelled" } : order) } : current);
       notify("Cancellation requested", result.message, "trade", "orderEvents");
       setSelected(null);
     } catch (cause) {
@@ -95,11 +88,7 @@ export function MarketOpenOrders({ marketSlug }: { marketSlug: string }) {
         </div>
 
         {!connected ? (
-          <div className="market-orders-locked">
-            <span><Wallet size={18} /></span>
-            <div><strong>Connect to manage orders</strong><p>Account-specific orders are requested only after wallet connection.</p></div>
-            <button className="secondary-button compact" type="button" onClick={() => setWalletOpen(true)}>Connect wallet</button>
-          </div>
+          <div className="market-orders-locked"><span><Wallet size={18} /></span><div><strong>Connect to manage orders</strong><p>Account-specific orders are requested only after wallet connection.</p></div><button className="secondary-button compact" type="button" onClick={() => setWalletOpen(true)}>Connect wallet</button></div>
         ) : loading ? (
           <div className="market-orders-empty market-orders-loading" role="status"><LoaderCircle className="spin" size={17} /><strong>Loading open orders</strong><span>Reading account state from the connected integration.</span></div>
         ) : loadError ? (
@@ -109,34 +98,13 @@ export function MarketOpenOrders({ marketSlug }: { marketSlug: string }) {
             {openOrders.map((order) => {
               const remaining = Math.max(order.shares - order.filled, 0);
               const fillPercent = order.shares ? Math.min((order.filled / order.shares) * 100, 100) : 0;
-              return (
-                <article key={order.id}>
-                  <div className="market-order-main">
-                    <span className={`side-pill ${order.side}`}>{order.side}</span>
-                    <span><strong>{order.outcome} · {order.type}</strong><small>{Math.round(order.price * 100)}¢ · {remaining.toLocaleString()} shares remaining</small></span>
-                  </div>
-                  <div className="market-order-progress" aria-label={`${fillPercent.toFixed(0)} percent filled`}><span>{order.filled.toLocaleString()} / {order.shares.toLocaleString()}</span><i><b style={{ width: `${fillPercent}%` }} /></i></div>
-                  <button className="row-action danger-action" type="button" onClick={() => requestCancel(order)}>Cancel</button>
-                </article>
-              );
+              return <article key={order.id}><div className="market-order-main"><span className={`side-pill ${order.side}`}>{order.side}</span><span><strong>{order.outcome} · {order.type}</strong><small>{Math.round(order.price * 100)}¢ · {remaining.toLocaleString()} shares remaining</small></span></div><div className="market-order-progress" aria-label={`${fillPercent.toFixed(0)} percent filled`}><span>{order.filled.toLocaleString()} / {order.shares.toLocaleString()}</span><i><b style={{ width: `${fillPercent}%` }} /></i></div><button className="row-action danger-action" type="button" onClick={() => requestCancel(order)}>Cancel</button></article>;
             })}
           </div>
-        ) : (
-          <div className="market-orders-empty"><strong>No open orders in this market</strong><span>New limit orders will appear here while they are waiting to fill.</span></div>
-        )}
+        ) : <div className="market-orders-empty"><strong>No open orders in this market</strong><span>New limit orders will appear here while they are waiting to fill.</span></div>}
       </section>
 
-      {selected ? (
-        <div className="overlay operation-overlay" onMouseDown={() => !busy && setSelected(null)}>
-          <section className="operation-dialog" role="dialog" aria-modal="true" aria-labelledby="market-cancel-order-title" onMouseDown={(event) => event.stopPropagation()}>
-            <div className="sheet-handle" />
-            <header><span className="operation-icon warning"><AlertTriangle size={21} /></span><div><span className="eyebrow">Open order</span><h2 id="market-cancel-order-title">Cancel remaining order?</h2><p>Any shares already filled remain in your position. Only the unmatched remainder is cancelled.</p></div><button className="icon-button" type="button" disabled={busy} onClick={() => setSelected(null)} aria-label="Close cancellation dialog"><X size={17} /></button></header>
-            <div className="operation-summary"><span><small>Outcome</small><strong>{selected.outcome}</strong></span><span><small>Limit price</small><strong>{Math.round(selected.price * 100)}¢</strong></span><span><small>Filled</small><strong>{selected.filled.toLocaleString()} shares</strong></span><span><small>Remaining</small><strong>{Math.max(selected.shares - selected.filled, 0).toLocaleString()} shares</strong></span></div>
-            {error ? <p className="dialog-error" role="alert">{error}</p> : null}
-            <footer><button className="secondary-button" type="button" disabled={busy} onClick={() => setSelected(null)}>Keep order</button><button className="primary-button destructive-button" type="button" disabled={busy} onClick={() => void cancelOrder()}>{busy ? <><LoaderCircle className="spin" size={16} />Cancelling</> : "Cancel remainder"}</button></footer>
-          </section>
-        </div>
-      ) : null}
+      {selected ? <div className="overlay operation-overlay" onMouseDown={() => !busy && setSelected(null)}><section className="operation-dialog" role="dialog" aria-modal="true" aria-labelledby="market-cancel-order-title" onMouseDown={(event) => event.stopPropagation()}><div className="sheet-handle" /><header><span className="operation-icon warning"><AlertTriangle size={21} /></span><div><span className="eyebrow">Open order</span><h2 id="market-cancel-order-title">Cancel remaining order?</h2><p>Any shares already filled remain in your position. Only the unmatched remainder is cancelled.</p></div><button className="icon-button" type="button" disabled={busy} onClick={() => setSelected(null)} aria-label="Close cancellation dialog"><X size={17} /></button></header><div className="operation-summary"><span><small>Outcome</small><strong>{selected.outcome}</strong></span><span><small>Limit price</small><strong>{Math.round(selected.price * 100)}¢</strong></span><span><small>Filled</small><strong>{selected.filled.toLocaleString()} shares</strong></span><span><small>Remaining</small><strong>{Math.max(selected.shares - selected.filled, 0).toLocaleString()} shares</strong></span></div>{error ? <p className="dialog-error" role="alert">{error}</p> : null}<footer><button className="secondary-button" type="button" disabled={busy} onClick={() => setSelected(null)}>Keep order</button><button className="primary-button destructive-button" type="button" disabled={busy} onClick={() => void cancelOrder()}>{busy ? <><LoaderCircle className="spin" size={16} />Cancelling</> : "Cancel remainder"}</button></footer></section></div> : null}
     </>
   );
 }

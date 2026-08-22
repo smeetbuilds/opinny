@@ -33,4 +33,6 @@ Opinny uses one light-mode visual language: warm neutral canvas, white informati
 - Reduced-motion preferences disable non-essential animation.
 - Statuses use labels and icons in addition to color.
 - Normal-size text must maintain at least 4.5:1 contrast against its rendered background.
+- Modal dialogs receive focus on open, contain Tab and Shift+Tab navigation, recover stray focus, and return focus to their trigger when closed.
+- Search uses combobox/listbox semantics with an explicit active descendant for keyboard navigation.
 - Horizontal overflow is intentionally contained within tabs and tables.

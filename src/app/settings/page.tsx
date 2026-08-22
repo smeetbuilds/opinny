@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { Bell, CheckCircle2, Copy, Globe2, KeyRound, LogOut, RotateCcw, Save, ShieldCheck, SlidersHorizontal, WalletCards } from "lucide-react";
 import { SiteShell } from "@/components/site-shell";
 import { AccountShell } from "@/components/account-shell";
-import { defaultAccountPreferences, type AccountPreferences, useApp } from "@/components/app-provider";
+import { type AccountPreferences, useApp } from "@/components/app-provider";
 import { shortAddress } from "@/lib/format";
 import { appConfig } from "@/lib/config";
 
@@ -21,31 +21,23 @@ export default function SettingsPage() {
     savePreferences,
     resetPreferences
   } = useApp();
-  const [draft, setDraft] = useState<AccountPreferences>(preferences);
-  const [saved, setSaved] = useState<AccountPreferences>(preferences);
-
-  useEffect(() => {
-    if (!preferencesHydrated) return;
-    setDraft(preferences);
-    setSaved(preferences);
-  }, [preferences, preferencesHydrated]);
-
-  const dirty = useMemo(() => JSON.stringify(draft) !== JSON.stringify(saved), [draft, saved]);
+  const [draft, setDraft] = useState<AccountPreferences | null>(null);
+  const effectiveDraft = draft ?? preferences;
+  const dirty = JSON.stringify(effectiveDraft) !== JSON.stringify(preferences);
 
   function update<K extends keyof AccountPreferences>(key: K, value: AccountPreferences[K]) {
-    setDraft((current) => ({ ...current, [key]: value }));
+    setDraft((current) => ({ ...(current ?? preferences), [key]: value }));
   }
 
   function save() {
-    savePreferences(draft);
-    setSaved(draft);
+    savePreferences(effectiveDraft);
+    setDraft(null);
     notify("Preferences saved", "Trading and notification defaults were updated.", "system");
   }
 
   function reset() {
     resetPreferences();
-    setDraft(defaultAccountPreferences);
-    setSaved(defaultAccountPreferences);
+    setDraft(null);
     notify("Preferences reset", "Default account preferences were restored.", "system");
   }
 
@@ -61,7 +53,7 @@ export default function SettingsPage() {
   return (
     <SiteShell>
       <div className="page-container inner-page">
-        <AccountShell title="Settings" eyebrow="Account" description="Manage wallet, notifications and trading preferences." actions={<div className="settings-save-actions"><span className={dirty ? "dirty" : "saved"}>{dirty ? "Unsaved changes" : "Preferences saved"}</span><button className="secondary-button compact" type="button" onClick={reset}><RotateCcw size={14} />Reset</button><button className="primary-button compact" type="button" onClick={save} disabled={!dirty || !preferencesHydrated}><Save size={14} />Save</button></div>}>
+        <AccountShell title="Settings" eyebrow="Account" description="Manage wallet, notifications and trading preferences." actions={<div className="settings-save-actions"><span className={dirty ? "dirty" : "saved"}>{dirty ? "Unsaved changes" : "Preferences saved"}</span><button className="secondary-button compact" type="button" onClick={reset} disabled={!preferencesHydrated}><RotateCcw size={14} />Reset</button><button className="primary-button compact" type="button" onClick={save} disabled={!dirty || !preferencesHydrated}><Save size={14} />Save</button></div>}>
           <div className="account-policy-strip">
             <span><ShieldCheck size={17} /><small>Funding policy</small><strong>Crypto only</strong></span>
             <span><Globe2 size={17} /><small>Network</small><strong>{appConfig.chainName}</strong></span>
@@ -82,16 +74,16 @@ export default function SettingsPage() {
 
             <section className="settings-card">
               <div className="settings-card-head"><span className="settings-icon"><Bell size={18} /></span><div><h2>Notifications</h2><p>Choose which account events are added to the notification centre.</p></div></div>
-              <label className="setting-toggle"><span>Order updates<small>Prepared, cancelled and rejected order events.</small></span><input type="checkbox" checked={draft.orderEvents} onChange={(event) => update("orderEvents", event.target.checked)} /><i /></label>
-              <label className="setting-toggle"><span>Resolution updates<small>Redemption and resolved-position events.</small></span><input type="checkbox" checked={draft.resolutionEvents} onChange={(event) => update("resolutionEvents", event.target.checked)} /><i /></label>
-              <label className="setting-toggle"><span>Crypto funding<small>Deposit and withdrawal request events.</small></span><input type="checkbox" checked={draft.fundingEvents} onChange={(event) => update("fundingEvents", event.target.checked)} /><i /></label>
+              <label className="setting-toggle"><span>Order updates<small>Prepared, cancelled and rejected order events.</small></span><input type="checkbox" checked={effectiveDraft.orderEvents} disabled={!preferencesHydrated} onChange={(event) => update("orderEvents", event.target.checked)} /><i /></label>
+              <label className="setting-toggle"><span>Resolution updates<small>Redemption and resolved-position events.</small></span><input type="checkbox" checked={effectiveDraft.resolutionEvents} disabled={!preferencesHydrated} onChange={(event) => update("resolutionEvents", event.target.checked)} /><i /></label>
+              <label className="setting-toggle"><span>Crypto funding<small>Deposit and withdrawal request events.</small></span><input type="checkbox" checked={effectiveDraft.fundingEvents} disabled={!preferencesHydrated} onChange={(event) => update("fundingEvents", event.target.checked)} /><i /></label>
             </section>
 
             <section className="settings-card span-two">
               <div className="settings-card-head"><span className="settings-icon"><SlidersHorizontal size={18} /></span><div><h2>Trading preferences</h2><p>Defaults used when opening a market ticket. These settings never authorize a transaction.</p></div></div>
               <div className="preference-grid">
-                <label><span><KeyRound size={16} />Default order type</span><select value={draft.orderType} onChange={(event) => update("orderType", event.target.value as AccountPreferences["orderType"])}><option value="market">Market</option><option value="limit">Limit</option></select><small>Market orders prioritize execution; limit orders prioritize price.</small></label>
-                <label><span><ShieldCheck size={16} />Slippage warning</span><select value={draft.slippageWarning} onChange={(event) => update("slippageWarning", event.target.value as AccountPreferences["slippageWarning"])}><option value="0.5">0.5%</option><option value="1.0">1.0%</option><option value="2.0">2.0%</option></select><small>The selected threshold is sent with prepared order intents.</small></label>
+                <label><span><KeyRound size={16} />Default order type</span><select value={effectiveDraft.orderType} disabled={!preferencesHydrated} onChange={(event) => update("orderType", event.target.value as AccountPreferences["orderType"])}><option value="market">Market</option><option value="limit">Limit</option></select><small>Market orders prioritize execution; limit orders prioritize price.</small></label>
+                <label><span><ShieldCheck size={16} />Slippage warning</span><select value={effectiveDraft.slippageWarning} disabled={!preferencesHydrated} onChange={(event) => update("slippageWarning", event.target.value as AccountPreferences["slippageWarning"])}><option value="0.5">0.5%</option><option value="1.0">1.0%</option><option value="2.0">2.0%</option></select><small>The selected threshold is sent with prepared order intents.</small></label>
               </div>
             </section>
           </div>

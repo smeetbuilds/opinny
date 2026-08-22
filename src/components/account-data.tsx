@@ -12,13 +12,24 @@ import { PortfolioConsole } from "./portfolio-console";
 
 type LoadState<T> = { data: T | null; error: string };
 
-function useAdapterData<T>(loader: () => Promise<T>, operation: string, enabled: boolean) {
+function useAdapterData<T>(loader: () => Promise<T>, operation: string) {
   const [state, setState] = useState<LoadState<T>>({ data: null, error: "" });
-  const load = useCallback(async () => {
-    if (!enabled) {
-      setState({ data: null, error: "" });
-      return;
-    }
+
+  useEffect(() => {
+    let active = true;
+    void loader()
+      .then((data) => {
+        if (active) setState({ data, error: "" });
+      })
+      .catch((error) => {
+        if (!active) return;
+        captureException(error, { operation });
+        setState({ data: null, error: "Account data is temporarily unavailable." });
+      });
+    return () => { active = false; };
+  }, [loader, operation]);
+
+  const reload = useCallback(async () => {
     setState({ data: null, error: "" });
     try {
       setState({ data: await loader(), error: "" });
@@ -26,10 +37,9 @@ function useAdapterData<T>(loader: () => Promise<T>, operation: string, enabled:
       captureException(error, { operation });
       setState({ data: null, error: "Account data is temporarily unavailable." });
     }
-  }, [enabled, loader, operation]);
+  }, [loader, operation]);
 
-  useEffect(() => { void load(); }, [load]);
-  return { ...state, reload: load };
+  return { ...state, reload };
 }
 
 function AccountDataState({ error, reload }: { error: string; reload: () => Promise<void> }) {
@@ -45,23 +55,32 @@ const loadOrders = () => dataAdapter.getOrders();
 const loadPositions = () => dataAdapter.getPositions();
 const loadActivity = () => dataAdapter.getActivity();
 
+function ConnectedOrdersData() {
+  const state = useAdapterData<UserOrder[]>(loadOrders, "getOrders");
+  return state.data ? <OrdersTable orders={state.data} /> : <AccountDataState error={state.error} reload={state.reload} />;
+}
+
+function ConnectedPortfolioData() {
+  const state = useAdapterData<Position[]>(loadPositions, "getPositions");
+  return state.data ? <PortfolioConsole positions={state.data} /> : <AccountDataState error={state.error} reload={state.reload} />;
+}
+
+function ConnectedActivityData() {
+  const state = useAdapterData<ActivityItem[]>(loadActivity, "getActivity");
+  return state.data ? <ActivityFeed items={state.data} /> : <AccountDataState error={state.error} reload={state.reload} />;
+}
+
 export function OrdersData() {
   const { connected, setWalletOpen } = useApp();
-  const state = useAdapterData<UserOrder[]>(loadOrders, "getOrders", connected);
-  if (!connected) return <ConnectAccountState onConnect={() => setWalletOpen(true)} />;
-  return state.data ? <OrdersTable orders={state.data} /> : <AccountDataState error={state.error} reload={state.reload} />;
+  return connected ? <ConnectedOrdersData /> : <ConnectAccountState onConnect={() => setWalletOpen(true)} />;
 }
 
 export function PortfolioData() {
   const { connected, setWalletOpen } = useApp();
-  const state = useAdapterData<Position[]>(loadPositions, "getPositions", connected);
-  if (!connected) return <ConnectAccountState onConnect={() => setWalletOpen(true)} />;
-  return state.data ? <PortfolioConsole positions={state.data} /> : <AccountDataState error={state.error} reload={state.reload} />;
+  return connected ? <ConnectedPortfolioData /> : <ConnectAccountState onConnect={() => setWalletOpen(true)} />;
 }
 
 export function ActivityData() {
   const { connected, setWalletOpen } = useApp();
-  const state = useAdapterData<ActivityItem[]>(loadActivity, "getActivity", connected);
-  if (!connected) return <ConnectAccountState onConnect={() => setWalletOpen(true)} />;
-  return state.data ? <ActivityFeed items={state.data} /> : <AccountDataState error={state.error} reload={state.reload} />;
+  return connected ? <ConnectedActivityData /> : <ConnectAccountState onConnect={() => setWalletOpen(true)} />;
 }

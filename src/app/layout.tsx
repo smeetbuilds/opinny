@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Instrument_Serif, Inter } from "next/font/google";
 import "./globals.css";
 import { AppProvider } from "@/components/app-provider";
+import { ModalFocusManager } from "@/components/modal-focus-manager";
 import { dataAdapter } from "@/lib/data";
 import { appConfig } from "@/lib/config";
 
@@ -53,6 +54,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   return (
     <html lang="en">
       <body className={`${inter.className} ${inter.variable} ${instrumentSerif.variable}`}>
+        <ModalFocusManager />
         <AppProvider initialMarkets={marketCatalog}>{children}</AppProvider>
       </body>
     </html>

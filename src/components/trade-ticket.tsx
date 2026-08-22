@@ -10,6 +10,7 @@ import { captureException } from "@/lib/observability";
 import { useApp } from "./app-provider";
 
 type TradeEvent = CustomEvent<{ outcomeId: string }>;
+type PreviewState = { key: string; preview: OrderPreview | null; error: string };
 const cleanNumber = (value: string) => value.replace(/[^\d.]/g, "").replace(/(\..*)\./g, "$1");
 const stateCopy: Record<Market["status"], { title: string; description: string }> = {
   open: { title: "Trading open", description: "Orders can be prepared through the connected integration." },
@@ -20,29 +21,18 @@ const stateCopy: Record<Market["status"], { title: string; description: string }
 const maintenanceCopy = { title: "Trading paused", description: "Order entry is temporarily disabled by the interface policy." };
 
 export function TradeTicket({ market }: { market: Market }) {
-  const {
-    connected,
-    setWalletOpen,
-    notify,
-    executeWalletRequest,
-    balances,
-    preferences,
-    preferencesHydrated,
-    tradingEnabled
-  } = useApp();
+  const { connected, setWalletOpen, notify, executeWalletRequest, balances, preferences, tradingEnabled } = useApp();
   const [side, setSide] = useState<"buy" | "sell">("buy");
-  const [orderType, setOrderType] = useState<"market" | "limit">(preferences.orderType);
+  const [orderTypeOverride, setOrderTypeOverride] = useState<"market" | "limit" | null>(null);
+  const orderType = orderTypeOverride ?? preferences.orderType;
   const [outcome, setOutcome] = useState(market.outcomes[0].id);
   const [amount, setAmount] = useState("100");
   const [limitPrice, setLimitPrice] = useState(String(market.outcomes[0].probability));
   const [mobileOpen, setMobileOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [submitError, setSubmitError] = useState("");
-  const [preview, setPreview] = useState<OrderPreview | null>(null);
-  const [previewBusy, setPreviewBusy] = useState(false);
-  const [previewError, setPreviewError] = useState("");
+  const [previewState, setPreviewState] = useState<PreviewState | null>(null);
   const previewGeneration = useRef(0);
-  const orderTypeTouched = useRef(false);
   const marketOpen = market.status === "open";
   const tradingOpen = marketOpen && tradingEnabled;
 
@@ -59,23 +49,25 @@ export function TradeTicket({ market }: { market: Market }) {
         : invalidPrice
           ? "Limit price must be between 1¢ and 100¢."
           : "";
-  const error = inputError || submitError || previewError;
-  const canSubmit = tradingOpen && !inputError && price > 0 && !busy && !previewBusy && Boolean(preview);
   const availableBalance = balances.find((balance) => balance.asset === appConfig.collateral)?.available;
   const maxSlippageBps = Math.round(Number(preferences.slippageWarning) * 100);
-
-  useEffect(() => {
-    if (!preferencesHydrated || orderTypeTouched.current) return;
-    setOrderType(preferences.orderType);
-  }, [preferences.orderType, preferencesHydrated]);
+  const previewKey = [market.id, selected.id, side, orderType, amountNumber, price, maxSlippageBps].join(":");
+  const currentPreviewState = previewState?.key === previewKey ? previewState : null;
+  const preview = currentPreviewState?.preview ?? null;
+  const previewError = currentPreviewState?.error ?? "";
+  const previewBusy = tradingOpen && !inputError && price > 0 && currentPreviewState === null;
+  const error = inputError || submitError || previewError;
+  const canSubmit = tradingOpen && !inputError && price > 0 && !busy && !previewBusy && Boolean(preview);
 
   useEffect(() => {
     const requestedOutcome = new URLSearchParams(window.location.search).get("outcome");
     const next = market.outcomes.find((item) => item.id === requestedOutcome);
-    if (next) {
+    if (!next) return;
+    const frame = window.requestAnimationFrame(() => {
       setOutcome(next.id);
       setLimitPrice(String(next.probability));
-    }
+    });
+    return () => window.cancelAnimationFrame(frame);
   }, [market.outcomes]);
 
   useEffect(() => {
@@ -107,14 +99,7 @@ export function TradeTicket({ market }: { market: Market }) {
 
   useEffect(() => {
     const generation = ++previewGeneration.current;
-    setPreview(null);
-    setPreviewError("");
-    if (inputError || !tradingOpen || price <= 0) {
-      setPreviewBusy(false);
-      return;
-    }
-
-    setPreviewBusy(true);
+    if (inputError || !tradingOpen || price <= 0) return;
     const timer = window.setTimeout(async () => {
       const intent: OrderIntent = {
         clientRequestId: `preview-${market.id}`,
@@ -130,18 +115,15 @@ export function TradeTicket({ market }: { market: Market }) {
       try {
         const next = await dataAdapter.previewOrder(intent);
         if (generation !== previewGeneration.current) return;
-        setPreview(next);
+        setPreviewState({ key: previewKey, preview: next, error: "" });
       } catch (cause) {
         if (generation !== previewGeneration.current) return;
         captureException(cause, { operation: "previewOrder", marketId: market.id });
-        setPreviewError("The order preview is temporarily unavailable.");
-      } finally {
-        if (generation === previewGeneration.current) setPreviewBusy(false);
+        setPreviewState({ key: previewKey, preview: null, error: "The order preview is temporarily unavailable." });
       }
     }, 150);
-
     return () => window.clearTimeout(timer);
-  }, [amountNumber, inputError, market.id, maxSlippageBps, orderType, price, selected.id, side, tradingOpen]);
+  }, [amountNumber, inputError, market.id, maxSlippageBps, orderType, previewKey, price, selected.id, side, tradingOpen]);
 
   async function execute() {
     if (!canSubmit) return;
@@ -164,7 +146,7 @@ export function TradeTicket({ market }: { market: Market }) {
         limitPrice: orderType === "limit" ? price : undefined,
         maxSlippageBps
       });
-      setPreview(prepared.preview);
+      setPreviewState({ key: previewKey, preview: prepared.preview, error: "" });
       if (prepared.walletRequest) {
         const walletResult = await executeWalletRequest(prepared.walletRequest);
         if (walletResult.status === "rejected") throw new Error(walletResult.message);
@@ -192,7 +174,7 @@ export function TradeTicket({ market }: { market: Market }) {
     const limitId = `${surface}-limit-price`;
     const estimatedProfit = preview && side === "buy" ? Math.max(preview.estimatedPayout - preview.estimatedCollateral, 0) : 0;
     const maxAmount = connected && side === "buy" && availableBalance !== undefined ? availableBalance : null;
-    return <div className="ticket-content"><div className="ticket-head"><div><span className="eyebrow">Trade</span><h3>{market.shortQuestion}</h3><small><i />Market open · {appConfig.chainName}</small></div><button className="icon-button mobile-ticket-close" type="button" aria-label="Close trade ticket" onClick={() => setMobileOpen(false)}><X size={18} /></button></div><div className="segmented-control" aria-label="Trade side"><button type="button" aria-pressed={side === "buy"} className={side === "buy" ? "active" : ""} onClick={() => { setSide("buy"); setSubmitError(""); }}>Buy</button><button type="button" aria-pressed={side === "sell"} className={side === "sell" ? "active" : ""} onClick={() => { setSide("sell"); setSubmitError(""); }}>Sell</button></div><div className="ticket-field"><div className="ticket-label-row"><label>Outcome</label><span>Current probability</span></div><div className="outcome-selector">{market.outcomes.map((item) => <button type="button" aria-pressed={outcome === item.id} className={outcome === item.id ? "active" : ""} onClick={() => { setOutcome(item.id); setLimitPrice(String(item.probability)); setSubmitError(""); }} key={item.id}><span>{item.label}</span><strong>{item.probability}¢</strong><small className={item.change24h >= 0 ? "positive" : "negative"}>{item.change24h >= 0 ? "+" : ""}{item.change24h.toFixed(1)} today</small></button>)}</div></div><div className="ticket-field"><div className="ticket-label-row"><label>Order type</label><span className="info-trigger" tabIndex={0} role="note" aria-label="Market orders execute against available liquidity; limit orders wait for the chosen price"><Info size={13} /></span></div><div className="order-type-control"><button type="button" aria-pressed={orderType === "market"} className={orderType === "market" ? "active" : ""} onClick={() => { orderTypeTouched.current = true; setOrderType("market"); setSubmitError(""); }}><strong>Market</strong><small>Execute near {selected.probability}¢</small></button><button type="button" aria-pressed={orderType === "limit"} className={orderType === "limit" ? "active" : ""} onClick={() => { orderTypeTouched.current = true; setOrderType("limit"); setSubmitError(""); }}><strong>Limit</strong><small>Choose your price</small></button></div></div>{orderType === "limit" ? <div className="ticket-field"><label htmlFor={limitId}>Limit price</label><div className={invalidPrice ? "amount-input invalid" : "amount-input"}><span>¢</span><input id={limitId} inputMode="decimal" aria-invalid={invalidPrice} value={limitPrice} onChange={(event) => { setLimitPrice(cleanNumber(event.target.value)); setSubmitError(""); }} /><em>1–100¢</em></div></div> : null}<div className="ticket-field"><div className="ticket-label-row"><label htmlFor={amountId}>{side === "buy" ? "Amount" : "Shares"}</label><span>{side === "buy" ? "Collateral" : selected.label}</span></div><div className={amountNumber <= 0 ? "amount-input invalid" : "amount-input"}><span>{side === "buy" ? "$" : "#"}</span><input id={amountId} inputMode="decimal" aria-invalid={amountNumber <= 0} value={amount} onChange={(event) => { setAmount(cleanNumber(event.target.value)); setSubmitError(""); }} /><em>{side === "buy" ? appConfig.collateral : selected.label}</em></div><div className="quick-amounts" aria-label="Quick amount selection">{[10, 50, 100, 500].map((value) => <button type="button" aria-pressed={amount === String(value)} key={value} onClick={() => setAmount(String(value))}>{side === "buy" ? "$" : ""}{value}</button>)}{maxAmount !== null ? <button type="button" aria-pressed={amount === String(maxAmount)} onClick={() => setAmount(String(maxAmount))}>Max</button> : <button type="button" aria-pressed={amount === "1250"} onClick={() => setAmount("1250")}>{side === "buy" ? "$1,250" : "1,250"}</button>}</div></div>{error ? <div className="ticket-error" role="alert"><AlertCircle size={15} />{error}</div> : previewBusy ? <div className="ticket-ready" role="status"><LoaderCircle className="spin" size={15} />Refreshing order preview</div> : preview ? <div className="ticket-ready"><CheckCircle2 size={15} />Order preview ready</div> : null}<div className="trade-summary"><div><span>Execution price <Info size={13} /></span><strong>{preview ? `${Math.round(preview.estimatedPrice * 100)}¢` : "—"}</strong></div><div><span>Estimated shares</span><strong>{preview ? preview.estimatedShares.toFixed(2) : "—"}</strong></div><div><span>Estimated fee</span><strong>{preview ? formatCurrency(preview.estimatedFee) : "—"}</strong></div><div><span>Price impact</span><strong>{preview ? `${(preview.priceImpactBps / 100).toFixed(2)}%` : "—"}</strong></div><div><span>{side === "buy" ? "Maximum payout" : "Estimated proceeds"}</span><strong>{preview ? formatCurrency(preview.estimatedPayout) : "—"}</strong></div>{side === "buy" ? <div className="summary-highlight"><span>Potential profit</span><strong>{preview ? formatCurrency(estimatedProfit) : "—"}</strong></div> : null}</div><button className="primary-button ticket-submit" type="button" disabled={!canSubmit} onClick={() => void execute()}>{busy ? <><LoaderCircle className="spin" size={17} />Preparing order</> : connected ? `${side === "buy" ? "Buy" : "Sell"} ${selected.label}` : "Connect wallet to trade"}</button><p className="ticket-note"><ShieldCheck size={13} />Review price, fees, price impact and payout before wallet approval. Execution occurs only after the connected integration confirms the request.</p></div>;
+    return <div className="ticket-content"><div className="ticket-head"><div><span className="eyebrow">Trade</span><h3>{market.shortQuestion}</h3><small><i />Market open · {appConfig.chainName}</small></div><button className="icon-button mobile-ticket-close" type="button" aria-label="Close trade ticket" onClick={() => setMobileOpen(false)}><X size={18} /></button></div><div className="segmented-control" aria-label="Trade side"><button type="button" aria-pressed={side === "buy"} className={side === "buy" ? "active" : ""} onClick={() => { setSide("buy"); setSubmitError(""); }}>Buy</button><button type="button" aria-pressed={side === "sell"} className={side === "sell" ? "active" : ""} onClick={() => { setSide("sell"); setSubmitError(""); }}>Sell</button></div><div className="ticket-field"><div className="ticket-label-row"><label>Outcome</label><span>Current probability</span></div><div className="outcome-selector">{market.outcomes.map((item) => <button type="button" aria-pressed={outcome === item.id} className={outcome === item.id ? "active" : ""} onClick={() => { setOutcome(item.id); setLimitPrice(String(item.probability)); setSubmitError(""); }} key={item.id}><span>{item.label}</span><strong>{item.probability}¢</strong><small className={item.change24h >= 0 ? "positive" : "negative"}>{item.change24h >= 0 ? "+" : ""}{item.change24h.toFixed(1)} today</small></button>)}</div></div><div className="ticket-field"><div className="ticket-label-row"><label>Order type</label><span className="info-trigger" tabIndex={0} role="note" aria-label="Market orders execute against available liquidity; limit orders wait for the chosen price"><Info size={13} /></span></div><div className="order-type-control"><button type="button" aria-pressed={orderType === "market"} className={orderType === "market" ? "active" : ""} onClick={() => { setOrderTypeOverride("market"); setSubmitError(""); }}><strong>Market</strong><small>Execute near {selected.probability}¢</small></button><button type="button" aria-pressed={orderType === "limit"} className={orderType === "limit" ? "active" : ""} onClick={() => { setOrderTypeOverride("limit"); setSubmitError(""); }}><strong>Limit</strong><small>Choose your price</small></button></div></div>{orderType === "limit" ? <div className="ticket-field"><label htmlFor={limitId}>Limit price</label><div className={invalidPrice ? "amount-input invalid" : "amount-input"}><span>¢</span><input id={limitId} inputMode="decimal" aria-invalid={invalidPrice} value={limitPrice} onChange={(event) => { setLimitPrice(cleanNumber(event.target.value)); setSubmitError(""); }} /><em>1–100¢</em></div></div> : null}<div className="ticket-field"><div className="ticket-label-row"><label htmlFor={amountId}>{side === "buy" ? "Amount" : "Shares"}</label><span>{side === "buy" ? "Collateral" : selected.label}</span></div><div className={amountNumber <= 0 ? "amount-input invalid" : "amount-input"}><span>{side === "buy" ? "$" : "#"}</span><input id={amountId} inputMode="decimal" aria-invalid={amountNumber <= 0} value={amount} onChange={(event) => { setAmount(cleanNumber(event.target.value)); setSubmitError(""); }} /><em>{side === "buy" ? appConfig.collateral : selected.label}</em></div><div className="quick-amounts" aria-label="Quick amount selection">{[10, 50, 100, 500].map((value) => <button type="button" aria-pressed={amount === String(value)} key={value} onClick={() => setAmount(String(value))}>{side === "buy" ? "$" : ""}{value}</button>)}{maxAmount !== null ? <button type="button" aria-pressed={amount === String(maxAmount)} onClick={() => setAmount(String(maxAmount))}>Max</button> : <button type="button" aria-pressed={amount === "1250"} onClick={() => setAmount("1250")}>{side === "buy" ? "$1,250" : "1,250"}</button>}</div></div>{error ? <div className="ticket-error" role="alert"><AlertCircle size={15} />{error}</div> : previewBusy ? <div className="ticket-ready" role="status"><LoaderCircle className="spin" size={15} />Refreshing order preview</div> : preview ? <div className="ticket-ready"><CheckCircle2 size={15} />Order preview ready</div> : null}<div className="trade-summary"><div><span>Execution price <Info size={13} /></span><strong>{preview ? `${Math.round(preview.estimatedPrice * 100)}¢` : "—"}</strong></div><div><span>Estimated shares</span><strong>{preview ? preview.estimatedShares.toFixed(2) : "—"}</strong></div><div><span>Estimated fee</span><strong>{preview ? formatCurrency(preview.estimatedFee) : "—"}</strong></div><div><span>Price impact</span><strong>{preview ? `${(preview.priceImpactBps / 100).toFixed(2)}%` : "—"}</strong></div><div><span>{side === "buy" ? "Maximum payout" : "Estimated proceeds"}</span><strong>{preview ? formatCurrency(preview.estimatedPayout) : "—"}</strong></div>{side === "buy" ? <div className="summary-highlight"><span>Potential profit</span><strong>{preview ? formatCurrency(estimatedProfit) : "—"}</strong></div> : null}</div><button className="primary-button ticket-submit" type="button" disabled={!canSubmit} onClick={() => void execute()}>{busy ? <><LoaderCircle className="spin" size={17} />Preparing order</> : connected ? `${side === "buy" ? "Buy" : "Sell"} ${selected.label}` : "Connect wallet to trade"}</button><p className="ticket-note"><ShieldCheck size={13} />Review price, fees, price impact and payout before wallet approval. Execution occurs only after the connected integration confirms the request.</p></div>;
   }
 
   const content = (surface: "desktop" | "mobile") => tradingOpen ? renderOpen(surface) : renderClosed();
