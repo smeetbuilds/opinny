@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { BellRing, CheckCircle2, Database, Globe2, Network, RotateCcw, Save, ShieldCheck, SlidersHorizontal } from "lucide-react";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { useApp } from "@/components/app-provider";
@@ -15,19 +15,19 @@ function adapterLabel(value: string) {
 
 export default function AdminSettingsPage() {
   const { notify, tradingEnabled, setTradingEnabled } = useApp();
-  const [draftTradingEnabled, setDraftTradingEnabled] = useState(tradingEnabled);
-
-  useEffect(() => setDraftTradingEnabled(tradingEnabled), [tradingEnabled]);
-  const dirty = draftTradingEnabled !== tradingEnabled;
+  const [draftTradingEnabled, setDraftTradingEnabled] = useState<boolean | null>(null);
+  const effectiveTradingEnabled = draftTradingEnabled ?? tradingEnabled;
+  const dirty = draftTradingEnabled !== null && effectiveTradingEnabled !== tradingEnabled;
 
   function save() {
-    setTradingEnabled(draftTradingEnabled);
-    notify("Interface policy saved", `Trading entry is now ${draftTradingEnabled ? "enabled" : "paused"} in this browser reference session.`, "system");
+    setTradingEnabled(effectiveTradingEnabled);
+    setDraftTradingEnabled(null);
+    notify("Interface policy saved", `Trading entry is now ${effectiveTradingEnabled ? "enabled" : "paused"} in this browser reference session.`, "system");
   }
 
   function reset() {
-    setDraftTradingEnabled(true);
     setTradingEnabled(true);
+    setDraftTradingEnabled(null);
     notify("Interface policy reset", "Trading entry was restored for this browser reference session.", "system");
   }
 
@@ -39,7 +39,7 @@ export default function AdminSettingsPage() {
         <div><CheckCircle2 size={18} /><span><strong>Configuration profile</strong><small>{adapterLabel(appConfig.adapter)} integration profile</small></span></div>
         <span>Network <strong>{appConfig.chainName}</strong></span>
         <span>Collateral <strong>{appConfig.collateral}</strong></span>
-        <span>Trading <strong>{draftTradingEnabled ? "Enabled" : "Paused"}</strong></span>
+        <span>Trading <strong>{effectiveTradingEnabled ? "Enabled" : "Paused"}</strong></span>
       </div>
 
       <div className="admin-settings-grid enhanced-settings-grid">
@@ -86,9 +86,9 @@ export default function AdminSettingsPage() {
           <header><span><Globe2 size={18} /></span><div><h2>Reference interface policy</h2><p>Browser-only presentation control for testing maintenance state. It is not an authorization boundary.</p></div></header>
           <div className="policy-toggle-grid">
             <label className="setting-toggle"><span>Public market discovery<small>Deployment-defined in this frontend-only reference build.</small></span><input type="checkbox" checked={appConfig.features.marketDiscovery} disabled readOnly /><i /></label>
-            <label className="setting-toggle"><span>Trading interface enabled<small>Pause order entry in this browser reference session.</small></span><input type="checkbox" checked={draftTradingEnabled} onChange={(event) => setDraftTradingEnabled(event.target.checked)} /><i /></label>
+            <label className="setting-toggle"><span>Trading interface enabled<small>Pause order entry in this browser reference session.</small></span><input type="checkbox" checked={effectiveTradingEnabled} onChange={(event) => setDraftTradingEnabled(event.target.checked)} /><i /></label>
           </div>
-          {!draftTradingEnabled ? <div className="admin-warning-box"><ShieldCheck size={18} /><span><strong>Reference maintenance mode</strong><p>Trade tickets are disabled in this browser session. Production policy still belongs to the connected integration.</p></span></div> : null}
+          {!effectiveTradingEnabled ? <div className="admin-warning-box"><ShieldCheck size={18} /><span><strong>Reference maintenance mode</strong><p>Trade tickets are disabled in this browser session. Production policy still belongs to the connected integration.</p></span></div> : null}
         </section>
       </div>
     </AdminShell>

@@ -2,6 +2,8 @@ import type { MetadataRoute } from "next";
 import { dataAdapter } from "@/lib/data";
 import { appConfig } from "@/lib/config";
 
+export const dynamic = "force-static";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (!appConfig.siteUrl) return [];
 

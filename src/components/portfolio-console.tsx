@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { AlertCircle, ArrowUpRight, CheckCircle2, CircleDollarSign, LoaderCircle, Target, TrendingUp, WalletCards, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { Position } from "@/core/contracts/domain";
 import { dataAdapter } from "@/lib/data";
 import { appConfig } from "@/lib/config";
@@ -32,6 +32,7 @@ export function PortfolioConsole({ positions }: { positions: Position[] }) {
   const visible = tab === "open" ? open : resolved;
   const redeemTotal = selected.reduce((sum, position) => sum + (position.claimableAmount ?? 0), 0);
   const availableBalance = balances.find((balance) => balance.asset === appConfig.collateral)?.available;
+  const totalPortfolioValue = value + (availableBalance ?? 0) + claimableTotal;
 
   useEffect(() => {
     if (!selected.length) return;
@@ -94,12 +95,10 @@ export function PortfolioConsole({ positions }: { positions: Position[] }) {
     }
   }
 
-  const summaries = useMemo(() => ({ total: value + (availableBalance ?? 0) + claimableTotal, claimableTotal }), [availableBalance, claimableTotal, value]);
-
   return (
     <>
       <div className="portfolio-summary-grid">
-        <article className="balance-card featured-balance"><div><span>Portfolio value</span><strong>{formatCurrency(summaries.total)}</strong><em className={pnl >= 0 ? "positive" : "negative"}>{pnl >= 0 ? "+" : ""}{formatCurrency(pnl)} open P&amp;L · {returnPercent.toFixed(1)}%</em></div><div className="mini-chart" aria-label="Portfolio value trend"><svg viewBox="0 0 240 76" preserveAspectRatio="none"><polyline points="0,65 24,58 48,61 72,46 96,50 120,38 144,42 168,29 192,34 216,19 240,12" /></svg></div></article>
+        <article className="balance-card featured-balance"><div><span>Portfolio value</span><strong>{formatCurrency(totalPortfolioValue)}</strong><em className={pnl >= 0 ? "positive" : "negative"}>{pnl >= 0 ? "+" : ""}{formatCurrency(pnl)} open P&amp;L · {returnPercent.toFixed(1)}%</em></div><div className="mini-chart" aria-label="Portfolio value trend"><svg viewBox="0 0 240 76" preserveAspectRatio="none"><polyline points="0,65 24,58 48,61 72,46 96,50 120,38 144,42 168,29 192,34 216,19 240,12" /></svg></div></article>
         <article className="balance-card"><CircleDollarSign size={18} /><span>Available collateral</span><strong>{availableBalance === undefined ? balanceError ? "Unavailable" : "—" : formatCurrency(availableBalance)}</strong><small>{appConfig.collateral} ready to deploy</small></article>
         <article className="balance-card"><TrendingUp size={18} /><span>Open positions</span><strong>{open.length}</strong><small>{formatCurrency(value)} market value</small></article>
         <article className={`balance-card claimable-card ${claimableTotal ? "active" : ""}`}><WalletCards size={18} /><span>Claimable</span><strong>{formatCurrency(claimableTotal)}</strong><small>{claimable.length} resolved {claimable.length === 1 ? "position" : "positions"}</small>{claimableTotal ? <button type="button" onClick={() => requestRedeem(claimable)}>Redeem all</button> : null}</article>

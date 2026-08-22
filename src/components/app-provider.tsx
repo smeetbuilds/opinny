@@ -68,33 +68,9 @@ type AppContextValue = {
 };
 
 const initialNotifications: PlatformNotification[] = [
-  {
-    id: "notification-1",
-    kind: "trade",
-    title: "Order partially filled",
-    description: "240 of 800 shares were matched at 34¢.",
-    time: "8 min",
-    href: "/orders",
-    read: false
-  },
-  {
-    id: "notification-2",
-    kind: "market",
-    title: "Probability moved 6.4 points",
-    description: "A market in your watchlist crossed your movement threshold.",
-    time: "31 min",
-    href: "/watchlist",
-    read: false
-  },
-  {
-    id: "notification-3",
-    kind: "funding",
-    title: "Crypto deposit confirmed",
-    description: "1,200 USDC is available to trade.",
-    time: "Yesterday",
-    href: "/activity",
-    read: true
-  }
+  { id: "notification-1", kind: "trade", title: "Order partially filled", description: "240 of 800 shares were matched at 34¢.", time: "8 min", href: "/orders", read: false },
+  { id: "notification-2", kind: "market", title: "Probability moved 6.4 points", description: "A market in your watchlist crossed your movement threshold.", time: "31 min", href: "/watchlist", read: false },
+  { id: "notification-3", kind: "funding", title: "Crypto deposit confirmed", description: "1,200 USDC is available to trade.", time: "Yesterday", href: "/activity", read: true }
 ];
 
 const watchlistKey = "opinny-watchlist-v1";
@@ -156,78 +132,83 @@ export function AppProvider({ children, initialMarkets }: { children: React.Reac
   }, []);
 
   useEffect(() => {
-    const storedFavorites = localStorage.getItem(watchlistKey);
-    if (storedFavorites) {
-      try {
-        const parsed: unknown = JSON.parse(storedFavorites);
-        if (Array.isArray(parsed) && parsed.every((item) => typeof item === "string")) setFavorites(new Set(parsed));
-        else localStorage.removeItem(watchlistKey);
-      } catch {
-        localStorage.removeItem(watchlistKey);
-      }
-    }
+    let active = true;
+    queueMicrotask(() => {
+      if (!active) return;
 
-    const storedNotifications = localStorage.getItem(notificationKey);
-    if (storedNotifications) {
-      try {
-        const parsed: unknown = JSON.parse(storedNotifications);
-        if (Array.isArray(parsed) && parsed.every(isNotification)) setNotifications(parsed);
-        else localStorage.removeItem(notificationKey);
-      } catch {
-        localStorage.removeItem(notificationKey);
+      const storedFavorites = localStorage.getItem(watchlistKey);
+      if (storedFavorites) {
+        try {
+          const parsed: unknown = JSON.parse(storedFavorites);
+          if (Array.isArray(parsed) && parsed.every((item) => typeof item === "string")) setFavorites(new Set(parsed));
+          else localStorage.removeItem(watchlistKey);
+        } catch {
+          localStorage.removeItem(watchlistKey);
+        }
       }
-    }
 
-    const storedPreferences = localStorage.getItem(preferencesKey);
-    if (storedPreferences) {
-      try {
-        const parsed: unknown = JSON.parse(storedPreferences);
-        if (isPreferences(parsed)) setPreferences(parsed);
-        else localStorage.removeItem(preferencesKey);
-      } catch {
-        localStorage.removeItem(preferencesKey);
+      const storedNotifications = localStorage.getItem(notificationKey);
+      if (storedNotifications) {
+        try {
+          const parsed: unknown = JSON.parse(storedNotifications);
+          if (Array.isArray(parsed) && parsed.every(isNotification)) setNotifications(parsed);
+          else localStorage.removeItem(notificationKey);
+        } catch {
+          localStorage.removeItem(notificationKey);
+        }
       }
-    }
-    setPreferencesHydrated(true);
 
-    const storedPolicy = localStorage.getItem(interfacePolicyKey);
-    if (storedPolicy) {
-      try {
-        const parsed: unknown = JSON.parse(storedPolicy);
-        if (parsed && typeof parsed === "object" && typeof (parsed as { tradingEnabled?: unknown }).tradingEnabled === "boolean") {
-          setTradingEnabledState((parsed as { tradingEnabled: boolean }).tradingEnabled);
-        } else localStorage.removeItem(interfacePolicyKey);
-      } catch {
-        localStorage.removeItem(interfacePolicyKey);
+      const storedPreferences = localStorage.getItem(preferencesKey);
+      if (storedPreferences) {
+        try {
+          const parsed: unknown = JSON.parse(storedPreferences);
+          if (isPreferences(parsed)) setPreferences(parsed);
+          else localStorage.removeItem(preferencesKey);
+        } catch {
+          localStorage.removeItem(preferencesKey);
+        }
       }
-    }
+      setPreferencesHydrated(true);
 
-    const storedWallet = sessionStorage.getItem(walletSessionKey);
-    if (storedWallet) {
-      try {
-        const session = JSON.parse(storedWallet) as { connected?: unknown; provider?: unknown; address?: unknown; reference?: unknown };
-        const validAddress = typeof session.address === "string" && /^0x[a-fA-F0-9]{40}$/.test(session.address);
-        if (session.connected === true && validAddress && typeof session.provider === "string") {
-          setConnected(true);
-          setWalletAddress(session.address as string);
-          setWalletProvider(session.provider);
-          setWalletReference(session.reference === true);
-        } else sessionStorage.removeItem(walletSessionKey);
-      } catch {
-        sessionStorage.removeItem(walletSessionKey);
+      const storedPolicy = localStorage.getItem(interfacePolicyKey);
+      if (storedPolicy) {
+        try {
+          const parsed: unknown = JSON.parse(storedPolicy);
+          if (parsed && typeof parsed === "object" && typeof (parsed as { tradingEnabled?: unknown }).tradingEnabled === "boolean") {
+            setTradingEnabledState((parsed as { tradingEnabled: boolean }).tradingEnabled);
+          } else localStorage.removeItem(interfacePolicyKey);
+        } catch {
+          localStorage.removeItem(interfacePolicyKey);
+        }
       }
-    }
 
-    setHydrated(true);
+      const storedWallet = sessionStorage.getItem(walletSessionKey);
+      if (storedWallet) {
+        try {
+          const session = JSON.parse(storedWallet) as { connected?: unknown; provider?: unknown; address?: unknown; reference?: unknown };
+          const validAddress = typeof session.address === "string" && /^0x[a-fA-F0-9]{40}$/.test(session.address);
+          if (session.connected === true && validAddress && typeof session.provider === "string") {
+            setConnected(true);
+            setWalletAddress(session.address as string);
+            setWalletProvider(session.provider);
+            setWalletReference(session.reference === true);
+            void dataAdapter.getBalances()
+              .then((nextBalances) => { if (active) setBalances(nextBalances); })
+              .catch((error) => {
+                if (!active) return;
+                captureException(error, { operation: "restoreBalances" });
+                setBalanceError("Account balance is temporarily unavailable.");
+              });
+          } else sessionStorage.removeItem(walletSessionKey);
+        } catch {
+          sessionStorage.removeItem(walletSessionKey);
+        }
+      }
+
+      setHydrated(true);
+    });
+    return () => { active = false; };
   }, []);
-
-  useEffect(() => {
-    if (hydrated && connected) void refreshBalances();
-    if (hydrated && !connected) {
-      setBalances([]);
-      setBalanceError("");
-    }
-  }, [connected, hydrated, refreshBalances]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -250,11 +231,8 @@ export function AppProvider({ children, initialMarkets }: { children: React.Reac
   useEffect(() => {
     if (!hydrated) return;
     try {
-      if (connected) {
-        sessionStorage.setItem(walletSessionKey, JSON.stringify({ connected: true, provider: walletProvider, address: walletAddress, reference: walletReference }));
-      } else {
-        sessionStorage.removeItem(walletSessionKey);
-      }
+      if (connected) sessionStorage.setItem(walletSessionKey, JSON.stringify({ connected: true, provider: walletProvider, address: walletAddress, reference: walletReference }));
+      else sessionStorage.removeItem(walletSessionKey);
     } catch (error) {
       captureException(error, { operation: "persistWalletSession" });
     }
@@ -269,10 +247,7 @@ export function AppProvider({ children, initialMarkets }: { children: React.Reac
     const id = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `toast-${Date.now()}-${Math.random()}`;
     setToasts((current) => [...current, { id, title, description }]);
     if (!preference || preferences[preference]) {
-      setNotifications((current) => [
-        { id: `notification-${id}`, kind, title, description: description ?? "", time: "Now", read: false },
-        ...current
-      ].slice(0, 40));
+      setNotifications((current) => [{ id: `notification-${id}`, kind, title, description: description ?? "", time: "Now", read: false }, ...current].slice(0, 40));
     }
     const timer = window.setTimeout(() => {
       setToasts((current) => current.filter((toast) => toast.id !== id));
@@ -289,12 +264,13 @@ export function AppProvider({ children, initialMarkets }: { children: React.Reac
       setWalletReference(session.reference);
       setConnected(true);
       setWalletOpen(false);
+      void refreshBalances();
       notify(session.reference ? "Reference wallet connected" : "Wallet connected", `${session.provider} is active for crypto trading and funding.`, "system");
     } catch (error) {
       captureException(error, { operation: "connectWallet", provider });
       notify("Wallet connection failed", "The wallet integration could not establish a session.", "system");
     }
-  }, [notify]);
+  }, [notify, refreshBalances]);
 
   const disconnectWallet = useCallback(async () => {
     try {
@@ -306,6 +282,7 @@ export function AppProvider({ children, initialMarkets }: { children: React.Reac
     setWalletAddress("");
     setWalletReference(false);
     setBalances([]);
+    setBalanceError("");
     notify("Wallet disconnected", "Reconnect a supported wallet to trade or move crypto.", "system");
   }, [notify]);
 
@@ -354,14 +331,8 @@ export function AppProvider({ children, initialMarkets }: { children: React.Reac
     });
   }, []);
 
-  const markNotificationRead = useCallback((id: string) => {
-    setNotifications((current) => current.map((item) => item.id === id ? { ...item, read: true } : item));
-  }, []);
-
-  const markAllNotificationsRead = useCallback(() => {
-    setNotifications((current) => current.map((item) => ({ ...item, read: true })));
-  }, []);
-
+  const markNotificationRead = useCallback((id: string) => setNotifications((current) => current.map((item) => item.id === id ? { ...item, read: true } : item)), []);
+  const markAllNotificationsRead = useCallback(() => setNotifications((current) => current.map((item) => ({ ...item, read: true }))), []);
   const clearNotifications = useCallback(() => setNotifications([]), []);
   const unreadCount = notifications.filter((item) => !item.read).length;
 
@@ -403,18 +374,7 @@ export function AppProvider({ children, initialMarkets }: { children: React.Reac
       {children}
       <WalletDialog open={walletOpen} onClose={() => setWalletOpen(false)} onConnect={connectWallet} referenceMode={walletReference || false} />
       <div className="toast-viewport" aria-live="polite" aria-atomic="true">
-        {toasts.map((toast) => (
-          <div className="toast" key={toast.id}>
-            <CheckCircle2 size={18} />
-            <div>
-              <strong>{toast.title}</strong>
-              {toast.description ? <span>{toast.description}</span> : null}
-            </div>
-            <button aria-label="Dismiss notification" onClick={() => setToasts((current) => current.filter((item) => item.id !== toast.id))}>
-              <X size={15} />
-            </button>
-          </div>
-        ))}
+        {toasts.map((toast) => <div className="toast" key={toast.id}><CheckCircle2 size={18} /><div><strong>{toast.title}</strong>{toast.description ? <span>{toast.description}</span> : null}</div><button aria-label="Dismiss notification" onClick={() => setToasts((current) => current.filter((item) => item.id !== toast.id))}><X size={15} /></button></div>)}
       </div>
     </AppContext.Provider>
   );

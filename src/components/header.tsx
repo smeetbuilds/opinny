@@ -53,10 +53,12 @@ export function Header() {
     closeSearch();
   }, [closeSearch, router]);
 
-  useEffect(() => setActiveResult(0), [query]);
   useEffect(() => {
-    setMenuOpen(false);
-    setAccountOpen(false);
+    const frame = window.requestAnimationFrame(() => {
+      setMenuOpen(false);
+      setAccountOpen(false);
+    });
+    return () => window.cancelAnimationFrame(frame);
   }, [pathname]);
 
   useEffect(() => {
@@ -101,6 +103,8 @@ export function Header() {
     }
   }
 
+  const activeResultId = results[activeResult] ? `market-search-option-${results[activeResult].id}` : undefined;
+
   return (
     <>
       <header className="topbar">
@@ -109,7 +113,7 @@ export function Header() {
           <nav className="desktop-nav" aria-label="Primary navigation">
             {navItems.map((item) => <Link className={pathname.startsWith(item.href) ? "active" : ""} href={item.href} key={item.href}>{item.label}</Link>)}
           </nav>
-          <button className="search-trigger" onClick={() => setSearchOpen(true)} aria-label="Search markets">
+          <button className="search-trigger" onClick={() => setSearchOpen(true)} aria-label="Search markets" aria-haspopup="dialog">
             <Search size={17} /><span>Search markets</span><kbd>⌘ K</kbd>
           </button>
           <div className="topbar-actions">
@@ -129,7 +133,7 @@ export function Header() {
                 ) : null}
               </div>
             ) : <button className="primary-button compact" onClick={() => setWalletOpen(true)}><Wallet size={16} />Connect wallet</button>}
-            <button className="icon-button mobile-menu-trigger" onClick={() => setMenuOpen(true)} aria-label="Open menu" aria-expanded={menuOpen}><Menu size={20} /></button>
+            <button className="icon-button mobile-menu-trigger" onClick={() => setMenuOpen(true)} aria-label="Open menu" aria-expanded={menuOpen} aria-haspopup="dialog"><Menu size={20} /></button>
           </div>
         </div>
       </header>
@@ -139,14 +143,26 @@ export function Header() {
           <div className="command-dialog" role="dialog" aria-modal="true" aria-label="Search markets" onMouseDown={(event) => event.stopPropagation()}>
             <div className="command-input-wrap">
               <Search size={20} />
-              <input autoFocus placeholder="Search questions, categories or tags" value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={handleSearchKeyDown} aria-label="Search markets" aria-controls="market-search-results" />
-              {query ? <button className="clear-search" aria-label="Clear search" onClick={() => setQuery("")}><X size={15} /></button> : null}
+              <input
+                autoFocus
+                role="combobox"
+                aria-autocomplete="list"
+                aria-expanded="true"
+                aria-controls="market-search-results"
+                aria-activedescendant={activeResultId}
+                placeholder="Search questions, categories or tags"
+                value={query}
+                onChange={(event) => { setQuery(event.target.value); setActiveResult(0); }}
+                onKeyDown={handleSearchKeyDown}
+                aria-label="Search markets"
+              />
+              {query ? <button className="clear-search" aria-label="Clear search" onClick={() => { setQuery(""); setActiveResult(0); }}><X size={15} /></button> : null}
               <button className="icon-button" aria-label="Close search" onClick={closeSearch}><X size={17} /></button>
             </div>
             <div className="command-results" id="market-search-results" role="listbox" aria-label="Market search results">
               <div className="command-results-head"><span className="command-label">{query ? "Matching markets" : "Trending now"}</span><small>{results.length} shown</small></div>
               {results.map((market, index) => (
-                <button className={index === activeResult ? "active" : ""} role="option" aria-selected={index === activeResult} key={market.id} onMouseEnter={() => setActiveResult(index)} onClick={() => openMarket(market.slug)}>
+                <button id={`market-search-option-${market.id}`} className={index === activeResult ? "active" : ""} role="option" aria-selected={index === activeResult} key={market.id} onMouseEnter={() => setActiveResult(index)} onClick={() => openMarket(market.slug)}>
                   <span className={`market-avatar ${market.imageTone}`}>{market.icon}</span>
                   <span><strong>{market.shortQuestion}</strong><small>{market.category} · {market.status === "open" ? `$${Math.round(market.volume24h / 1000)}K today` : market.status}</small></span>
                   <em>{Math.max(...market.outcomes.map((outcome) => outcome.probability))}%</em>
@@ -162,7 +178,7 @@ export function Header() {
       {menuOpen ? (
         <div className="mobile-drawer-wrap">
           <button className="drawer-backdrop" aria-label="Close menu" onClick={() => setMenuOpen(false)} />
-          <aside className="mobile-drawer" aria-label="Mobile menu">
+          <aside className="mobile-drawer" role="dialog" aria-modal="true" aria-label="Mobile menu">
             <div className="mobile-drawer-head"><Logo /><button className="icon-button" aria-label="Close menu" onClick={() => setMenuOpen(false)}><X size={19} /></button></div>
             <button className="drawer-search" onClick={() => { setMenuOpen(false); setSearchOpen(true); }}><Search size={18} />Search markets <kbd>⌘ K</kbd></button>
             <nav aria-label="Mobile primary navigation">

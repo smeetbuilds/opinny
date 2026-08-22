@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 import { CalendarDays, Check, Copy, MessageCircle, Repeat2, Share2, UserPlus } from "lucide-react";
 import type { ActivityItem, LeaderboardEntry, Market, MarketComment } from "@/core/contracts/domain";
 import { formatCurrency, formatDate } from "@/lib/format";
@@ -8,14 +8,25 @@ import { MarketCard } from "./market-card";
 import { useApp } from "./app-provider";
 
 type Tab = "positions" | "activity" | "comments";
+const followEvent = "opinny:follow-change";
 
 export function TraderProfile({ profile, markets, activity, comments }: { profile: LeaderboardEntry; markets: Market[]; activity: ActivityItem[]; comments: MarketComment[] }) {
   const { notify } = useApp();
   const [tab, setTab] = useState<Tab>("positions");
-  const [following, setFollowing] = useState(false);
   const followKey = `opinny-follow-${profile.handle}`;
-
-  useEffect(() => setFollowing(localStorage.getItem(followKey) === "1"), [followKey]);
+  const subscribeToFollow = useCallback((onStoreChange: () => void) => {
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === followKey) onStoreChange();
+    };
+    window.addEventListener("storage", onStorage);
+    window.addEventListener(followEvent, onStoreChange);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener(followEvent, onStoreChange);
+    };
+  }, [followKey]);
+  const getFollowSnapshot = useCallback(() => localStorage.getItem(followKey) === "1", [followKey]);
+  const following = useSyncExternalStore(subscribeToFollow, getFollowSnapshot, () => false);
   const relevantMarkets = useMemo(() => markets.filter((market) => profile.categories.includes(market.category)).slice(0, 6), [markets, profile.categories]);
   const marketById = useMemo(() => new Map(markets.map((market) => [market.id, market])), [markets]);
 
@@ -43,9 +54,9 @@ export function TraderProfile({ profile, markets, activity, comments }: { profil
 
   function toggleFollow() {
     const next = !following;
-    setFollowing(next);
     if (next) localStorage.setItem(followKey, "1");
     else localStorage.removeItem(followKey);
+    window.dispatchEvent(new Event(followEvent));
     notify(next ? "Trader followed" : "Trader unfollowed", `@${profile.handle}`);
   }
 
