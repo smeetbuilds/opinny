@@ -8,5 +8,7 @@ out
 *.log
 .vercel
 coverage
+playwright-report
+test-results
 
 *.tsbuildinfo

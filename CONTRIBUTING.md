@@ -27,6 +27,16 @@ Before submitting changes:
 bun run check
 ```
 
+For browser regression testing, install the Playwright browsers once and run the suite against the production static export:
+
+```bash
+bunx playwright install --with-deps chromium firefox webkit
+bun run build
+bun run e2e
+```
+
+The browser suite exercises Chromium, Firefox, WebKit and a mobile Chromium viewport. Keep browser tests deterministic and backend-neutral; use the reference adapter unless a test explicitly covers an integration adapter.
+
 ## Architecture requirements
 
 - Keep the repository frontend only.
