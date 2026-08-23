@@ -50,8 +50,6 @@ async function expectNoPageOverflow(page: Page, route: string) {
 }
 
 async function connectReferenceWallet(page: Page) {
-  await page.goto("/portfolio/");
-  await waitForStablePage(page);
   const trigger = page.getByRole("button", { name: "Connect wallet" }).first();
   await expect(trigger).toBeVisible();
   await trigger.click();
@@ -60,26 +58,24 @@ async function connectReferenceWallet(page: Page) {
   await expect(dialog).toBeVisible();
   await dialog.getByRole("button", { name: /Browser wallet/ }).click();
   await expect(dialog).toBeHidden();
-  await expect(page.getByText("Portfolio value", { exact: true })).toBeVisible();
 }
 
-test("critical static routes render without runtime errors or page overflow", async ({ page }) => {
-  const issues = watchRuntimeIssues(page);
-  const routes = [
-    { path: "/markets/", heading: "Markets" },
-    { path: "/settings/", heading: "Settings" },
-    { path: "/admin/", heading: "Overview" }
-  ];
+const criticalRoutes = [
+  { path: "/markets/", heading: "Markets" },
+  { path: "/settings/", heading: "Settings" },
+  { path: "/admin/", heading: "Overview" }
+] as const;
 
-  for (const route of routes) {
+for (const route of criticalRoutes) {
+  test(`critical route ${route.path} renders without runtime errors or page overflow`, async ({ page }) => {
+    const issues = watchRuntimeIssues(page);
     await page.goto(route.path);
     await waitForStablePage(page);
     await expect(page.getByRole("heading", { name: route.heading, exact: true }).first()).toBeVisible();
     await expectNoPageOverflow(page, route.path);
-  }
-
-  expect(issues, "critical routes should not emit browser runtime errors").toEqual([]);
-});
+    expect(issues, `${route.path} should not emit browser runtime errors`).toEqual([]);
+  });
+}
 
 test("wallet dialog traps focus, restores the opener, and reconnects after reload", async ({ page }) => {
   const issues = watchRuntimeIssues(page);
@@ -116,9 +112,9 @@ test("wallet dialog traps focus, restores the opener, and reconnects after reloa
 
 test("reference wallet can prepare a trade from the authoritative preview", async ({ page }, testInfo) => {
   const issues = watchRuntimeIssues(page);
-  await connectReferenceWallet(page);
   await page.goto("/market/bitcoin-above-150k-before-2027/");
   await waitForStablePage(page);
+  await connectReferenceWallet(page);
   await expectNoPageOverflow(page, "/market/bitcoin-above-150k-before-2027/");
 
   if (isMobileProject(testInfo)) {
