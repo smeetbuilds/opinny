@@ -1,7 +1,7 @@
 import type { Market, MarketComment, RewardOpportunity } from "@/core/contracts/domain";
 import type { MarketQuery, OpinnyIntegrationAdapter } from "@/core/contracts/ports";
 import { appConfig } from "@/lib/config";
-import { cancelPaperOrder, executePaperOrder, matchPaperOrder, paperActivity, paperBalances, paperOrderBook, paperOrders, paperPositions, paperTrades, previewPaperOrder, redeemPaperPosition, settlePaperFunding } from "./simulator";
+import { cancelPaperOrder, executePaperOrder, matchPaperOrder, paperActivity, paperBalances, paperOrderBook, paperOrders, paperPositions, paperTrades, previewPaperOrder, redeemPaperPosition, resetPaperExchange, settlePaperFunding } from "./simulator";
 import {
   adminMetrics,
   adminUsers,
@@ -160,6 +160,7 @@ export const mockAdapter: OpinnyIntegrationAdapter = {
     try { return wait({ id: orderId, status: "accepted" as const, message: matchPaperOrder(orderId) }); }
     catch (error) { return wait({ id: orderId, status: "rejected" as const, message: error instanceof Error ? error.message : "Simulated match failed." }); }
   },
+  resetPaperAccount: () => { resetPaperExchange(); return wait({ id: "paper-reset", status: "accepted" as const, message: "Paper account restored to its starting balances and sample positions." }); },
   createMarketComment: (input) => {
     const author = leaderboard.at(-1) ?? leaderboard[0];
     return wait({
