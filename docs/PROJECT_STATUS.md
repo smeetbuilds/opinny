@@ -27,6 +27,8 @@
 - [x] Account event synchronization for portfolio, order history, local balances and activity
 - [x] Paper deposits and withdrawals, validation, idempotence and winning redemption credits
 - [x] Persistent local discussion posts, replies, useful reactions, bookmarks and notifications
+- [x] Admin market pause/reopen, private drafts, user review status and mock resolution approvals saved on device
+- [x] Simulated transaction explorer reflecting trades, deposits and withdrawals
 - [x] Paper-account reset with confirmation; touch/focus/reduced-motion and information-density refinements
 - [x] Reference exchange behavior covered by tests
 
