@@ -130,7 +130,8 @@ The reference adapter supports a connected, browser-only practice workflow witho
 5. Open **Portfolio** to inspect marked-to-reference prices and unrealized P&L. Redeem an eligible winning position to credit its paper proceeds.
 6. Open **Deposit crypto** or **Withdraw** to simulate approved funding. Supported mock assets and network are validated; no blockchain operation is broadcast.
 7. Post a market comment, reply, mark a comment useful, bookmark markets, change preferences and use the notification centre. Paper account and discussion activity survive reloads on this device.
-8. Use **Settings → Reset paper account** to return trades, positions, orders, funding and comments to reference fixtures while preserving preferences and the watchlist.
+8. Open the **Admin** area to create local market drafts, pause or reopen reference markets, change mock user review status, approve sample resolution cases and inspect trade/funding records. Drafts intentionally do not have public trading routes until production publishing exists.
+9. Use **Settings → Reset paper account** to return trades, positions, orders, funding and comments to reference fixtures while preserving preferences and the watchlist.
 
 All order fills, prices, portfolio valuations, synthetic order-book liquidity, USDC movements and payout amounts are **illustrative local simulation**. The manual match control is a testing affordance, not a real exchange or liquidity source. No user data is synchronized across browsers/devices. Clearing site storage resets paper state. There is no real on-chain wallet connection, custody, financial execution or live market feed in the reference adapter.
 
