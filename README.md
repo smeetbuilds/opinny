@@ -117,7 +117,22 @@ NEXT_PUBLIC_OPINNY_SUPPORTED_ASSETS=USDC,USDT,DAI
 NEXT_PUBLIC_OPINNY_ADMIN_PATH=/admin
 ```
 
-The repository includes only the `mock` adapter. Add a production adapter to the registry in `src/lib/data.ts` after implementing the interfaces in `src/core/contracts/ports.ts`.
+The repository includes only the `mock` adapter. Its account state is saved in the browser as a **paper trading simulation**. Add a production adapter to the registry in `src/lib/data.ts` after implementing the interfaces in `src/core/contracts/ports.ts`.
+
+## Paper trading walkthrough
+
+The reference adapter supports a connected, browser-only practice workflow without a database, real funds or a matching service:
+
+1. Select **Start trading → Paper wallet**. Every provider choice is explicitly simulated in the reference build.
+2. Open any active market. Select a binary or multi-outcome contract, then buy with simulated USDC or sell shares you own.
+3. A market order fills immediately at the reference quote and updates available USDC, positions, activity and order history. A limit order crossing that quote fills; a resting order reserves collateral or shares.
+4. Open **Orders** or the market's **Your open orders** section. Select **Match 50%** to simulate a counterparty taking a resting order. The next match finishes it. You can instead cancel the unfilled remainder and free reserved collateral.
+5. Open **Portfolio** to inspect marked-to-reference prices and unrealized P&L. Redeem an eligible winning position to credit its paper proceeds.
+6. Open **Deposit crypto** or **Withdraw** to simulate approved funding. Supported mock assets and network are validated; no blockchain operation is broadcast.
+7. Post a market comment, reply, mark a comment useful, bookmark markets, change preferences and use the notification centre. Paper account and discussion activity survive reloads on this device.
+8. Use **Settings → Reset paper account** to return trades, positions, orders, funding and comments to reference fixtures while preserving preferences and the watchlist.
+
+All order fills, prices, portfolio valuations, synthetic order-book liquidity, USDC movements and payout amounts are **illustrative local simulation**. The manual match control is a testing affordance, not a real exchange or liquidity source. No user data is synchronized across browsers/devices. Clearing site storage resets paper state. There is no real on-chain wallet connection, custody, financial execution or live market feed in the reference adapter.
 
 ## Frontend-only boundary
 
@@ -126,13 +141,13 @@ Opinny intentionally does **not** implement or claim to implement:
 - wallet custody or private-key management
 - identity, authentication, authorization or session security
 - card, bank or other fiat payment processing
-- order matching, authoritative pricing or settlement
+- production order matching, authoritative pricing or settlement (paper fills are immediate or manually simulated)
 - smart contracts or blockchain indexing
 - market creation governance or authoritative resolution
 - reward scoring, accrual or payout settlement
 - sanctions, KYC/KYB, geofencing, fraud controls or rate limits
-- authoritative balances, P&L, fees or tax calculations
-- persistent user, market, transaction, discussion or notification storage
+- authoritative balances, P&L, fees or tax calculations (the reference engine computes illustrative local values)
+- server-side persistent user, market, transaction, discussion or notification storage (paper activity is stored in this browser only)
 
 Production adopters must provide those capabilities server-side and/or onchain and return normalized data through an adapter. See `docs/INTEGRATION_GUIDE.md`.
 
