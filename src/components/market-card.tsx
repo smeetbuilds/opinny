@@ -13,8 +13,9 @@ const statusLabels: Record<Market["status"], string> = {
   draft: "Draft"
 };
 
-export function MarketCard({ market, compact = false }: { market: Market; compact?: boolean }) {
-  const { favorites, toggleFavorite } = useApp();
+export function MarketCard({ market: initialMarket, compact = false }: { market: Market; compact?: boolean }) {
+  const { favorites, toggleFavorite, marketCatalog } = useApp();
+  const market = marketCatalog.find((item) => item.id === initialMarket.id) ?? initialMarket;
   const bookmarked = favorites.has(market.id);
   const leader = market.outcomes.reduce((best, outcome) => outcome.probability > best.probability ? outcome : best, market.outcomes[0]);
   const tradingOpen = market.status === "open";
@@ -26,7 +27,7 @@ export function MarketCard({ market, compact = false }: { market: Market; compac
         <div className="market-card-title">
           <span className="category-label">
             {market.category}
-            {market.live && tradingOpen ? <em>Live</em> : <em className={`market-status-chip ${market.status}`}>{statusLabels[market.status]}</em>}
+            {market.live && tradingOpen ? <em>Paper</em> : <em className={`market-status-chip ${market.status}`}>{statusLabels[market.status]}</em>}
           </span>
           <Link href={`/market/${market.slug}`}>{market.shortQuestion}</Link>
         </div>
