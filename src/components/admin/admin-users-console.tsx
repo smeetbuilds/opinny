@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Copy, Download, Search, ShieldAlert, X } from "lucide-react";
 import type { AdminUser } from "@/core/contracts/domain";
 import { dataAdapter } from "@/lib/data";
@@ -29,6 +29,12 @@ function downloadCsv(users: AdminUser[]) {
 export function AdminUsersConsole({ initialUsers }: { initialUsers: AdminUser[] }) {
   const { notify } = useApp();
   const [users, setUsers] = useState(initialUsers);
+  useEffect(() => {
+    let mounted = true;
+    void dataAdapter.getUsers().then((items) => { if (mounted) setUsers(items); })
+      .catch((error) => captureException(error, { operation: "hydrateAdminUsers" }));
+    return () => { mounted = false; };
+  }, []);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<StatusFilter>("all");
   const [risk, setRisk] = useState<RiskFilter>("all");
