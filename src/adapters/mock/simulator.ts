@@ -1,4 +1,4 @@
-import type { AccountBalance, ActivityItem, FundingIntent, Market, OrderIntent, OrderPreview, Position, RecentTrade, UserOrder } from "@/core/contracts/domain";
+import type { AccountBalance, ActivityItem, FundingIntent, Market, OrderBookLevel, OrderIntent, OrderPreview, Position, RecentTrade, UserOrder } from "@/core/contracts/domain";
 import { appConfig } from "@/lib/config";
 import { activity as seedActivity, markets, orders as seedOrders, positions as seedPositions } from "./data";
 
@@ -36,7 +36,12 @@ function initialState(): PaperState {
   return {
     version: 1,
     balances: Object.fromEntries(appConfig.supportedAssets.map((asset, index) => [asset, asset === appConfig.collateral ? 3842.16 : index === 1 ? 1200 : 800])),
-    positions: seedPositions.map((position) => ({ ...position })),
+    positions: [...seedPositions.map((position) => ({ ...position })), {
+      id: "pos-seed-partial", marketId: "mkt-003", marketSlug: markets[2].slug,
+      marketQuestion: markets[2].shortQuestion, outcome: "2 cuts", shares: 240,
+      averagePrice: 0.34, currentPrice: 0.38, value: 91.2, pnl: 9.6,
+      pnlPercent: 11.76, status: "open" as const
+    }],
     orders: seedOrders.map((order) => ({
       ...order,
       marketId: markets.find((market) => market.slug === order.marketSlug)?.id,
@@ -113,7 +118,7 @@ function debitShares(marketId: string, label: string, quantity: number) {
 }
 function recordTrade(market: Market, side: "buy" | "sell", label: string, price: number, quantity: number) {
   state().trades.unshift({
-    id: "trade-paper-" + Date.now(), marketId: market.id, side, outcome: label,
+    id: "trade-paper-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7), marketId: market.id, side, outcome: label,
     price, shares: quantity, value: round(price * quantity), trader: "You · paper", time: "Now"
   });
   state().trades = state().trades.slice(0, 100);
@@ -134,6 +139,8 @@ export function previewPaperOrder(intent: OrderIntent): OrderPreview {
   const quantity = intent.side === "buy" ? budget / (price * (1 + FEE_RATE)) : intent.shares ?? 0;
   if (!Number.isFinite(quantity) || quantity <= 0 || quantity > 1_000_000_000) throw new Error("Enter a valid, positive order size.");
   if (intent.side === "buy" && (!Number.isFinite(budget) || budget > 1_000_000_000)) throw new Error("Enter a valid collateral amount.");
+  if (intent.side === "sell" && quantity > freeShares(market.id, outcome.label) + 1e-6) throw new Error("Insufficient unreserved " + outcome.label + " shares.");
+  if (intent.side === "buy" && budget > (state().balances[appConfig.collateral] ?? 0) + 1e-6) throw new Error("Insufficient available " + appConfig.collateral + " balance.");
   const collateral = round(quantity * price);
   const fee = round(collateral * FEE_RATE);
   return {
@@ -163,6 +170,32 @@ export function paperPositions(): Position[] {
 export const paperOrders = (): UserOrder[] => state().orders.map((order) => ({ ...order }));
 export const paperActivity = (): ActivityItem[] => state().activity.map((item) => ({ ...item }));
 export const paperTrades = (marketId: string): RecentTrade[] => state().trades.filter((trade) => trade.marketId === marketId).map((trade) => ({ ...trade }));
+
+/** Synthetic depth is generated from the selected outcome, not an unrelated market. */
+export function paperOrderBook(marketId: string, outcomeId: string): { bids: OrderBookLevel[]; asks: OrderBookLevel[] } {
+  const outcome = opening(marketId, outcomeId);
+  if (!outcome) return { bids: [], asks: [] };
+  const quote = outcome.probability / 100;
+  function build(side: "buy" | "sell"): OrderBookLevel[] {
+    const offers = [1200, 2400, 3100, 5800].map((size, index) => ({
+      price: Math.min(0.99, Math.max(0.01, round(quote + (side === "buy" ? -1 : 1) * (index + 1) / 100))),
+      size
+    }));
+    for (const order of state().orders) {
+      if (active(order) && order.type === "limit" && order.marketId === marketId && order.outcomeId === outcomeId && order.side === side) {
+        offers.push({ price: order.price, size: remaining(order) });
+      }
+    }
+    const aggregated = new Map<number, number>();
+    for (const row of offers) aggregated.set(row.price, round((aggregated.get(row.price) ?? 0) + row.size));
+    let total = 0;
+    return [...aggregated].sort((a, b) => side === "buy" ? b[0] - a[0] : a[0] - b[0]).map(([price, size]) => {
+      total = round(total + size);
+      return { price, size, total };
+    });
+  }
+  return { bids: build("buy"), asks: build("sell") };
+}
 
 export function executePaperOrder(intent: OrderIntent): string {
   const current = state();
@@ -223,8 +256,8 @@ export function matchPaperOrder(id: string): string {
   const order = current.orders.find((item) => item.id === id);
   if (!order || !active(order) || order.type !== "limit") throw new Error("Select an open limit order.");
   const market = marketFor(order.marketId ?? "");
-  const quantity = round(Math.min(remaining(order), Math.max(remaining(order) / 2, 0.000001)));
-  const finalQuantity = round(remaining(order) - quantity) < 0.000001 ? remaining(order) : quantity;
+  const quantity = round(remaining(order) / 2);
+  const finalQuantity = quantity <= 0 || round(remaining(order) - quantity) < 0.000001 ? remaining(order) : quantity;
   if (order.side === "buy") {
     const allocated = round((order.reservedCollateral ?? 0) * (finalQuantity / remaining(order)));
     order.reservedCollateral = round(Math.max(0, (order.reservedCollateral ?? 0) - allocated));
