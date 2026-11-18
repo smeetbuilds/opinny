@@ -8,6 +8,7 @@ import { Logo } from "./logo";
 import { NotificationCenter } from "./notification-center";
 import { useApp } from "./app-provider";
 import { shortAddress } from "@/lib/format";
+import { appConfig } from "@/lib/config";
 
 const navItems = [
   { href: "/markets", label: "Markets" },
@@ -132,7 +133,7 @@ export function Header() {
                   </div>
                 ) : null}
               </div>
-            ) : <button className="primary-button compact" onClick={() => setWalletOpen(true)}><Wallet size={16} />Connect wallet</button>}
+            ) : <button className="primary-button compact" onClick={() => setWalletOpen(true)}><Wallet size={16} />{appConfig.adapter === "mock" ? "Start trading" : "Connect wallet"}</button>}
             <button className="icon-button mobile-menu-trigger" onClick={() => setMenuOpen(true)} aria-label="Open menu" aria-expanded={menuOpen} aria-haspopup="dialog"><Menu size={20} /></button>
           </div>
         </div>
