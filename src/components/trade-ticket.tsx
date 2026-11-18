@@ -20,8 +20,9 @@ const stateCopy: Record<Market["status"], { title: string; description: string }
 };
 const maintenanceCopy = { title: "Trading paused", description: "Order entry is temporarily disabled by the interface policy." };
 
-export function TradeTicket({ market }: { market: Market }) {
-  const { connected, setWalletOpen, notify, executeWalletRequest, balances, preferences, tradingEnabled, walletReference } = useApp();
+export function TradeTicket({ market: initialMarket }: { market: Market }) {
+  const { connected, setWalletOpen, notify, executeWalletRequest, balances, preferences, tradingEnabled, walletReference, marketCatalog } = useApp();
+  const market = marketCatalog.find((item) => item.id === initialMarket.id) ?? initialMarket;
   const [side, setSide] = useState<"buy" | "sell">("buy");
   const [orderTypeOverride, setOrderTypeOverride] = useState<"market" | "limit" | null>(null);
   const orderType = orderTypeOverride ?? preferences.orderType;
