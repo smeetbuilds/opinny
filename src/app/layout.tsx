@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     default: "Opinny — Trade what happens next",
     template: "%s · Opinny"
   },
-  description: "A crypto prediction-market interface for exploring event probabilities, trading outcomes and managing positions.",
+  description: "An interactive prediction-market simulation. Explore event probabilities, place paper trades and manage a practice portfolio with no real money.",
   openGraph: {
     type: "website",
     siteName: "Opinny",
