@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, CheckCircle2, Copy, Download, Search, X } from "lucide-react";
 import type { TransactionRecord } from "@/core/contracts/domain";
 import { formatCurrency } from "@/lib/format";
 import { useApp } from "@/components/app-provider";
+import { dataAdapter } from "@/lib/data";
 
 type TypeFilter = "all" | TransactionRecord["type"];
 type StatusFilter = "all" | TransactionRecord["status"];
@@ -22,8 +23,16 @@ function downloadCsv(transactions: TransactionRecord[]) {
   URL.revokeObjectURL(url);
 }
 
-export function AdminTransactionsConsole({ transactions }: { transactions: TransactionRecord[] }) {
+export function AdminTransactionsConsole({ transactions: initialTransactions }: { transactions: TransactionRecord[] }) {
   const { notify } = useApp();
+  const [transactions, setTransactions] = useState(initialTransactions);
+  useEffect(() => {
+    let active = true;
+    const reload = () => { void dataAdapter.getTransactions().then((rows) => { if (active) setTransactions(rows); }).catch(() => { /* Retain last good ledger. */ }); };
+    reload();
+    window.addEventListener("opinny:paper-update", reload);
+    return () => { active = false; window.removeEventListener("opinny:paper-update", reload); };
+  }, []);
   const [query, setQuery] = useState("");
   const [type, setType] = useState<TypeFilter>("all");
   const [status, setStatus] = useState<StatusFilter>("all");
