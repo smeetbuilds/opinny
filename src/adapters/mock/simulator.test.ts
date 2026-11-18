@@ -7,6 +7,7 @@ import {
   paperBalances,
   paperOrders,
   paperPositions,
+  paperTransactions,
   previewPaperOrder,
   redeemPaperPosition,
   seedPaperExchangeForTests,
@@ -90,6 +91,8 @@ test("paper exchange conserves collateral and tracks orders, fills, positions, a
   expect(paperPositions().find((position) => position.id === "pos-5")!.status).toBe("claimed");
   expect(() => redeemPaperPosition("pos-5")).toThrow();
   expect(paperActivity().some((item) => item.title === "Winning position redeemed")).toBe(true);
+  expect(paperTransactions().filter((tx) => tx.id.startsWith("paper-tx-")).length).toBeGreaterThanOrEqual(4);
+  expect(paperTransactions().some((tx) => tx.type === "deposit" && tx.amount === 200)).toBe(true);
 });
 
 test("paper engine rejects invalid price, insufficient collateral and unowned shares", () => {
