@@ -1,7 +1,7 @@
 "use client";
 
 import { MessageCircle, Reply, Send, ThumbsUp, Wallet, X } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { MarketComment } from "@/core/contracts/domain";
 import { dataAdapter } from "@/lib/data";
 import { useApp } from "./app-provider";
@@ -28,6 +28,20 @@ export function MarketDiscussion({ marketId, initialComments }: { marketId: stri
   const [busy, setBusy] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  useEffect(() => {
+    let mounted = true;
+    const refresh = () => {
+      void dataAdapter.getMarketComments(marketId).then((items) => {
+        if (!mounted) return;
+        setComments(items);
+        setUseful(new Set(items.filter((item) => item.viewerUseful).map((item) => item.id)));
+      }).catch(() => { /* Keep the last visible discussion on a transient error. */ });
+    };
+    refresh();
+    window.addEventListener("opinny:paper-update", refresh);
+    return () => { mounted = false; window.removeEventListener("opinny:paper-update", refresh); };
+  }, [marketId]);
+
   const totalReplies = useMemo(() => comments.reduce((sum, comment) => sum + comment.replyCount, 0), [comments]);
 
   async function submit() {
@@ -40,12 +54,12 @@ export function MarketDiscussion({ marketId, initialComments }: { marketId: stri
 
     setBusy(true);
     try {
-      const created = await dataAdapter.createMarketComment({
+      await dataAdapter.createMarketComment({
         marketId,
         body,
         replyToId: replyTo?.id
       });
-      setComments((current) => [created, ...current]);
+      setComments(await dataAdapter.getMarketComments(marketId));
       setMessage("");
       setReplyTo(null);
       notify("Comment posted", "Your market view is now visible in this discussion.", "market");
