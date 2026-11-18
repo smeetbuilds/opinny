@@ -47,9 +47,9 @@ export function WalletDialog({ open, onClose, onConnect }: { open: boolean; onCl
         <div className="sheet-handle" />
         <header className="dialog-head">
           <div>
-            <span className="eyebrow">Crypto only</span>
-            <h2 id="wallet-title">Connect your wallet</h2>
-            <p>{referenceMode ? "Use a reference wallet session to preview the trading and funding flows." : "Use a self-custody wallet to trade, deposit and withdraw supported crypto assets."}</p>
+            <span className="eyebrow">{referenceMode ? "Paper market · local session" : "Crypto only"}</span>
+            <h2 id="wallet-title">{referenceMode ? "Start paper trading" : "Connect your wallet"}</h2>
+            <p>{referenceMode ? "Practice buying, selling, funding and order management with a persistent simulated account." : "Use a self-custody wallet to trade, deposit and withdraw supported crypto assets."}</p>
           </div>
           <button className="icon-button" disabled={Boolean(connecting)} onClick={onClose} aria-label="Close wallet dialog"><X size={18} /></button>
         </header>
@@ -58,7 +58,7 @@ export function WalletDialog({ open, onClose, onConnect }: { open: boolean; onCl
           <span><CircleDollarSign size={15} /><small>Primary collateral</small><strong>{appConfig.collateral}</strong></span>
         </div>
         <div className="wallet-list">
-          {wallets.map((wallet) => (
+          {(referenceMode ? [{ name: "Paper wallet", detail: "Start with simulated balances; no real wallet required", mark: "OP" }] : wallets).map((wallet) => (
             <button className="wallet-option" disabled={Boolean(connecting)} key={wallet.name} onClick={() => void connect(wallet.name)}>
               <span className="wallet-mark">{wallet.mark}</span>
               <span><strong>{wallet.name}</strong><small>{wallet.detail}</small></span>
@@ -67,7 +67,7 @@ export function WalletDialog({ open, onClose, onConnect }: { open: boolean; onCl
           ))}
         </div>
         <div className="wallet-assurance">
-          <div><ShieldCheck size={17} /><span>{referenceMode ? "Reference session only" : "Non-custodial connection"}</span></div>
+          <div><ShieldCheck size={17} /><span>{referenceMode ? "No real wallet needed" : "Non-custodial connection"}</span></div>
           <div><WalletCards size={17} /><span>No card or bank funding</span></div>
           <div><Zap size={17} /><span>{referenceMode ? "No transaction is broadcast" : "Wallet-approved transactions"}</span></div>
         </div>
