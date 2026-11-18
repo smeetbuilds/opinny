@@ -211,6 +211,12 @@ export function AppProvider({ children, initialMarkets }: { children: React.Reac
   }, []);
 
   useEffect(() => {
+    const syncPaperBalances = () => { if (connected) void refreshBalances(); };
+    window.addEventListener("opinny:paper-update", syncPaperBalances);
+    return () => window.removeEventListener("opinny:paper-update", syncPaperBalances);
+  }, [connected, refreshBalances]);
+
+  useEffect(() => {
     if (!hydrated) return;
     try {
       localStorage.setItem(watchlistKey, JSON.stringify([...favorites]));
