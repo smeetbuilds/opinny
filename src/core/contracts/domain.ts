@@ -177,6 +177,7 @@ export interface MarketComment {
   createdAt: string;
   usefulCount: number;
   replyCount: number;
+  viewerUseful?: boolean;
   replyToId?: string;
 }
 
