@@ -39,7 +39,8 @@ export function paperMarkets(): Market[] {
   const current = state();
   return [...(current.createdMarkets ?? []), ...markets].map((market) => ({
     ...market,
-    status: current.resolvedMarkets?.[market.id] ? "resolved" : (current.marketStatuses?.[market.id] ?? market.status) === "open" && Date.parse(market.endDate) <= Date.now() ? "paused" : current.marketStatuses?.[market.id] ?? market.status
+    status: current.resolvedMarkets?.[market.id] ? "resolved" : (current.marketStatuses?.[market.id] ?? market.status) === "open" && Date.parse(market.endDate) <= Date.now() ? "paused" : current.marketStatuses?.[market.id] ?? market.status,
+    outcomes: market.outcomes.map((outcome) => ({ ...outcome, probability: current.resolvedMarkets?.[market.id] ? (current.resolvedMarkets[market.id] === outcome.id ? 100 : 0) : outcome.probability }))
   }));
 }
 export function paperAdminUsers(): AdminUser[] {
