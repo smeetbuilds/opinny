@@ -150,4 +150,9 @@ test("admin sandbox decisions persist in paper account and gate trading", () => 
   setPaperResolution("res-201", "Yes");
   expect(paperResolutionCases().find((item) => item.id === "res-201")!.status).toBe("approved");
   expect(() => setPaperResolution("res-201", "Yes")).toThrow();
+  const settled = paperMarkets().find((market) => market.id === "mkt-001");
+  if (settled?.status === "resolved") {
+    expect(settled.outcomes.find((outcome) => outcome.label === "Yes")?.probability).toBe(100);
+    expect(settled.outcomes.filter((outcome) => outcome.label !== "Yes").every((outcome) => outcome.probability === 0)).toBe(true);
+  }
 });
