@@ -5,6 +5,7 @@ import { Search, SlidersHorizontal, X } from "lucide-react";
 import type { Market } from "@/core/contracts/domain";
 import { CategoryTabs } from "./category-tabs";
 import { MarketCard } from "./market-card";
+import { useApp } from "./app-provider";
 
 export function MarketGrid({
   initialMarkets,
@@ -17,7 +18,9 @@ export function MarketGrid({
   showCategories?: boolean;
   syncCategoryFromUrl?: boolean;
 }) {
-  const categories = useMemo(() => ["All", ...Array.from(new Set(initialMarkets.map((market) => market.category))).sort()], [initialMarkets]);
+  const { marketCatalog } = useApp();
+  const markets = useMemo(() => initialMarkets.map((market) => marketCatalog.find((item) => item.id === market.id) ?? market), [initialMarkets, marketCatalog]);
+  const categories = useMemo(() => ["All", ...Array.from(new Set(markets.map((market) => market.category))).sort()], [markets]);
   const [category, setCategory] = useState("All");
   const [sort, setSort] = useState("trending");
   const [openOnly, setOpenOnly] = useState(true);
@@ -38,7 +41,7 @@ export function MarketGrid({
   }, [categories, syncCategoryFromUrl]);
 
   const visible = useMemo(() => {
-    let result = [...initialMarkets];
+    let result = [...markets];
     const normalized = query.trim().toLowerCase();
     if (normalized) result = result.filter((market) => [market.question, market.shortQuestion, market.category, ...market.tags].join(" ").toLowerCase().includes(normalized));
     if (category !== "All") result = result.filter((market) => market.category === category);
@@ -49,7 +52,7 @@ export function MarketGrid({
     if (sort === "ending") result.sort((a, b) => +new Date(a.endDate) - +new Date(b.endDate));
     if (sort === "trending") result.sort((a, b) => b.volume24h - a.volume24h);
     return result;
-  }, [initialMarkets, category, sort, openOnly, query]);
+  }, [markets, category, sort, openOnly, query]);
 
   function changeCategory(nextCategory: string) {
     setCategory(nextCategory);
