@@ -32,7 +32,7 @@ export function OrderBook({ bids, asks }: { bids: OrderBookLevel[]; asks: OrderB
   return (
     <section className="book-card" aria-labelledby="order-book-title">
       <div className="book-head">
-        <div><h3 id="order-book-title">Order book</h3><span><i />Live market depth</span></div>
+        <div><h3 id="order-book-title">Order book</h3><span><i />Reference depth</span></div>
         <div className="book-legend" aria-hidden="true"><span>Price</span><span>Size</span><span>Total</span></div>
       </div>
       <div className="book-quote-strip">
