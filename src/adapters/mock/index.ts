@@ -1,15 +1,13 @@
-import type { Market, MarketComment, OrderIntent, OrderPreview, RewardOpportunity } from "@/core/contracts/domain";
+import type { Market, MarketComment, RewardOpportunity } from "@/core/contracts/domain";
 import type { MarketQuery, OpinnyIntegrationAdapter } from "@/core/contracts/ports";
 import { appConfig } from "@/lib/config";
+import { cancelPaperOrder, executePaperOrder, matchPaperOrder, paperActivity, paperBalances, paperOrders, paperPositions, paperTrades, previewPaperOrder, redeemPaperPosition, settlePaperFunding } from "./simulator";
 import {
-  activity,
   adminMetrics,
   adminUsers,
   leaderboard,
   markets,
   orderBook,
-  orders,
-  positions,
   recentTrades,
   resolutions,
   transactions
@@ -20,28 +18,6 @@ const referenceContract = "0x0000000000000000000000000000000000000001";
 
 function slugify(value: string) {
   return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-}
-
-function buildOrderPreview(intent: OrderIntent): OrderPreview {
-  const market = markets.find((item) => item.id === intent.marketId);
-  const outcome = market?.outcomes.find((item) => item.id === intent.outcomeId);
-  const estimatedPrice = intent.limitPrice ?? (outcome?.probability ?? 50) / 100;
-  const estimatedShares = intent.side === "buy"
-    ? (intent.collateralAmount ?? 0) / Math.max(estimatedPrice, 0.01)
-    : intent.shares ?? 0;
-  const estimatedCollateral = intent.side === "buy"
-    ? intent.collateralAmount ?? 0
-    : estimatedShares * estimatedPrice;
-  const estimatedFee = estimatedCollateral * 0.001;
-
-  return {
-    estimatedPrice,
-    estimatedShares,
-    estimatedCollateral,
-    estimatedFee,
-    estimatedPayout: intent.side === "buy" ? Math.max(estimatedShares - estimatedFee, 0) : Math.max(estimatedCollateral - estimatedFee, 0),
-    priceImpactBps: Math.min(80, Math.round(estimatedCollateral / 25))
-  };
 }
 
 function buildReferenceComments(marketId: string): MarketComment[] {
@@ -129,17 +105,13 @@ export const mockAdapter: OpinnyIntegrationAdapter = {
     return wait(market ? withDiscussionCount(market) : null);
   },
   getOrderBook: () => wait(orderBook),
-  getRecentTrades: () => wait(recentTrades),
+  getRecentTrades: (marketId) => wait([...paperTrades(marketId), ...recentTrades]),
   getMarketComments: (marketId) => wait(buildReferenceComments(marketId)),
   getRewardOpportunities: () => wait(buildRewardOpportunities()),
-  getBalances: () => wait(appConfig.supportedAssets.map((asset, index) => ({
-    asset,
-    available: asset === appConfig.collateral ? 3842.16 : index === 1 ? 1200 : 800,
-    locked: asset === appConfig.collateral ? 640.84 : 0
-  }))),
-  getPositions: () => wait(positions),
-  getOrders: () => wait(orders),
-  getActivity: () => wait(activity),
+  getBalances: () => wait(paperBalances()),
+  getPositions: () => wait(paperPositions()),
+  getOrders: () => wait(paperOrders()),
+  getActivity: () => wait(paperActivity()),
   getLeaderboard: () => wait(leaderboard),
   getMetrics: () => wait(adminMetrics),
   getAnalytics: () => wait({
@@ -157,11 +129,11 @@ export const mockAdapter: OpinnyIntegrationAdapter = {
     ...transaction,
     createdAt: new Date(Date.UTC(2026, 7, 4, 12, -index * 7)).toISOString()
   }))),
-  previewOrder: (intent) => wait(buildOrderPreview(intent)),
+  previewOrder: (intent) => wait(previewPaperOrder(intent)),
   prepareOrder: (intent) => wait({
     requestId: intent.clientRequestId,
     expiresAt: new Date(Date.now() + 60_000).toISOString(),
-    preview: buildOrderPreview(intent),
+    preview: previewPaperOrder(intent),
     walletRequest: {
       chainId: appConfig.chainId,
       to: referenceContract,
@@ -169,12 +141,17 @@ export const mockAdapter: OpinnyIntegrationAdapter = {
       value: "0x0"
     }
   }),
+  confirmOrder: (intent) => {
+    try { return wait({ id: intent.clientRequestId, status: "accepted" as const, message: executePaperOrder(intent) }); }
+    catch (error) { return wait({ id: intent.clientRequestId, status: "rejected" as const, message: error instanceof Error ? error.message : "Paper order failed." }); }
+  },
   cancelOrder: (orderId) => {
-    const order = orders.find((item) => item.id === orderId);
-    if (!order) return wait({ id: orderId, status: "rejected", message: "Order was not found." });
-    if (order.status !== "open" && order.status !== "partially-filled") return wait({ id: orderId, status: "rejected", message: "Only open orders can be cancelled." });
-    order.status = "cancelled";
-    return wait({ id: orderId, status: "accepted", message: "Cancellation request accepted." });
+    try { return wait({ id: orderId, status: "accepted" as const, message: cancelPaperOrder(orderId) }); }
+    catch (error) { return wait({ id: orderId, status: "rejected" as const, message: error instanceof Error ? error.message : "Cancellation failed." }); }
+  },
+  simulateFillOrder: (orderId) => {
+    try { return wait({ id: orderId, status: "accepted" as const, message: matchPaperOrder(orderId) }); }
+    catch (error) { return wait({ id: orderId, status: "rejected" as const, message: error instanceof Error ? error.message : "Simulated match failed." }); }
   },
   createMarketComment: (input) => {
     const author = leaderboard.at(-1) ?? leaderboard[0];
@@ -197,12 +174,8 @@ export const mockAdapter: OpinnyIntegrationAdapter = {
     message: useful ? "Comment marked useful." : "Useful mark removed."
   }),
   redeemPosition: (positionId) => {
-    const position = positions.find((item) => item.id === positionId);
-    if (!position) return wait({ id: positionId, status: "rejected", message: "Position was not found." });
-    if (position.status !== "resolved" || (position.claimableAmount ?? 0) <= 0) return wait({ id: positionId, status: "rejected", message: "Position is not claimable." });
-    position.status = "claimed";
-    position.claimableAmount = 0;
-    return wait({ id: positionId, status: "accepted", message: "Redemption request accepted." });
+    try { return wait({ id: positionId, status: "accepted" as const, message: redeemPaperPosition(positionId) }); }
+    catch (error) { return wait({ id: positionId, status: "rejected" as const, message: error instanceof Error ? error.message : "Redemption failed." }); }
   },
   prepareFunding: (intent) => wait({
     requestId: `fund-${Date.now()}`,
@@ -214,6 +187,10 @@ export const mockAdapter: OpinnyIntegrationAdapter = {
       value: "0x0"
     }
   }),
+  confirmFunding: (intent, requestId) => {
+    try { return wait({ id: requestId, status: "accepted" as const, message: settlePaperFunding(intent, requestId) }); }
+    catch (error) { return wait({ id: requestId, status: "rejected" as const, message: error instanceof Error ? error.message : "Funding failed." }); }
+  },
   createMarket: (input) => {
     const labels = input.outcomes.map((label) => label.trim()).filter(Boolean);
     if (labels.length < 2 || new Set(labels.map((label) => label.toLowerCase())).size !== labels.length) {
