@@ -15,6 +15,7 @@ type Tab = "open" | "resolved";
 export function PortfolioConsole({ positions }: { positions: Position[] }) {
   const { connected, setWalletOpen, notify, balances, balanceError } = useApp();
   const [items, setItems] = useState(positions);
+  useEffect(() => { setItems(positions); }, [positions]);
   const [tab, setTab] = useState<Tab>("open");
   const [selected, setSelected] = useState<Position[]>([]);
   const [busy, setBusy] = useState(false);
@@ -81,7 +82,7 @@ export function PortfolioConsole({ positions }: { positions: Position[] }) {
 
       if (acceptedIds.size) {
         setItems((current) => current.map((position) => acceptedIds.has(position.id) ? { ...position, status: "claimed", claimableAmount: 0 } : position));
-        notify("Redemption prepared", `${formatCurrency(acceptedTotal)} ${appConfig.collateral} is ready for settlement confirmation.`, "funding", "resolutionEvents");
+        notify("Paper payout redeemed", `${formatCurrency(acceptedTotal)} ${appConfig.collateral} was credited to your available paper balance.`, "funding", "resolutionEvents");
       }
 
       if (failures.length) {
