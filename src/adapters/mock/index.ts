@@ -1,13 +1,12 @@
 import type { Market, MarketComment, RewardOpportunity } from "@/core/contracts/domain";
 import type { MarketQuery, OpinnyIntegrationAdapter } from "@/core/contracts/ports";
 import { appConfig } from "@/lib/config";
-import { cancelPaperOrder, executePaperOrder, matchPaperOrder, paperActivity, paperBalances, paperOrders, paperPositions, paperTrades, previewPaperOrder, redeemPaperPosition, settlePaperFunding } from "./simulator";
+import { cancelPaperOrder, executePaperOrder, matchPaperOrder, paperActivity, paperBalances, paperOrderBook, paperOrders, paperPositions, paperTrades, previewPaperOrder, redeemPaperPosition, settlePaperFunding } from "./simulator";
 import {
   adminMetrics,
   adminUsers,
   leaderboard,
   markets,
-  orderBook,
   recentTrades,
   resolutions,
   transactions
@@ -104,8 +103,16 @@ export const mockAdapter: OpinnyIntegrationAdapter = {
     const market = markets.find((item) => item.slug === slug);
     return wait(market ? withDiscussionCount(market) : null);
   },
-  getOrderBook: () => wait(orderBook),
-  getRecentTrades: (marketId) => wait([...paperTrades(marketId), ...recentTrades]),
+  getOrderBook: (marketId, outcomeId) => wait(paperOrderBook(marketId, outcomeId)),
+  getRecentTrades: (marketId) => {
+    const market = markets.find((item) => item.id === marketId);
+    const reference = market ? recentTrades.map((trade, index) => {
+      const outcome = market.outcomes[index % market.outcomes.length];
+      const price = outcome.probability / 100;
+      return { ...trade, id: marketId + "-" + trade.id, outcome: outcome.label, price, value: Math.round(trade.shares * price * 100) / 100 };
+    }) : [];
+    return wait([...paperTrades(marketId), ...reference]);
+  },
   getMarketComments: (marketId) => wait(buildReferenceComments(marketId)),
   getRewardOpportunities: () => wait(buildRewardOpportunities()),
   getBalances: () => wait(paperBalances()),
@@ -258,7 +265,13 @@ export const mockAdapter: OpinnyIntegrationAdapter = {
     return wait({ id: caseId, status: "accepted", message: `Resolution prepared for ${outcome}.` });
   },
   subscribeToMarket: (marketId, onEvent) => {
-    const timer = globalThis.setTimeout(() => onEvent({ type: "snapshot", marketId, sequence: 1 }), 0);
-    return () => globalThis.clearTimeout(timer);
+    let sequence = 0;
+    const update = () => onEvent({ type: "snapshot", marketId, sequence: ++sequence });
+    const timer = globalThis.setTimeout(update, 0);
+    if (typeof window !== "undefined") window.addEventListener("opinny:paper-update", update);
+    return () => {
+      globalThis.clearTimeout(timer);
+      if (typeof window !== "undefined") window.removeEventListener("opinny:paper-update", update);
+    };
   }
 };
