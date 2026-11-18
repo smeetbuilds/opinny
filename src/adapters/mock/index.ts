@@ -1,14 +1,12 @@
 import type { Market, MarketComment, RewardOpportunity } from "@/core/contracts/domain";
 import type { MarketQuery, OpinnyIntegrationAdapter } from "@/core/contracts/ports";
 import { appConfig } from "@/lib/config";
-import { addPaperComment, cancelPaperOrder, executePaperOrder, matchPaperOrder, paperActivity, paperBalances, paperComments, paperOrderBook, paperOrders, paperPositions, paperTrades, paperTransactions, previewPaperOrder, paperReplyCount, paperUseful, redeemPaperPosition, resetPaperExchange, setPaperUseful, settlePaperFunding } from "./simulator";
+import { addPaperComment, cancelPaperOrder, createPaperMarket, executePaperOrder, matchPaperOrder, paperActivity, paperAdminUsers, paperBalances, paperComments, paperMarkets, paperOrderBook, paperOrders, paperPositions, paperResolutionCases, paperTrades, paperTransactions, previewPaperOrder, paperReplyCount, paperUseful, redeemPaperPosition, resetPaperExchange, setPaperMarketStatus, setPaperResolution, setPaperUserStatus, setPaperUseful, settlePaperFunding } from "./simulator";
 import {
   adminMetrics,
-  adminUsers,
   leaderboard,
   markets,
   recentTrades,
-  resolutions,
 } from "./data";
 
 const wait = <T,>(value: T) => Promise.resolve(value);
@@ -83,7 +81,7 @@ function buildRewardOpportunities(): RewardOpportunity[] {
 
 export const mockAdapter: OpinnyIntegrationAdapter = {
   async listMarkets(query?: MarketQuery) {
-    let result = markets.map(withDiscussionCount);
+    let result = paperMarkets().map(withDiscussionCount);
     if (query?.category && query.category !== "All") result = result.filter((market) => market.category === query.category);
     if (query?.search) {
       const term = query.search.toLowerCase();
@@ -99,7 +97,7 @@ export const mockAdapter: OpinnyIntegrationAdapter = {
     return wait(result);
   },
   getMarket: (slug) => {
-    const market = markets.find((item) => item.slug === slug);
+    const market = paperMarkets().find((item) => item.slug === slug);
     return wait(market ? withDiscussionCount(market) : null);
   },
   getOrderBook: (marketId, outcomeId) => wait(paperOrderBook(marketId, outcomeId)),
@@ -129,8 +127,8 @@ export const mockAdapter: OpinnyIntegrationAdapter = {
     categoryTotal: 48_200_000,
     categories: [{ label: "Crypto", value: 32 }, { label: "Politics", value: 24 }, { label: "Technology", value: 18 }, { label: "Economy", value: 14 }, { label: "Other", value: 12 }]
   }),
-  getUsers: () => wait(adminUsers),
-  getResolutionQueue: () => wait(resolutions),
+  getUsers: () => wait(paperAdminUsers()),
+  getResolutionQueue: () => wait(paperResolutionCases()),
   getTransactions: () => wait(paperTransactions()),
   previewOrder: (intent) => wait(previewPaperOrder(intent)),
   prepareOrder: (intent) => wait({
@@ -181,70 +179,24 @@ export const mockAdapter: OpinnyIntegrationAdapter = {
     catch (error) { return wait({ id: requestId, status: "rejected" as const, message: error instanceof Error ? error.message : "Funding failed." }); }
   },
   createMarket: (input) => {
-    const labels = input.outcomes.map((label) => label.trim()).filter(Boolean);
-    if (labels.length < 2 || new Set(labels.map((label) => label.toLowerCase())).size !== labels.length) {
-      return wait({ id: "market-invalid", status: "rejected", message: "Markets require at least two unique outcomes." });
+    try {
+      const id = createPaperMarket(input);
+      return wait({ id, status: "accepted" as const, message: "Local market draft saved. Publication requires a live backend." });
+    } catch (error) {
+      return wait({ id: "market-invalid", status: "rejected" as const, message: error instanceof Error ? error.message : "Market draft invalid." });
     }
-    const endDate = new Date(input.endDate);
-    if (!Number.isFinite(endDate.getTime())) return wait({ id: "market-invalid", status: "rejected", message: "Close date is invalid." });
-
-    const id = `market-${Date.now()}`;
-    const baseProbability = Math.floor(100 / labels.length);
-    const remainder = 100 - baseProbability * labels.length;
-    const market: Market = {
-      id,
-      slug: `${slugify(input.question)}-${Date.now().toString().slice(-5)}`,
-      question: input.question.trim(),
-      shortQuestion: input.question.trim(),
-      description: input.resolutionRules.trim(),
-      category: input.category,
-      tags: [input.category],
-      kind: input.kind,
-      status: "draft",
-      imageTone: "tone-green",
-      icon: "◎",
-      outcomes: labels.map((label, index) => ({
-        id: `${id}-outcome-${index + 1}`,
-        label,
-        probability: baseProbability + (index < remainder ? 1 : 0),
-        change24h: 0,
-        volume24h: 0
-      })),
-      volume: 0,
-      volume24h: 0,
-      liquidity: 0,
-      traders: 0,
-      commentCount: 0,
-      endDate: endDate.toISOString(),
-      createdAt: new Date().toISOString(),
-      resolutionSource: input.resolutionSource.trim(),
-      resolutionRules: input.resolutionRules.trim(),
-      chart: [50, 50, 50, 50]
-    };
-    markets.unshift(market);
-    return wait({ id, status: "accepted", message: "Market draft created." });
   },
   updateMarketStatus: (marketId, status) => {
-    const market = markets.find((item) => item.id === marketId);
-    if (!market) return wait({ id: marketId, status: "rejected", message: "Market was not found." });
-    if (market.status === "resolved") return wait({ id: marketId, status: "rejected", message: "Resolved markets cannot be reopened or paused." });
-    if (status !== "open" && status !== "paused") return wait({ id: marketId, status: "rejected", message: "Unsupported market status transition." });
-    market.status = status;
-    return wait({ id: marketId, status: "accepted", message: `Market status changed to ${status}.` });
+    try { return wait({ id: marketId, status: "accepted" as const, message: setPaperMarketStatus(marketId, status) }); }
+    catch (error) { return wait({ id: marketId, status: "rejected" as const, message: error instanceof Error ? error.message : "Status change failed." }); }
   },
   updateUserStatus: (userId, status) => {
-    const user = adminUsers.find((item) => item.id === userId);
-    if (!user) return wait({ id: userId, status: "rejected", message: "User was not found." });
-    user.status = status;
-    return wait({ id: userId, status: "accepted", message: `User status changed to ${status}.` });
+    try { return wait({ id: userId, status: "accepted" as const, message: setPaperUserStatus(userId, status) }); }
+    catch (error) { return wait({ id: userId, status: "rejected" as const, message: error instanceof Error ? error.message : "User update failed." }); }
   },
   resolveMarket: (caseId, outcome) => {
-    const resolution = resolutions.find((item) => item.id === caseId);
-    if (!resolution) return wait({ id: caseId, status: "rejected", message: "Resolution case was not found." });
-    if (resolution.status === "approved") return wait({ id: caseId, status: "rejected", message: "Resolution case is already approved." });
-    resolution.status = "approved";
-    resolution.proposedOutcome = outcome;
-    return wait({ id: caseId, status: "accepted", message: `Resolution prepared for ${outcome}.` });
+    try { return wait({ id: caseId, status: "accepted" as const, message: setPaperResolution(caseId, outcome) }); }
+    catch (error) { return wait({ id: caseId, status: "rejected" as const, message: error instanceof Error ? error.message : "Resolution failed." }); }
   },
   subscribeToMarket: (marketId, onEvent) => {
     let sequence = 0;
