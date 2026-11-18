@@ -79,6 +79,8 @@ export interface TradingCommandPort {
   confirmOrder(intent: OrderIntent): Promise<CommandResult>;
   /** Optional local-demo counterparty fill; never a production matching API. */
   simulateFillOrder?(orderId: string): Promise<CommandResult>;
+  /** Optional demo reset; never exposed by production adapters. */
+  resetPaperAccount?(): Promise<CommandResult>;
   cancelOrder(orderId: string): Promise<CommandResult>;
 }
 
