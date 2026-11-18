@@ -26,7 +26,12 @@ function useAdapterData<T>(loader: () => Promise<T>, operation: string) {
         captureException(error, { operation });
         setState({ data: null, error: "Account data is temporarily unavailable." });
       });
-    return () => { active = false; };
+    const onPaperUpdate = () => {
+      void loader().then((data) => { if (active) setState({ data, error: "" }); })
+        .catch((error) => { if (active) { captureException(error, { operation }); setState({ data: null, error: "Account data is temporarily unavailable." }); } });
+    };
+    window.addEventListener("opinny:paper-update", onPaperUpdate);
+    return () => { active = false; window.removeEventListener("opinny:paper-update", onPaperUpdate); };
   }, [loader, operation]);
 
   const reload = useCallback(async () => {
