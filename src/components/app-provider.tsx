@@ -115,6 +115,7 @@ export function AppProvider({ children, initialMarkets }: { children: React.Reac
   const [preferencesHydrated, setPreferencesHydrated] = useState(false);
   const [tradingEnabled, setTradingEnabledState] = useState(true);
   const [favorites, setFavorites] = useState<Set<string>>(new Set(["mkt-001"]));
+  const [marketCatalog, setMarketCatalog] = useState(initialMarkets);
   const [notifications, setNotifications] = useState<PlatformNotification[]>(initialNotifications);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [hydrated, setHydrated] = useState(false);
@@ -208,6 +209,17 @@ export function AppProvider({ children, initialMarkets }: { children: React.Reac
       setHydrated(true);
     });
     return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    const refreshCatalog = () => {
+      void dataAdapter.listMarkets().then((items) => { if (mounted) setMarketCatalog(items); })
+        .catch((error) => captureException(error, { operation: "refreshMarketCatalog" }));
+    };
+    refreshCatalog();
+    window.addEventListener("opinny:paper-update", refreshCatalog);
+    return () => { mounted = false; window.removeEventListener("opinny:paper-update", refreshCatalog); };
   }, []);
 
   useEffect(() => {
@@ -362,7 +374,7 @@ export function AppProvider({ children, initialMarkets }: { children: React.Reac
       resetPreferences,
       tradingEnabled,
       setTradingEnabled,
-      marketCatalog: initialMarkets,
+      marketCatalog,
       favorites,
       toggleFavorite,
       notifications,
@@ -372,7 +384,7 @@ export function AppProvider({ children, initialMarkets }: { children: React.Reac
       clearNotifications,
       notify
     }),
-    [connected, walletAddress, walletProvider, walletReference, walletOpen, connectWallet, disconnectWallet, executeWalletRequest, balances, balanceError, refreshBalances, preferences, preferencesHydrated, savePreferences, resetPreferences, tradingEnabled, setTradingEnabled, initialMarkets, favorites, notifications, unreadCount, toggleFavorite, markNotificationRead, markAllNotificationsRead, clearNotifications, notify]
+    [connected, walletAddress, walletProvider, walletReference, walletOpen, connectWallet, disconnectWallet, executeWalletRequest, balances, balanceError, refreshBalances, preferences, preferencesHydrated, savePreferences, resetPreferences, tradingEnabled, setTradingEnabled, marketCatalog, favorites, notifications, unreadCount, toggleFavorite, markNotificationRead, markAllNotificationsRead, clearNotifications, notify]
   );
 
   return (
