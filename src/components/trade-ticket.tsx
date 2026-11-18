@@ -60,6 +60,12 @@ export function TradeTicket({ market }: { market: Market }) {
   const canSubmit = tradingOpen && !inputError && price > 0 && !busy && !previewBusy && Boolean(preview);
 
   useEffect(() => {
+    const invalidate = () => setPreviewState(null);
+    window.addEventListener("opinny:paper-update", invalidate);
+    return () => window.removeEventListener("opinny:paper-update", invalidate);
+  }, []);
+
+  useEffect(() => {
     const requestedOutcome = new URLSearchParams(window.location.search).get("outcome");
     const next = market.outcomes.find((item) => item.id === requestedOutcome);
     if (!next) return;
@@ -119,14 +125,14 @@ export function TradeTicket({ market }: { market: Market }) {
       } catch (cause) {
         if (generation !== previewGeneration.current) return;
         captureException(cause, { operation: "previewOrder", marketId: market.id });
-        setPreviewState({ key: previewKey, preview: null, error: "The order preview is temporarily unavailable." });
+        setPreviewState({ key: previewKey, preview: null, error: cause instanceof Error ? cause.message : "The order preview is temporarily unavailable." });
       }
     }, 150);
     return () => window.clearTimeout(timer);
   }, [amountNumber, inputError, market.id, maxSlippageBps, orderType, previewKey, price, selected.id, side, tradingOpen]);
 
   async function execute() {
-    if (!canSubmit) return;
+    if (!tradingOpen || inputError || price <= 0 || busy || previewBusy || !preview) return;
     if (!connected) {
       setWalletOpen(true);
       return;
