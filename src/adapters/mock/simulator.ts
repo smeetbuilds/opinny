@@ -19,6 +19,7 @@ type PaperState = {
   activity: ActivityItem[];
   trades: PaperTrade[];
   fundedRequests: string[];
+  fundingIntents?: Record<string, string>;
   transactions?: TransactionRecord[];
   comments?: MarketComment[];
   useful?: Record<string, boolean>;
@@ -37,7 +38,7 @@ export function paperMarkets(): Market[] {
   const current = state();
   return [...(current.createdMarkets ?? []), ...markets].map((market) => ({
     ...market,
-    status: current.marketStatuses?.[market.id] ?? market.status
+    status: (current.marketStatuses?.[market.id] ?? market.status) === "open" && Date.parse(market.endDate) <= Date.now() ? "closed" : current.marketStatuses?.[market.id] ?? market.status
   }));
 }
 export function paperAdminUsers(): AdminUser[] {
@@ -83,7 +84,8 @@ export function createPaperMarket(input: AdminMarketInput): string {
 export function setPaperMarketStatus(id: string, next: MarketStatus): string {
   const market = paperMarkets().find((item) => item.id === id);
   if (!market) throw new Error("Market not found.");
-  if (!["open", "paused"].includes(market.status) || !["open", "paused"].includes(next)) throw new Error("Only open or paused markets can change trading status.");
+  if (!(market.status === "draft" && next === "open" && (state().createdMarkets ?? []).some((item) => item.id === id)) && (!["open", "paused"].includes(market.status) || !["open", "paused"].includes(next))) throw new Error("Only draft paper markets can be published, or open/paused markets toggled.");
+  if (next === "open" && Date.parse(market.endDate) <= Date.now()) throw new Error("Expired markets cannot be opened.");
   state().marketStatuses ??= {};
   state().marketStatuses![id] = next;
   event("resolution", "Market " + next, market.shortQuestion);
@@ -103,6 +105,8 @@ export function setPaperResolution(id: string, outcome: string): string {
   if (!item) throw new Error("Resolution case not found.");
   if (item.status === "approved") throw new Error("Resolution already approved.");
   if (!outcome.trim()) throw new Error("Select a resolution outcome.");
+  const linked = paperMarkets().find((market) => market.question === item.market || market.shortQuestion === item.market);
+  if (linked && !linked.outcomes.some((candidate) => candidate.label === outcome || candidate.id === outcome)) throw new Error("The selected outcome does not belong to this market.");
   state().resolutionDecisions ??= {};
   state().resolutionDecisions![id] = { status: "approved", outcome };
   event("resolution", "Paper case approved", item.market + " · " + outcome);
@@ -112,14 +116,14 @@ export function setPaperResolution(id: string, outcome: string): string {
 const opening = (marketId: string, outcome: string) => paperMarkets().find((market) => market.id === marketId)?.outcomes.find((item) => item.id === outcome);
 const marketFor = (marketId: string): Market => {
   const market = paperMarkets().find((item) => item.id === marketId);
-  if (!market || market.status !== "open") throw new Error("This market is not open for trading.");
+  if (!market || market.status !== "open" || Date.parse(market.endDate) <= Date.now()) throw new Error("This market is not open for trading.");
   return market;
 };
 
 function initialState(): PaperState {
   return {
     version: 1,
-    balances: Object.fromEntries(appConfig.supportedAssets.map((asset, index) => [asset, asset === appConfig.collateral ? 3842.16 : index === 1 ? 1200 : 800])),
+    balances: Object.fromEntries(appConfig.supportedAssets.map((asset, index) => [asset, asset === appConfig.collateral ? round(3842.16 - seedOrders.filter((order) => active(order) && order.side === "buy").reduce((sum, order) => sum + remaining(order) * order.price * (1 + FEE_RATE), 0)) : index === 1 ? 1200 : 800])),
     positions: [...seedPositions.map((position) => ({ ...position })), {
       id: "pos-seed-partial", marketId: "mkt-003", marketSlug: markets[2].slug,
       marketQuestion: markets[2].shortQuestion, outcome: "2 cuts", shares: 240,
@@ -135,6 +139,7 @@ function initialState(): PaperState {
     activity: seedActivity.map((item) => ({ ...item })),
     trades: [],
     fundedRequests: [],
+    fundingIntents: {},
     transactions: [],
     comments: [],
     useful: {},
@@ -402,7 +407,12 @@ export function redeemPaperPosition(id: string): string {
 
 export function settlePaperFunding(intent: FundingIntent, requestId: string): string {
   const current = state();
-  if (current.fundedRequests.includes(requestId)) return "Funding request already applied.";
+  if (!requestId.trim()) throw new Error("Funding request identifier is required.");
+  const signature = JSON.stringify([intent.type, intent.asset, intent.chainId, intent.amount, intent.destination ?? ""]);
+  if (current.fundedRequests.includes(requestId)) {
+    if (current.fundingIntents?.[requestId] && current.fundingIntents[requestId] !== signature) throw new Error("Funding identifier was already used for a different request.");
+    return "Funding request already applied.";
+  }
   if (!appConfig.supportedAssets.includes(intent.asset) || intent.chainId !== appConfig.chainId) throw new Error("Unsupported asset or network.");
   if (!Number.isFinite(intent.amount) || intent.amount <= 0 || intent.amount > 1_000_000_000) throw new Error("Enter a valid funding amount.");
   if (intent.type !== "deposit" && intent.type !== "withdrawal") throw new Error("Unsupported funding action.");
@@ -412,6 +422,8 @@ export function settlePaperFunding(intent: FundingIntent, requestId: string): st
   }
   current.balances[intent.asset] = round((current.balances[intent.asset] ?? 0) + (intent.type === "deposit" ? intent.amount : -intent.amount));
   current.fundedRequests.push(requestId);
+  current.fundingIntents ??= {};
+  current.fundingIntents[requestId] = signature;
   ledger(intent.type, intent.amount, intent.asset);
   event(intent.type, (intent.type === "deposit" ? "Paper deposit confirmed" : "Paper withdrawal simulated"), intent.amount + " " + intent.asset + " · " + appConfig.chainName, intent.type === "deposit" ? intent.amount : -intent.amount);
   save();
@@ -430,7 +442,7 @@ export function paperComments(marketId: string): MarketComment[] {
 export function paperUseful(id: string): boolean { return Boolean(state().useful?.[id]); }
 export function paperReplyCount(id: string): number { return (state().comments ?? []).filter((comment) => comment.replyToId === id).length; }
 export function addPaperComment(input: MarketCommentInput): MarketComment {
-  if (!markets.some((market) => market.id === input.marketId)) throw new Error("Market not found.");
+  if (!paperMarkets().some((market) => market.id === input.marketId)) throw new Error("Market not found.");
   const body = input.body.trim();
   if (!body || body.length > 280) throw new Error("Comments must contain 1 to 280 characters.");
   const comment: MarketComment = {
