@@ -92,9 +92,11 @@ export function FundingButtons() {
         setError(result.message);
         return;
       }
+      const confirmation = await dataAdapter.confirmFunding({ type: open, asset, amount: numericAmount, chainId: appConfig.chainId, destination: open === "withdrawal" ? destination : undefined }, prepared.requestId);
+      if (confirmation.status !== "accepted") { setError(confirmation.message); return; }
       notify(
-        `${open === "deposit" ? "Deposit" : "Withdrawal"} request approved`,
-        `${numericAmount.toLocaleString()} ${asset} was ${walletReference ? "approved in the reference wallet session" : `submitted for wallet approval on ${appConfig.chainName}`}.`,
+        walletReference ? `${open === "deposit" ? "Paper deposit" : "Paper withdrawal"} complete` : `${open === "deposit" ? "Deposit" : "Withdrawal"} request approved`,
+        walletReference ? confirmation.message : `${numericAmount.toLocaleString()} ${asset} request accepted on ${appConfig.chainName}.`,
         "funding",
         "fundingEvents"
       );
@@ -115,9 +117,9 @@ export function FundingButtons() {
             <div className="sheet-handle" />
             <header className="funding-head">
               <div>
-                <span className="eyebrow">Crypto-only funding</span>
+                <span className="eyebrow">{walletReference ? "Paper funding" : "Crypto-only funding"}</span>
                 <h2 id="funding-title">{open === "deposit" ? "Deposit crypto" : "Withdraw crypto"}</h2>
-                <p>{open === "deposit" ? "Move a supported stablecoin from the connected wallet." : "Send available collateral to a compatible wallet address."}</p>
+                <p>{open === "deposit" ? "Add simulated collateral to your paper account; no asset moves onchain." : "Simulate a withdrawal from your available paper balance to a sample address."}</p>
               </div>
               <button className="icon-button" disabled={busy} aria-label="Close funding dialog" onClick={() => setOpen(null)}><X size={18} /></button>
             </header>
