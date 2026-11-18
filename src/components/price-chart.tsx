@@ -24,7 +24,7 @@ export function PriceChart({ values }: { values: number[] }) {
     const height = 260;
     const visibleValues = values.slice(-Math.min(values.length, windows[range]));
     if (!visibleValues.length) {
-      return { width, height, values: visibleValues, points: [] as { x: number; y: number; value: number }[], polyline: "", low: 0, high: 0, open: 0, current: 0 };
+      return { width, height, values: visibleValues, points: [] as { x: number; y: number; value: number }[], polyline: "", low: 0, high: 0, open: 0, current: 0, axisMin: 0, axisMax: 100 };
     }
     const low = Math.min(...visibleValues);
     const high = Math.max(...visibleValues);
@@ -43,6 +43,8 @@ export function PriceChart({ values }: { values: number[] }) {
       polyline: points.map((point) => `${point.x},${point.y}`).join(" "),
       low,
       high,
+      axisMin: min,
+      axisMax: max,
       open: visibleValues[0] ?? 0,
       current: visibleValues.at(-1) ?? 0
     };
@@ -103,7 +105,7 @@ export function PriceChart({ values }: { values: number[] }) {
       </div>
 
       <div className="chart-area interactive-chart" onPointerMove={inspect} onPointerLeave={() => setHoverIndex(null)}>
-        <div className="chart-y-axis"><span>75%</span><span>50%</span><span>25%</span></div>
+        <div className="chart-y-axis"><span>{(chart.axisMax - (chart.axisMax - chart.axisMin) * 0.25).toFixed(0)}%</span><span>{((chart.axisMax + chart.axisMin) / 2).toFixed(0)}%</span><span>{(chart.axisMin + (chart.axisMax - chart.axisMin) * 0.25).toFixed(0)}%</span></div>
         <svg viewBox={`0 0 ${chart.width} ${chart.height}`} preserveAspectRatio="none" role="img" aria-label={`Probability history for ${range}. Current probability ${chart.current} percent.`}>
           <defs>
             <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
