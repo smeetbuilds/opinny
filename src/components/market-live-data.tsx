@@ -101,7 +101,7 @@ export function MarketLiveData({
     <section className="market-live-section" id="market-depth" aria-labelledby="market-depth-title">
       <div className="market-live-toolbar">
         <div>
-          <span className="eyebrow">Live liquidity</span>
+          <span className="eyebrow">Simulated liquidity</span>
           <h2 id="market-depth-title">Market depth & trades</h2>
         </div>
         <div className="market-live-controls">
@@ -122,7 +122,7 @@ export function MarketLiveData({
           ) : null}
           <span className={`market-sync-state ${syncState}`} role="status" aria-live="polite">
             <RefreshCw className={syncState === "syncing" ? "spin" : ""} size={13} />
-            {syncState === "syncing" ? "Syncing" : syncState === "stale" ? "Feed unavailable" : sequence ? "Live feed" : "Market data"}
+            {syncState === "syncing" ? "Syncing" : syncState === "stale" ? "Feed unavailable" : sequence ? "Paper feed" : "Market snapshot"}
           </span>
         </div>
       </div>
@@ -130,7 +130,7 @@ export function MarketLiveData({
       <div className="market-data-grid">
         <OrderBook bids={book.bids} asks={book.asks} />
         <div id="recent-trades">
-          <RecentTrades trades={trades} statusLabel={syncState === "stale" ? "Latest available matched activity" : "Live matched activity"} />
+          <RecentTrades trades={trades} statusLabel={syncState === "stale" ? "Last simulated activity" : "Simulated matched activity"} />
         </div>
       </div>
     </section>
