@@ -1,0 +1,90 @@
+/* Opinny paper-market refinements: restrained material, clear state, reliable touch UI. */
+.paper-banner {
+  border-bottom: 1px solid #dce8dd;
+  background: #f0f6ef;
+  color: #344f42;
+}
+.paper-banner-inner {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  min-height: 37px;
+  padding-block: 6px;
+  font-size: 11px;
+  line-height: 1.4;
+  letter-spacing: .005em;
+}
+.paper-mode-mark {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .075em;
+  white-space: nowrap;
+}
+.paper-mode-mark i {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #277c54;
+  box-shadow: 0 0 0 3px #dcefe1;
+}
+.paper-device-note {
+  margin-left: auto;
+  color: #64756a;
+  white-space: nowrap;
+}
+.paper-order-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.paper-match-action {
+  background: #e9f3ee !important;
+  color: #176546 !important;
+  border: 1px solid #d0e5d9 !important;
+}
+.paper-match-action:hover {
+  background: #dceee4 !important;
+  border-color: #a8d1ba !important;
+}
+.paper-match-action:disabled { opacity: .55; cursor: progress; }
+.paper-sandbox-card { border-style: dashed !important; }
+.paper-sandbox-card .settings-card-head p { max-width: 700px; }
+.paper-reset-button { justify-self: start; margin-top: 8px; }
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 3px solid rgba(40, 108, 82, .42);
+  outline-offset: 3px;
+}
+:where(.wallet-sheet, .funding-dialog, .operation-dialog, .command-dialog, .trade-ticket.mobile-ticket) {
+  max-height: min(93dvh, 920px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+:where(.primary-button, .secondary-button, .row-action, .icon-button):disabled {
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+@media (max-width: 760px) {
+  .paper-banner-inner { gap: 9px; font-size: 10px; min-height: 42px; }
+  .paper-device-note { display: none; }
+  .paper-mode-mark { font-size: 9px; }
+  .paper-order-actions { justify-content: flex-start; }
+  .paper-match-action { min-height: 36px; }
+  .paper-reset-button { width: 100%; min-height: 44px; }
+}
+@media (max-width: 390px) {
+  .paper-banner-inner { align-items: flex-start; padding-block: 9px; }
+  .paper-mode-mark { padding-top: 2px; }
+  .paper-banner-inner > span:nth-child(2) { line-height: 1.5; }
+  .paper-order-actions > * { flex: 1 1 auto; justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  :where(.paper-match-action, .paper-reset-button) { transition: none !important; }
+}
