@@ -1,4 +1,4 @@
-import type { AccountBalance, ActivityItem, FundingIntent, Market, OrderBookLevel, OrderIntent, OrderPreview, Position, RecentTrade, UserOrder } from "@/core/contracts/domain";
+import type { AccountBalance, ActivityItem, FundingIntent, Market, MarketComment, MarketCommentInput, OrderBookLevel, OrderIntent, OrderPreview, Position, RecentTrade, UserOrder } from "@/core/contracts/domain";
 import { appConfig } from "@/lib/config";
 import { activity as seedActivity, markets, orders as seedOrders, positions as seedPositions } from "./data";
 
@@ -19,6 +19,8 @@ type PaperState = {
   activity: ActivityItem[];
   trades: PaperTrade[];
   fundedRequests: string[];
+  comments?: MarketComment[];
+  useful?: Record<string, boolean>;
 };
 let cache: PaperState | null = null;
 
@@ -50,7 +52,9 @@ function initialState(): PaperState {
     })),
     activity: seedActivity.map((item) => ({ ...item })),
     trades: [],
-    fundedRequests: []
+    fundedRequests: [],
+    comments: [],
+    useful: {}
   };
 }
 
@@ -305,6 +309,40 @@ export function settlePaperFunding(intent: FundingIntent, requestId: string): st
   event(intent.type, (intent.type === "deposit" ? "Paper deposit confirmed" : "Paper withdrawal simulated"), intent.amount + " " + intent.asset + " · " + appConfig.chainName, intent.type === "deposit" ? intent.amount : -intent.amount);
   save();
   return intent.type === "deposit" ? "Paper funds added to your balance." : "Paper funds deducted from your balance.";
+}
+
+export function paperComments(marketId: string): MarketComment[] {
+  const current = state();
+  const comments = (current.comments ?? []).filter((comment) => comment.marketId === marketId);
+  return comments.map((comment) => ({
+    ...comment,
+    viewerUseful: Boolean(current.useful?.[comment.id]),
+    replyCount: comment.replyCount + comments.filter((reply) => reply.replyToId === comment.id).length
+  }));
+}
+export function paperUseful(id: string): boolean { return Boolean(state().useful?.[id]); }
+export function paperReplyCount(id: string): number { return (state().comments ?? []).filter((comment) => comment.replyToId === id).length; }
+export function addPaperComment(input: MarketCommentInput): MarketComment {
+  if (!markets.some((market) => market.id === input.marketId)) throw new Error("Market not found.");
+  const body = input.body.trim();
+  if (!body || body.length > 280) throw new Error("Comments must contain 1 to 280 characters.");
+  const comment: MarketComment = {
+    id: "comment-paper-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7),
+    marketId: input.marketId, authorHandle: "papertrader", authorDisplayName: "Paper Trader",
+    initials: "PT", body, createdAt: new Date().toISOString(), usefulCount: 0,
+    replyCount: 0, replyToId: input.replyToId
+  };
+  const current = state();
+  current.comments ??= [];
+  current.comments.unshift(comment);
+  save();
+  return { ...comment };
+}
+export function setPaperUseful(id: string, useful: boolean): void {
+  const current = state();
+  current.useful ??= {};
+  current.useful[id] = useful;
+  save();
 }
 
 export function resetPaperExchange() {
