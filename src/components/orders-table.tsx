@@ -19,7 +19,7 @@ const filterLabels: { value: Filter; label: string }[] = [
 
 export function OrdersTable({ orders }: { orders: UserOrder[] }) {
   const { connected, setWalletOpen, notify } = useApp();
-  const [items, setItems] = useState(orders);
+  const items = orders;
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<"newest" | "oldest" | "largest">("newest");
@@ -27,7 +27,6 @@ export function OrdersTable({ orders }: { orders: UserOrder[] }) {
   const [busy, setBusy] = useState(false);
   const [matching, setMatching] = useState("");
 
-  useEffect(() => { setItems(orders); }, [orders]);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -83,7 +82,6 @@ export function OrdersTable({ orders }: { orders: UserOrder[] }) {
     try {
       const result = await dataAdapter.cancelOrder(selected.id);
       if (result.status === "rejected") throw new Error(result.message);
-      setItems((current) => current.map((order) => order.id === selected.id ? { ...order, status: "cancelled" } : order));
       notify("Cancellation requested", result.message, "trade", "orderEvents");
       setSelected(null);
     } catch (cause) {
@@ -100,7 +98,6 @@ export function OrdersTable({ orders }: { orders: UserOrder[] }) {
     try {
       const result = await dataAdapter.simulateFillOrder(order.id);
       if (result.status !== "accepted") throw new Error(result.message);
-      setItems(await dataAdapter.getOrders());
       notify("Paper limit order matched", result.message, "trade", "orderEvents");
     } catch (cause) {
       captureException(cause, { operation: "simulateMatch", orderId: order.id });
