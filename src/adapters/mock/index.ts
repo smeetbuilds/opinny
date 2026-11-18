@@ -1,7 +1,7 @@
 import type { Market, MarketComment, RewardOpportunity } from "@/core/contracts/domain";
 import type { MarketQuery, OpinnyIntegrationAdapter } from "@/core/contracts/ports";
 import { appConfig } from "@/lib/config";
-import { cancelPaperOrder, executePaperOrder, matchPaperOrder, paperActivity, paperBalances, paperOrderBook, paperOrders, paperPositions, paperTrades, previewPaperOrder, redeemPaperPosition, resetPaperExchange, settlePaperFunding } from "./simulator";
+import { addPaperComment, cancelPaperOrder, executePaperOrder, matchPaperOrder, paperActivity, paperBalances, paperComments, paperOrderBook, paperOrders, paperPositions, paperTrades, previewPaperOrder, paperReplyCount, paperUseful, redeemPaperPosition, resetPaperExchange, setPaperUseful, settlePaperFunding } from "./simulator";
 import {
   adminMetrics,
   adminUsers,
@@ -113,7 +113,7 @@ export const mockAdapter: OpinnyIntegrationAdapter = {
     }) : [];
     return wait([...paperTrades(marketId), ...reference]);
   },
-  getMarketComments: (marketId) => wait(buildReferenceComments(marketId)),
+  getMarketComments: (marketId) => wait([...paperComments(marketId), ...buildReferenceComments(marketId).map((comment) => ({ ...comment, viewerUseful: paperUseful(comment.id), replyCount: comment.replyCount + paperReplyCount(comment.id) }))]),
   getRewardOpportunities: () => wait(buildRewardOpportunities()),
   getBalances: () => wait(paperBalances()),
   getPositions: () => wait(paperPositions()),
@@ -161,26 +161,11 @@ export const mockAdapter: OpinnyIntegrationAdapter = {
     catch (error) { return wait({ id: orderId, status: "rejected" as const, message: error instanceof Error ? error.message : "Simulated match failed." }); }
   },
   resetPaperAccount: () => { resetPaperExchange(); return wait({ id: "paper-reset", status: "accepted" as const, message: "Paper account restored to its starting balances and sample positions." }); },
-  createMarketComment: (input) => {
-    const author = leaderboard.at(-1) ?? leaderboard[0];
-    return wait({
-      id: `comment-${Date.now()}`,
-      marketId: input.marketId,
-      authorHandle: author.handle,
-      authorDisplayName: author.displayName,
-      initials: author.initials,
-      body: input.body,
-      createdAt: new Date().toISOString(),
-      usefulCount: 0,
-      replyCount: 0,
-      replyToId: input.replyToId
-    });
+  createMarketComment: (input) => wait(addPaperComment(input)),
+  markCommentUseful: (commentId, useful) => {
+    setPaperUseful(commentId, useful);
+    return wait({ id: commentId, status: "accepted" as const, message: useful ? "Comment marked useful." : "Useful mark removed." });
   },
-  markCommentUseful: (commentId, useful) => wait({
-    id: commentId,
-    status: "accepted",
-    message: useful ? "Comment marked useful." : "Useful mark removed."
-  }),
   redeemPosition: (positionId) => {
     try { return wait({ id: positionId, status: "accepted" as const, message: redeemPaperPosition(positionId) }); }
     catch (error) { return wait({ id: positionId, status: "rejected" as const, message: error instanceof Error ? error.message : "Redemption failed." }); }
