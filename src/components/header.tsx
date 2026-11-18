@@ -38,8 +38,8 @@ export function Header() {
   const results = useMemo(() => {
     const normalized = query.trim().toLowerCase();
     const source = normalized
-      ? marketCatalog.filter((market) => [market.question, market.shortQuestion, market.category, ...market.tags].join(" ").toLowerCase().includes(normalized))
-      : [...marketCatalog].sort((a, b) => b.volume24h - a.volume24h);
+      ? marketCatalog.filter((market) => market.status !== "draft" && [market.question, market.shortQuestion, market.category, ...market.tags].join(" ").toLowerCase().includes(normalized))
+      : marketCatalog.filter((market) => market.status !== "draft").sort((a, b) => b.volume24h - a.volume24h);
     return source.slice(0, 6);
   }, [marketCatalog, query]);
 
