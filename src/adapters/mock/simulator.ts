@@ -27,6 +27,7 @@ type PaperState = {
   marketStatuses?: Record<string, MarketStatus>;
   userStatuses?: Record<string, AdminUser["status"]>;
   resolutionDecisions?: Record<string, { status: ResolutionCase["status"]; outcome: string }>;
+  resolvedMarkets?: Record<string, string>;
 };
 let cache: PaperState | null = null;
 
@@ -38,7 +39,7 @@ export function paperMarkets(): Market[] {
   const current = state();
   return [...(current.createdMarkets ?? []), ...markets].map((market) => ({
     ...market,
-    status: (current.marketStatuses?.[market.id] ?? market.status) === "open" && Date.parse(market.endDate) <= Date.now() ? "closed" : current.marketStatuses?.[market.id] ?? market.status
+    status: current.resolvedMarkets?.[market.id] ? "resolved" : (current.marketStatuses?.[market.id] ?? market.status) === "open" && Date.parse(market.endDate) <= Date.now() ? "paused" : current.marketStatuses?.[market.id] ?? market.status
   }));
 }
 export function paperAdminUsers(): AdminUser[] {
@@ -110,8 +111,48 @@ export function setPaperResolution(id: string, outcome: string): string {
   state().resolutionDecisions ??= {};
   state().resolutionDecisions![id] = { status: "approved", outcome };
   event("resolution", "Paper case approved", item.market + " · " + outcome);
+  if (linked) settlePaperMarket(linked.id, outcome);
   save();
   return "Paper resolution approved for " + outcome + ".";
+}
+/** Resolve a simulated market and turn its positions into redeemable payouts. */
+export function settlePaperMarket(marketId: string, winningOutcome: string): string {
+  const current = state();
+  const market = paperMarkets().find((item) => item.id === marketId);
+  if (!market) throw new Error("Market not found.");
+  const winner = market.outcomes.find((item) => item.id === winningOutcome || item.label === winningOutcome);
+  if (!winner) throw new Error("Winning outcome does not belong to this market.");
+  if (current.resolvedMarkets?.[marketId]) {
+    if (current.resolvedMarkets[marketId] !== winner.id) throw new Error("Market was already settled with another outcome.");
+    return "Market already settled.";
+  }
+  if (market.status === "draft") throw new Error("Publish the market before resolving it.");
+  for (const order of current.orders) {
+    if (!active(order) || order.marketId !== marketId) continue;
+    if (order.side === "buy") {
+      current.balances[appConfig.collateral] = round((current.balances[appConfig.collateral] ?? 0) + (order.reservedCollateral ?? 0));
+      order.reservedCollateral = 0;
+    }
+    order.status = "cancelled";
+  }
+  const now = new Date().toISOString();
+  for (const position of current.positions) {
+    if (position.marketId !== marketId || position.status !== "open") continue;
+    const won = position.outcome === winner.label;
+    position.status = "resolved";
+    position.resolvedOutcome = winner.label;
+    position.resolvedAt = now;
+    position.currentPrice = won ? 1 : 0;
+    position.value = won ? round(position.shares) : 0;
+    position.claimableAmount = won ? round(position.shares) : 0;
+    position.pnl = round(position.value - position.shares * position.averagePrice);
+    position.pnlPercent = position.averagePrice ? round((position.currentPrice / position.averagePrice - 1) * 100) : 0;
+  }
+  current.resolvedMarkets ??= {};
+  current.resolvedMarkets[marketId] = winner.id;
+  event("resolution", "Market resolved", market.shortQuestion + " · " + winner.label);
+  save();
+  return "Paper market settled. Winning positions can now be redeemed.";
 }
 const opening = (marketId: string, outcome: string) => paperMarkets().find((market) => market.id === marketId)?.outcomes.find((item) => item.id === outcome);
 const marketFor = (marketId: string): Market => {
@@ -146,7 +187,8 @@ function initialState(): PaperState {
     createdMarkets: [],
     marketStatuses: {},
     userStatuses: {},
-    resolutionDecisions: {}
+    resolutionDecisions: {},
+    resolvedMarkets: {}
   };
 }
 
@@ -275,7 +317,7 @@ export function paperBalances(): AccountBalance[] {
 export function paperPositions(): Position[] {
   return state().positions.filter((position) => position.shares > 0).map((position) => {
     if (position.status !== "open") return { ...position };
-    const currentPrice = markets.find((market) => market.id === position.marketId)?.outcomes.find((outcome) => outcome.label === position.outcome)?.probability;
+    const currentPrice = paperMarkets().find((market) => market.id === position.marketId)?.outcomes.find((outcome) => outcome.label === position.outcome)?.probability;
     const price = currentPrice === undefined ? position.currentPrice : currentPrice / 100;
     const value = round(position.shares * price);
     const pnl = round(value - position.shares * position.averagePrice);
@@ -374,8 +416,9 @@ export function matchPaperOrder(id: string): string {
   const quantity = order.filled > 0 ? remaining(order) : round(remaining(order) / 2);
   const finalQuantity = quantity <= 0 || round(remaining(order) - quantity) < 0.000001 ? remaining(order) : quantity;
   if (order.side === "buy") {
-    const allocated = round((order.reservedCollateral ?? 0) * (finalQuantity / remaining(order)));
-    order.reservedCollateral = round(Math.max(0, (order.reservedCollateral ?? 0) - allocated));
+    const spent = round(finalQuantity * order.price * (1 + FEE_RATE));
+    if ((order.reservedCollateral ?? 0) + 1e-6 < spent) throw new Error("Insufficient reserved collateral.");
+    order.reservedCollateral = round(Math.max(0, (order.reservedCollateral ?? 0) - spent));
     creditShares(market, order.outcome, order.price, finalQuantity);
   } else {
     debitShares(market.id, order.outcome, finalQuantity);
@@ -397,6 +440,7 @@ export function redeemPaperPosition(id: string): string {
   if (!position) throw new Error("Position was not found.");
   if (position.status !== "resolved" || (position.claimableAmount ?? 0) <= 0) throw new Error("Position is not claimable.");
   const amount = position.claimableAmount ?? 0;
+  if (!Number.isFinite(amount) || amount <= 0) throw new Error("Invalid claim amount.");
   state().balances[appConfig.collateral] = round((state().balances[appConfig.collateral] ?? 0) + amount);
   position.status = "claimed";
   position.claimableAmount = 0;
