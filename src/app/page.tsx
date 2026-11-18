@@ -29,9 +29,9 @@ export default async function HomePage() {
       <div className="home-page page-container">
         <section className="hero-grid">
           <div className="hero-copy">
-            <span className="hero-kicker"><Sparkles size={14} />Live collective probability</span>
+            <span className="hero-kicker"><Sparkles size={14} />Prediction markets · paper mode</span>
             <h1>Trade what you think happens next.</h1>
-            <p>Explore event markets, express a view with crypto collateral, and follow probabilities as new information arrives.</p>
+            <p>Explore event markets, express a view with simulated USDC, and practice the full trading journey without putting real money at risk.</p>
             <div className="hero-actions"><Link className="primary-button" href="/markets">Explore markets <ArrowRight size={17} /></Link><Link className="secondary-button" href="/portfolio">View portfolio</Link></div>
             <div className="hero-proof"><div><strong>{formatCurrency(totalVolume, { compact: true })}</strong><span>Total volume</span></div><div><strong>{openMarkets.length}</strong><span>Open markets</span></div><div><strong>{formatNumber(totalTraders, true)}</strong><span>Market participants</span></div></div>
           </div>
@@ -41,7 +41,7 @@ export default async function HomePage() {
         {signals.length ? <section className="signal-strip">{signals.map(({ icon: Icon, label, market, value }) => <div key={label}><Icon size={17} /><span>{label}</span><Link href={`/market/${market.slug}`}>{market.shortQuestion}</Link><strong>{value}</strong></div>)}</section> : null}
 
         <div className="home-content-grid">
-          <MarketGrid initialMarkets={markets} heading="Live markets" />
+          <MarketGrid initialMarkets={markets} heading="Explore markets" />
           <aside className="trending-sidebar">
             <div className="sidebar-head"><div><span className="eyebrow">Pulse</span><h2>Trending</h2></div><Link href="/markets">See all</Link></div>
             <div className="trend-list">{trending.map((market, index) => <Link href={`/market/${market.slug}`} key={market.id}><span className="trend-rank">{String(index + 1).padStart(2, "0")}</span><span className={`market-avatar small ${market.imageTone}`}>{market.icon}</span><span className="trend-copy"><strong>{market.shortQuestion}</strong><small>{formatCurrency(market.volume24h, { compact: true })} today</small></span><em>{market.outcomes[0].probability}%</em></Link>)}</div>
