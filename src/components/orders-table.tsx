@@ -25,6 +25,9 @@ export function OrdersTable({ orders }: { orders: UserOrder[] }) {
   const [sort, setSort] = useState<"newest" | "oldest" | "largest">("newest");
   const [selected, setSelected] = useState<UserOrder | null>(null);
   const [busy, setBusy] = useState(false);
+  const [matching, setMatching] = useState("");
+
+  useEffect(() => { setItems(orders); }, [orders]);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -91,6 +94,20 @@ export function OrdersTable({ orders }: { orders: UserOrder[] }) {
     }
   }
 
+  async function simulateMatch(order: UserOrder) {
+    if (!dataAdapter.simulateFillOrder || matching) return;
+    setMatching(order.id);
+    try {
+      const result = await dataAdapter.simulateFillOrder(order.id);
+      if (result.status !== "accepted") throw new Error(result.message);
+      setItems(await dataAdapter.getOrders());
+      notify("Paper limit order matched", result.message, "trade", "orderEvents");
+    } catch (cause) {
+      captureException(cause, { operation: "simulateMatch", orderId: order.id });
+      notify("Match unavailable", cause instanceof Error ? cause.message : "Could not simulate this fill.", "system");
+    } finally { setMatching(""); }
+  }
+
   return (
     <>
       <section className="data-panel orders-panel" aria-labelledby="orders-title">
@@ -124,7 +141,7 @@ export function OrdersTable({ orders }: { orders: UserOrder[] }) {
                     <td data-label="Filled"><div className="fill-cell"><span>{order.filled.toLocaleString()} <small>{progress.toFixed(0)}%</small></span><i><b style={{ width: `${progress}%` }} /></i></div></td>
                     <td data-label="Status"><span className={`status-pill ${order.status}`}>{order.status.replace("-", " ")}</span></td>
                     <td data-label="Date">{formatDate(order.createdAt)}</td>
-                    <td className="order-row-actions">{cancellable ? <button className="row-action danger-action" type="button" onClick={() => requestCancellation(order)}>Cancel</button> : <Link className="row-action" href={`/market/${order.marketSlug}`} aria-label={`Open ${order.marketQuestion}`}>View <ArrowUpRight size={14} /></Link>}</td>
+                    <td className="order-row-actions">{cancellable ? <div className="paper-order-actions">{dataAdapter.simulateFillOrder ? <button className="row-action paper-match-action" type="button" disabled={Boolean(matching)} onClick={() => void simulateMatch(order)}>{matching === order.id ? <LoaderCircle className="spin" size={13} /> : null}Match 50%</button> : null}<button className="row-action danger-action" type="button" onClick={() => requestCancellation(order)}>Cancel</button></div> : <Link className="row-action" href={`/market/${order.marketSlug}`} aria-label={`Open ${order.marketQuestion}`}>View <ArrowUpRight size={14} /></Link>}</td>
                   </tr>
                 );
               })}</tbody>
