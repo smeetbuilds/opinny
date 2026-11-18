@@ -1,6 +1,6 @@
-import type { AccountBalance, ActivityItem, FundingIntent, Market, MarketComment, MarketCommentInput, OrderBookLevel, OrderIntent, OrderPreview, Position, RecentTrade, UserOrder } from "@/core/contracts/domain";
+import type { AccountBalance, ActivityItem, FundingIntent, Market, MarketComment, MarketCommentInput, OrderBookLevel, OrderIntent, OrderPreview, Position, RecentTrade, TransactionRecord, UserOrder } from "@/core/contracts/domain";
 import { appConfig } from "@/lib/config";
-import { activity as seedActivity, markets, orders as seedOrders, positions as seedPositions } from "./data";
+import { activity as seedActivity, markets, orders as seedOrders, positions as seedPositions, transactions as seedTransactions } from "./data";
 
 /**
  * A local, deterministic paper exchange. This is NOT a matching engine or wallet.
@@ -19,6 +19,7 @@ type PaperState = {
   activity: ActivityItem[];
   trades: PaperTrade[];
   fundedRequests: string[];
+  transactions?: TransactionRecord[];
   comments?: MarketComment[];
   useful?: Record<string, boolean>;
 };
@@ -53,6 +54,7 @@ function initialState(): PaperState {
     activity: seedActivity.map((item) => ({ ...item })),
     trades: [],
     fundedRequests: [],
+    transactions: [],
     comments: [],
     useful: {}
   };
@@ -86,6 +88,24 @@ function save() {
     window.dispatchEvent(new CustomEvent("opinny:paper-update"));
   }
 }
+function ledger(type: TransactionRecord["type"], amount: number, asset = appConfig.collateral) {
+  const current = state();
+  current.transactions ??= [];
+  const id = "paper-tx-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7);
+  current.transactions.unshift({
+    id, type, asset, amount: round(amount),
+    wallet: "Paper wallet", txHash: id, status: "confirmed",
+    time: "Just now", createdAt: new Date().toISOString()
+  });
+}
+export function paperTransactions(): TransactionRecord[] {
+  const baseline = seedTransactions.map((tx, index) => ({
+    ...tx,
+    createdAt: new Date(Date.UTC(2026, 7, 4, 12, -index * 7)).toISOString()
+  }));
+  return [...(state().transactions ?? []), ...baseline];
+}
+
 function event(type: ActivityItem["type"], title: string, description: string, amount?: number) {
   state().activity.unshift({
     id: "act-paper-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7),
@@ -126,6 +146,7 @@ function recordTrade(market: Market, side: "buy" | "sell", label: string, price:
     price, shares: quantity, value: round(price * quantity), trader: "You · paper", time: "Now"
   });
   state().trades = state().trades.slice(0, 100);
+  ledger("trade", price * quantity);
   event("trade", (side === "buy" ? "Bought " : "Sold ") + round(quantity).toLocaleString() + " " + label + " shares", market.shortQuestion, side === "buy" ? -round(price * quantity * (1 + FEE_RATE)) : round(price * quantity * (1 - FEE_RATE)));
 }
 
@@ -306,6 +327,7 @@ export function settlePaperFunding(intent: FundingIntent, requestId: string): st
   }
   current.balances[intent.asset] = round((current.balances[intent.asset] ?? 0) + (intent.type === "deposit" ? intent.amount : -intent.amount));
   current.fundedRequests.push(requestId);
+  ledger(intent.type, intent.amount, intent.asset);
   event(intent.type, (intent.type === "deposit" ? "Paper deposit confirmed" : "Paper withdrawal simulated"), intent.amount + " " + intent.asset + " · " + appConfig.chainName, intent.type === "deposit" ? intent.amount : -intent.amount);
   save();
   return intent.type === "deposit" ? "Paper funds added to your balance." : "Paper funds deducted from your balance.";
