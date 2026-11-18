@@ -1,6 +1,6 @@
-import type { AccountBalance, ActivityItem, FundingIntent, Market, MarketComment, MarketCommentInput, OrderBookLevel, OrderIntent, OrderPreview, Position, RecentTrade, TransactionRecord, UserOrder } from "@/core/contracts/domain";
+import type { AccountBalance, ActivityItem, AdminMarketInput, AdminUser, FundingIntent, Market, MarketComment, MarketCommentInput, MarketStatus, OrderBookLevel, OrderIntent, OrderPreview, Position, RecentTrade, ResolutionCase, TransactionRecord, UserOrder } from "@/core/contracts/domain";
 import { appConfig } from "@/lib/config";
-import { activity as seedActivity, markets, orders as seedOrders, positions as seedPositions, transactions as seedTransactions } from "./data";
+import { activity as seedActivity, adminUsers as seedAdminUsers, markets, orders as seedOrders, positions as seedPositions, resolutions as seedResolutions, transactions as seedTransactions } from "./data";
 
 /**
  * A local, deterministic paper exchange. This is NOT a matching engine or wallet.
@@ -22,15 +22,96 @@ type PaperState = {
   transactions?: TransactionRecord[];
   comments?: MarketComment[];
   useful?: Record<string, boolean>;
+  createdMarkets?: Market[];
+  marketStatuses?: Record<string, MarketStatus>;
+  userStatuses?: Record<string, AdminUser["status"]>;
+  resolutionDecisions?: Record<string, { status: ResolutionCase["status"]; outcome: string }>;
 };
 let cache: PaperState | null = null;
 
 const round = (n: number) => Math.round((n + Number.EPSILON) * 1_000_000) / 1_000_000;
 const active = (order: PaperOrder) => order.status === "open" || order.status === "partially-filled";
 const remaining = (order: PaperOrder) => Math.max(0, order.shares - order.filled);
-const opening = (marketId: string, outcome: string) => markets.find((market) => market.id === marketId)?.outcomes.find((item) => item.id === outcome);
+/** All admin writes are local sandbox state; production authorization lives elsewhere. */
+export function paperMarkets(): Market[] {
+  const current = state();
+  return [...(current.createdMarkets ?? []), ...markets].map((market) => ({
+    ...market,
+    status: current.marketStatuses?.[market.id] ?? market.status
+  }));
+}
+export function paperAdminUsers(): AdminUser[] {
+  return seedAdminUsers.map((user) => ({ ...user, status: state().userStatuses?.[user.id] ?? user.status }));
+}
+export function paperResolutionCases(): ResolutionCase[] {
+  return seedResolutions.map((item) => ({
+    ...item,
+    status: state().resolutionDecisions?.[item.id]?.status ?? item.status,
+    proposedOutcome: state().resolutionDecisions?.[item.id]?.outcome ?? item.proposedOutcome
+  }));
+}
+export function createPaperMarket(input: AdminMarketInput): string {
+  const labels = input.outcomes.map((item) => item.trim()).filter(Boolean);
+  if (!input.question.trim() || input.question.trim().length > 180) throw new Error("Enter a market question of 1–180 characters.");
+  if (labels.length < 2 || (input.kind === "binary" && labels.length !== 2) || new Set(labels.map((label) => label.toLowerCase())).size !== labels.length) throw new Error("Provide unique outcomes matching the market type.");
+  const closeAt = new Date(input.endDate);
+  if (!Number.isFinite(closeAt.getTime()) || closeAt.getTime() <= Date.now()) throw new Error("Choose a future closing time.");
+  if (!input.resolutionSource.trim() || !input.resolutionRules.trim()) throw new Error("Resolution source and rules are required.");
+  const id = "paper-market-" + Date.now();
+  const slug = input.question.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").slice(0, 80) + "-" + Date.now().toString(36);
+  const base = Math.floor(100 / labels.length);
+  const extra = 100 - base * labels.length;
+  const market: Market = {
+    id, slug, question: input.question.trim(), shortQuestion: input.question.trim(),
+    description: input.resolutionRules.trim(), category: input.category, tags: [input.category],
+    kind: input.kind, status: "draft", imageTone: "tone-green", icon: "◎",
+    outcomes: labels.map((label, index) => ({
+      id: id + "-outcome-" + (index + 1), label, probability: base + (index < extra ? 1 : 0),
+      change24h: 0, volume24h: 0
+    })),
+    volume: 0, volume24h: 0, liquidity: 0, traders: 0,
+    endDate: closeAt.toISOString(), createdAt: new Date().toISOString(),
+    resolutionSource: input.resolutionSource.trim(),
+    resolutionRules: input.resolutionRules.trim(),
+    chart: [50, 50, 50, 50]
+  };
+  state().createdMarkets ??= [];
+  state().createdMarkets!.unshift(market);
+  save();
+  return id;
+}
+export function setPaperMarketStatus(id: string, next: MarketStatus): string {
+  const market = paperMarkets().find((item) => item.id === id);
+  if (!market) throw new Error("Market not found.");
+  if (!["open", "paused"].includes(market.status) || !["open", "paused"].includes(next)) throw new Error("Only open or paused markets can change trading status.");
+  state().marketStatuses ??= {};
+  state().marketStatuses![id] = next;
+  event("resolution", "Market " + next, market.shortQuestion);
+  save();
+  return "Paper market " + next + ".";
+}
+export function setPaperUserStatus(id: string, next: AdminUser["status"]): string {
+  if (!seedAdminUsers.some((user) => user.id === id)) throw new Error("Account not found.");
+  if (!["active", "review", "suspended"].includes(next)) throw new Error("Unsupported access status.");
+  state().userStatuses ??= {};
+  state().userStatuses![id] = next;
+  save();
+  return "Paper account status changed to " + next + ".";
+}
+export function setPaperResolution(id: string, outcome: string): string {
+  const item = paperResolutionCases().find((caseItem) => caseItem.id === id);
+  if (!item) throw new Error("Resolution case not found.");
+  if (item.status === "approved") throw new Error("Resolution already approved.");
+  if (!outcome.trim()) throw new Error("Select a resolution outcome.");
+  state().resolutionDecisions ??= {};
+  state().resolutionDecisions![id] = { status: "approved", outcome };
+  event("resolution", "Paper case approved", item.market + " · " + outcome);
+  save();
+  return "Paper resolution approved for " + outcome + ".";
+}
+const opening = (marketId: string, outcome: string) => paperMarkets().find((market) => market.id === marketId)?.outcomes.find((item) => item.id === outcome);
 const marketFor = (marketId: string): Market => {
-  const market = markets.find((item) => item.id === marketId);
+  const market = paperMarkets().find((item) => item.id === marketId);
   if (!market || market.status !== "open") throw new Error("This market is not open for trading.");
   return market;
 };
@@ -56,7 +137,11 @@ function initialState(): PaperState {
     fundedRequests: [],
     transactions: [],
     comments: [],
-    useful: {}
+    useful: {},
+    createdMarkets: [],
+    marketStatuses: {},
+    userStatuses: {},
+    resolutionDecisions: {}
   };
 }
 
