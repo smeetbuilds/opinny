@@ -15,6 +15,7 @@ export function MarketOpenOrders({ marketSlug }: { marketSlug: string }) {
   const [loadState, setLoadState] = useState<OrdersLoadState | null>(null);
   const [selected, setSelected] = useState<UserOrder | null>(null);
   const [busy, setBusy] = useState(false);
+  const [matching, setMatching] = useState("");
   const [reloadToken, setReloadToken] = useState(0);
   const [error, setError] = useState("");
   const requestKey = connected ? `${walletAddress}:${marketSlug}:${reloadToken}` : "";
@@ -39,6 +40,12 @@ export function MarketOpenOrders({ marketSlug }: { marketSlug: string }) {
       });
     return () => { active = false; };
   }, [connected, marketSlug, requestKey]);
+
+  useEffect(() => {
+    const handlePaperUpdate = () => setReloadToken((value) => value + 1);
+    window.addEventListener("opinny:paper-update", handlePaperUpdate);
+    return () => window.removeEventListener("opinny:paper-update", handlePaperUpdate);
+  }, []);
 
   useEffect(() => {
     if (!selected) return;
@@ -79,6 +86,19 @@ export function MarketOpenOrders({ marketSlug }: { marketSlug: string }) {
     }
   }
 
+  async function matchOrder(order: UserOrder) {
+    if (!dataAdapter.simulateFillOrder || matching) return;
+    setMatching(order.id);
+    try {
+      const result = await dataAdapter.simulateFillOrder(order.id);
+      if (result.status !== "accepted") throw new Error(result.message);
+      notify("Paper order matched", result.message, "trade", "orderEvents");
+    } catch (cause) {
+      captureException(cause, { operation: "simulateMarketMatch", orderId: order.id });
+      notify("Match unavailable", cause instanceof Error ? cause.message : "Unable to match this order.", "system");
+    } finally { setMatching(""); }
+  }
+
   return (
     <>
       <section className="market-orders-card" aria-labelledby="market-open-orders-title">
@@ -98,7 +118,7 @@ export function MarketOpenOrders({ marketSlug }: { marketSlug: string }) {
             {openOrders.map((order) => {
               const remaining = Math.max(order.shares - order.filled, 0);
               const fillPercent = order.shares ? Math.min((order.filled / order.shares) * 100, 100) : 0;
-              return <article key={order.id}><div className="market-order-main"><span className={`side-pill ${order.side}`}>{order.side}</span><span><strong>{order.outcome} · {order.type}</strong><small>{Math.round(order.price * 100)}¢ · {remaining.toLocaleString()} shares remaining</small></span></div><div className="market-order-progress" aria-label={`${fillPercent.toFixed(0)} percent filled`}><span>{order.filled.toLocaleString()} / {order.shares.toLocaleString()}</span><i><b style={{ width: `${fillPercent}%` }} /></i></div><button className="row-action danger-action" type="button" onClick={() => requestCancel(order)}>Cancel</button></article>;
+              return <article key={order.id}><div className="market-order-main"><span className={`side-pill ${order.side}`}>{order.side}</span><span><strong>{order.outcome} · {order.type}</strong><small>{Math.round(order.price * 100)}¢ · {remaining.toLocaleString()} shares remaining</small></span></div><div className="market-order-progress" aria-label={`${fillPercent.toFixed(0)} percent filled`}><span>{order.filled.toLocaleString()} / {order.shares.toLocaleString()}</span><i><b style={{ width: `${fillPercent}%` }} /></i></div><div className="paper-order-actions">{dataAdapter.simulateFillOrder ? <button className="row-action paper-match-action" type="button" disabled={Boolean(matching)} onClick={() => void matchOrder(order)}>{matching === order.id ? <LoaderCircle className="spin" size={13} /> : null}Match 50%</button> : null}<button className="row-action danger-action" type="button" onClick={() => requestCancel(order)}>Cancel</button></div></article>;
             })}
           </div>
         ) : <div className="market-orders-empty"><strong>No open orders in this market</strong><span>New limit orders will appear here while they are waiting to fill.</span></div>}
