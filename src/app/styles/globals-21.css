@@ -1,0 +1,213 @@
+/* Legibility and restraint pass.
+   The display font remains Instrument Serif; market data and controls stay Inter.
+   No ornamental gradients, oversized glows or decorative badges are introduced. */
+
+:root {
+  --canvas: #f8f9f6;
+  --surface-soft: #f3f5f0;
+  --line: #e2e7e1;
+  --line-strong: #cbd6ce;
+  --ink-3: #607169;
+  --shadow-sm: 0 1px 2px rgba(15, 37, 29, .035), 0 5px 17px rgba(15, 37, 29, .028);
+  --shadow-md: 0 22px 60px rgba(15, 37, 29, .11);
+}
+
+body {
+  font-size: 14px;
+  line-height: 1.55;
+  font-variant-numeric: lining-nums;
+}
+main { min-width: 0; }
+.market-card,
+.trade-ticket,
+.chart-card,
+.book-card,
+.trades-card,
+.data-panel,
+.balance-card,
+.comments-card,
+.market-orders-card {
+  border-color: var(--line);
+  box-shadow: var(--shadow-sm);
+}
+
+.market-card {
+  min-height: 302px;
+  border-radius: 17px;
+  padding: 19px;
+}
+.market-card:hover {
+  border-color: #b4c8bb;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 27px rgba(16, 46, 34, .065);
+}
+.market-card:focus-within {
+  border-color: #9dbca9;
+  box-shadow: 0 0 0 3px rgba(32, 101, 73, .09);
+}
+.market-card-title > a {
+  font-size: 15px;
+  font-weight: 725;
+  letter-spacing: -.013em;
+  line-height: 1.38;
+}
+.market-card .category-label {
+  color: var(--ink-3);
+  font-size: 10px;
+  letter-spacing: .065em;
+}
+.market-card-snapshot small {
+  font-size: 10px;
+  letter-spacing: .025em;
+}
+.market-card-snapshot strong,
+.market-card-snapshot em {
+  font-size: 12px;
+}
+.outcome-row {
+  min-height: 42px;
+  gap: 11px;
+  border: 1px solid #eaf0e9;
+  border-radius: 9px;
+  padding: 8px 10px;
+  background: #f8faf7;
+  transition: border-color .14s ease, background .14s ease;
+}
+.outcome-row:hover {
+  border-color: #c6d9cc;
+  background: #f1f7f2;
+}
+.outcome-row > span,
+.outcome-row strong { font-size: 12px; }
+.outcome-row .outcome-action {
+  display: inline-flex;
+  min-width: 51px;
+  height: 27px;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 750;
+}
+.market-card-footer {
+  min-height: 35px;
+  gap: 9px;
+  flex-wrap: wrap;
+  color: #63766b;
+  font-size: 11px;
+}
+.market-card-footer .end-date { display: inline; margin-left: auto; }
+.market-card-footer .market-comments { margin-left: 0; }
+.market-card-footer svg { width: 13px; height: 13px; }
+
+.trade-ticket .ticket-head h3 { line-height: 1.24; }
+.trade-ticket .ticket-head small,
+.trade-ticket .ticket-label-row > span,
+.trade-ticket .order-type-control small,
+.trade-ticket .outcome-selector button small {
+  color: #5b6f64;
+  font-size: 11px;
+}
+.trade-ticket .order-type-control strong,
+.trade-ticket .trade-summary > div,
+.trade-ticket .closed-market-state strong,
+.trade-ticket .closed-resolution-card strong {
+  font-size: 12px;
+}
+.trade-ticket .trade-summary > div { min-height: 21px; }
+.trade-ticket .ticket-error,
+.trade-ticket .ticket-ready,
+.trade-ticket .ticket-note,
+.trade-ticket .closed-market-state p,
+.trade-ticket .closed-resolution-card p { font-size: 11px; line-height: 1.5; }
+.trade-ticket .order-type-control button { min-height: 56px; padding: 11px 12px; }
+.trade-ticket .outcome-selector button { min-height: 58px; }
+.trade-ticket .quick-amounts button { min-height: 32px; }
+
+.book-card .book-quote-strip small,
+.trades-card .trade-activity-summary small,
+.chart-card .chart-insights small,
+.portfolio-health-strip small,
+.order-health small,
+.operation-summary small {
+  font-size: 10px;
+  letter-spacing: .025em;
+}
+.book-card .book-quote-strip strong,
+.trades-card .trade-activity-summary strong,
+.chart-card .chart-insights strong,
+.portfolio-health-strip strong,
+.order-health strong { font-size: 13px; }
+.book-card .book-row { min-height: 34px; }
+.book-card .book-spread,
+.book-card .book-spread em { font-size: 11px; }
+.book-card .book-empty,
+.trades-card .table-empty,
+.data-panel .table-empty { font-size: 12px; }
+
+.operation-dialog header p,
+.operation-dialog .operation-summary strong,
+.operation-dialog .operation-notice {
+  font-size: 12px;
+  line-height: 1.55;
+}
+.data-panel .table-title span,
+.data-panel .responsive-table th,
+.data-panel .responsive-table td,
+.market-orders-card .market-order-main strong,
+.market-orders-card .market-order-main small,
+.market-orders-card .market-order-progress,
+.market-orders-card .market-orders-empty span {
+  font-size: 12px;
+}
+.data-panel .responsive-table .status-pill { font-size: 11px; }
+.data-panel .table-search input,
+.data-panel .table-sort,
+.data-panel .table-sort select,
+.data-panel .panel-tabs button {
+  font-size: 12px;
+}
+.data-panel .table-search,
+.data-panel .table-sort { min-height: 39px; }
+.data-panel .data-toolbar { gap: 12px; padding: 11px 14px; }
+.settings-card p,
+.settings-card label,
+.settings-card small { line-height: 1.55; }
+.comments-card .active-composer textarea {
+  min-height: 72px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.comments-card .composer-actions small,
+.comments-card .comment-composer.locked > div span,
+.comments-card .comment footer button { font-size: 11px; }
+.comments-card .comment header span,
+.comments-card .comment p { font-size: 12px; }
+
+:where(button, a, input, select, textarea) {
+  touch-action: manipulation;
+}
+:where(.market-card, .trade-ticket, .data-panel, .book-card) {
+  scroll-margin-top: 100px;
+}
+@media (max-width: 1024px) {
+  .market-card { padding: 17px; }
+  .market-card-footer { gap: 7px; }
+  .market-card-footer .end-date { width: 100%; margin-left: 0; }
+}
+@media (max-width: 760px) {
+  .market-card { min-height: 280px; padding: 17px; }
+  .market-card .market-card-title > a { font-size: 15px; }
+  .market-card-footer .end-date { width: auto; margin-left: auto; }
+  .market-card .outcome-row { min-height: 46px; }
+  .trade-ticket.mobile-ticket { max-height: calc(94dvh - env(safe-area-inset-bottom)); }
+  .data-panel .data-toolbar { padding: 12px; }
+  .paper-order-actions > button { min-height: 42px; }
+}
+@media (max-width: 390px) {
+  .market-card-footer .end-date { width: 100%; margin-left: 0; }
+  .outcome-row { grid-template-columns: minmax(42px, auto) minmax(22px, 1fr) 32px auto; gap: 6px; padding-inline: 7px; }
+  .outcome-row .outcome-action { min-width: 41px; font-size: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .market-card, .outcome-row { transition: none; transform: none !important; }
+}
