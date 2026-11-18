@@ -76,6 +76,9 @@ export interface AdminDataPort {
 export interface TradingCommandPort {
   previewOrder(intent: OrderIntent): Promise<OrderPreview>;
   prepareOrder(intent: OrderIntent): Promise<PreparedOrder>;
+  confirmOrder(intent: OrderIntent): Promise<CommandResult>;
+  /** Optional local-demo counterparty fill; never a production matching API. */
+  simulateFillOrder?(orderId: string): Promise<CommandResult>;
   cancelOrder(orderId: string): Promise<CommandResult>;
 }
 
@@ -85,6 +88,7 @@ export interface AccountCommandPort {
 
 export interface FundingCommandPort {
   prepareFunding(intent: FundingIntent): Promise<PreparedFundingAction>;
+  confirmFunding(intent: FundingIntent, requestId: string): Promise<CommandResult>;
 }
 
 export interface AdminCommandPort {
