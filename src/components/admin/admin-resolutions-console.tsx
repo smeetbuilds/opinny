@@ -12,6 +12,12 @@ type StatusFilter = "all" | ResolutionCase["status"];
 export function AdminResolutionsConsole({ initialCases }: { initialCases: ResolutionCase[] }) {
   const { notify } = useApp();
   const [cases, setCases] = useState(initialCases);
+  useEffect(() => {
+    let mounted = true;
+    void dataAdapter.getResolutionQueue().then((items) => { if (mounted) setCases(items); })
+      .catch((error) => captureException(error, { operation: "hydrateAdminResolutions" }));
+    return () => { mounted = false; };
+  }, []);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<StatusFilter>("all");
   const [selected, setSelected] = useState<ResolutionCase | null>(null);
