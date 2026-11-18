@@ -17,6 +17,21 @@
 - [x] Error, not-found and loading states
 - [x] Open-source repository documentation and GitHub CI configuration
 
+## Paper-exchange enhancement — November 2026
+
+- [x] Browser-persisted reference wallet account; explicit paper-mode disclosures
+- [x] Market and limit order simulation with balance checks, fee estimates, cross/posted behavior and idempotent order submission
+- [x] Held collateral for unmatched buys; reserved shares for unmatched sells; cancellation releases available amounts
+- [x] Manual counterparty test action for partial then full fills
+- [x] Market-specific synthetic order depth, per-market paper trades and immediate feed refresh
+- [x] Account event synchronization for portfolio, order history, local balances and activity
+- [x] Paper deposits and withdrawals, validation, idempotence and winning redemption credits
+- [x] Persistent local discussion posts, replies, useful reactions, bookmarks and notifications
+- [x] Paper-account reset with confirmation; touch/focus/reduced-motion and information-density refinements
+- [x] Reference exchange behavior covered by tests
+
+**Scope:** This is a coherent local paper simulator, not an authoritative live prediction exchange. It deliberately has no real-money execution, exchange matching, login service, blockchain settlement or multi-device state.
+
 ## Production integration work intentionally not included
 
 - [ ] Authentication, sessions and admin authorization
