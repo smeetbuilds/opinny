@@ -1,7 +1,7 @@
 import type { Market, MarketComment, RewardOpportunity } from "@/core/contracts/domain";
 import type { MarketQuery, OpinnyIntegrationAdapter } from "@/core/contracts/ports";
 import { appConfig } from "@/lib/config";
-import { addPaperComment, cancelPaperOrder, executePaperOrder, matchPaperOrder, paperActivity, paperBalances, paperComments, paperOrderBook, paperOrders, paperPositions, paperTrades, previewPaperOrder, paperReplyCount, paperUseful, redeemPaperPosition, resetPaperExchange, setPaperUseful, settlePaperFunding } from "./simulator";
+import { addPaperComment, cancelPaperOrder, executePaperOrder, matchPaperOrder, paperActivity, paperBalances, paperComments, paperOrderBook, paperOrders, paperPositions, paperTrades, paperTransactions, previewPaperOrder, paperReplyCount, paperUseful, redeemPaperPosition, resetPaperExchange, setPaperUseful, settlePaperFunding } from "./simulator";
 import {
   adminMetrics,
   adminUsers,
@@ -9,7 +9,6 @@ import {
   markets,
   recentTrades,
   resolutions,
-  transactions
 } from "./data";
 
 const wait = <T,>(value: T) => Promise.resolve(value);
@@ -132,10 +131,7 @@ export const mockAdapter: OpinnyIntegrationAdapter = {
   }),
   getUsers: () => wait(adminUsers),
   getResolutionQueue: () => wait(resolutions),
-  getTransactions: () => wait(transactions.map((transaction, index) => ({
-    ...transaction,
-    createdAt: new Date(Date.UTC(2026, 7, 4, 12, -index * 7)).toISOString()
-  }))),
+  getTransactions: () => wait(paperTransactions()),
   previewOrder: (intent) => wait(previewPaperOrder(intent)),
   prepareOrder: (intent) => wait({
     requestId: intent.clientRequestId,
