@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Bell, CheckCircle2, Copy, Globe2, KeyRound, LogOut, RotateCcw, Save, ShieldCheck, SlidersHorizontal, WalletCards } from "lucide-react";
 import { SiteShell } from "@/components/site-shell";
 import { AccountShell } from "@/components/account-shell";
 import { type AccountPreferences, useApp } from "@/components/app-provider";
 import { shortAddress } from "@/lib/format";
 import { appConfig } from "@/lib/config";
+import { dataAdapter } from "@/lib/data";
 
 export default function SettingsPage() {
   const {
@@ -22,6 +23,15 @@ export default function SettingsPage() {
     resetPreferences
   } = useApp();
   const [draft, setDraft] = useState<AccountPreferences | null>(null);
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
+  const [resettingPaper, setResettingPaper] = useState(false);
+
+  useEffect(() => {
+    if (!resetDialogOpen) return;
+    const onEscape = (event: KeyboardEvent) => { if (event.key === "Escape" && !resettingPaper) setResetDialogOpen(false); };
+    window.addEventListener("keydown", onEscape);
+    return () => window.removeEventListener("keydown", onEscape);
+  }, [resetDialogOpen, resettingPaper]);
   const effectiveDraft = draft ?? preferences;
   const dirty = JSON.stringify(effectiveDraft) !== JSON.stringify(preferences);
 
@@ -86,8 +96,18 @@ export default function SettingsPage() {
                 <label><span><ShieldCheck size={16} />Slippage warning</span><select value={effectiveDraft.slippageWarning} disabled={!preferencesHydrated} onChange={(event) => update("slippageWarning", event.target.value as AccountPreferences["slippageWarning"])}><option value="0.5">0.5%</option><option value="1.0">1.0%</option><option value="2.0">2.0%</option></select><small>The selected threshold is sent with prepared order intents.</small></label>
               </div>
             </section>
+            {dataAdapter.resetPaperAccount ? <section className="settings-card span-two paper-sandbox-card">
+              <div className="settings-card-head"><span className="settings-icon"><RotateCcw size={18} /></span><div><h2>Paper account</h2><p>Every trade, deposit, withdrawal and limit fill lives only in this browser. Reset to the original sample portfolio whenever you want a clean practice session.</p></div></div>
+              <button className="secondary-button paper-reset-button" type="button" onClick={() => setResetDialogOpen(true)}><RotateCcw size={15} />Reset paper account</button>
+            </section> : null}
           </div>
         </AccountShell>
+        {resetDialogOpen ? <div className="overlay" role="presentation" onMouseDown={() => !resettingPaper && setResetDialogOpen(false)}>
+          <section className="operation-dialog" role="dialog" aria-modal="true" aria-labelledby="paper-reset-title" onMouseDown={(event) => event.stopPropagation()}>
+            <header><span className="operation-icon warning"><RotateCcw size={21} /></span><div><span className="eyebrow">Paper account</span><h2 id="paper-reset-title">Reset your practice account?</h2><p>All simulated trades, open orders, deposits, withdrawals and positions on this device will return to the sample starting state. Your preferences and watchlist stay unchanged.</p></div></header>
+            <footer><button className="secondary-button" disabled={resettingPaper} type="button" onClick={() => setResetDialogOpen(false)}>Keep my progress</button><button className="primary-button" disabled={resettingPaper} type="button" onClick={() => { if (!dataAdapter.resetPaperAccount) return; setResettingPaper(true); void dataAdapter.resetPaperAccount().then((result) => { notify(result.status === "accepted" ? "Paper account reset" : "Reset failed", result.message, "system"); if (result.status === "accepted") setResetDialogOpen(false); }).catch(() => notify("Reset failed", "Unable to restore paper account.", "system")).finally(() => setResettingPaper(false)); }}>Reset account</button></footer>
+          </section>
+        </div> : null}
       </div>
     </SiteShell>
   );
