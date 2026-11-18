@@ -256,7 +256,7 @@ export function matchPaperOrder(id: string): string {
   const order = current.orders.find((item) => item.id === id);
   if (!order || !active(order) || order.type !== "limit") throw new Error("Select an open limit order.");
   const market = marketFor(order.marketId ?? "");
-  const quantity = round(remaining(order) / 2);
+  const quantity = order.filled > 0 ? remaining(order) : round(remaining(order) / 2);
   const finalQuantity = quantity <= 0 || round(remaining(order) - quantity) < 0.000001 ? remaining(order) : quantity;
   if (order.side === "buy") {
     const allocated = round((order.reservedCollateral ?? 0) * (finalQuantity / remaining(order)));
@@ -274,7 +274,7 @@ export function matchPaperOrder(id: string): string {
   }
   recordTrade(market, order.side, order.outcome, order.price, finalQuantity);
   save();
-  return order.status === "filled" ? "Limit order fully matched in simulation." : "A simulated counterparty filled 50% of the remaining shares.";
+  return order.status === "filled" ? "Limit order fully matched in simulation." : "A simulated counterparty filled 50% of the original shares.";
 }
 
 export function redeemPaperPosition(id: string): string {
