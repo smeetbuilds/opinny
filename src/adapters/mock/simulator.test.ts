@@ -1,16 +1,23 @@
 import { expect, test } from "bun:test";
 import {
   cancelPaperOrder,
+  createPaperMarket,
   executePaperOrder,
   matchPaperOrder,
   paperActivity,
+  paperAdminUsers,
   paperBalances,
+  paperMarkets,
+  paperResolutionCases,
   paperOrders,
   paperPositions,
   paperTransactions,
   previewPaperOrder,
   redeemPaperPosition,
   seedPaperExchangeForTests,
+  setPaperMarketStatus,
+  setPaperResolution,
+  setPaperUserStatus,
   settlePaperFunding
 } from "./simulator";
 
@@ -113,4 +120,34 @@ test("paper engine rejects invalid price, insufficient collateral and unowned sh
     clientRequestId: "bad4", marketId: "mkt-009", outcomeId: "yes",
     side: "buy", type: "market", collateralAmount: 10
   })).toThrow();
+});
+
+test("admin sandbox decisions persist in paper account and gate trading", () => {
+  seedPaperExchangeForTests();
+  expect(paperMarkets().find((market) => market.id === "mkt-001")!.status).toBe("open");
+  setPaperMarketStatus("mkt-001", "paused");
+  expect(paperMarkets().find((market) => market.id === "mkt-001")!.status).toBe("paused");
+  expect(() => previewPaperOrder({
+    clientRequestId: "paused-test", marketId: "mkt-001", outcomeId: "yes",
+    side: "buy", type: "market", collateralAmount: 10
+  })).toThrow();
+  setPaperMarketStatus("mkt-001", "open");
+  expect(paperMarkets().find((market) => market.id === "mkt-001")!.status).toBe("open");
+
+  const id = createPaperMarket({
+    question: "Will the sample event happen next year?",
+    category: "Science", kind: "binary", outcomes: ["Yes", "No"],
+    endDate: new Date(Date.now() + 400 * 86_400_000).toISOString(),
+    resolutionSource: "Sample source", resolutionRules: "Resolves based on the sample source."
+  });
+  expect(paperMarkets().find((market) => market.id === id)?.status).toBe("draft");
+  expect(() => setPaperMarketStatus(id, "open")).toThrow();
+
+  setPaperUserStatus("usr-1001", "review");
+  expect(paperAdminUsers().find((user) => user.id === "usr-1001")?.status).toBe("review");
+
+  expect(paperResolutionCases().find((item) => item.id === "res-201")!.status).toBe("proposed");
+  setPaperResolution("res-201", "Yes");
+  expect(paperResolutionCases().find((item) => item.id === "res-201")!.status).toBe("approved");
+  expect(() => setPaperResolution("res-201", "Yes")).toThrow();
 });
