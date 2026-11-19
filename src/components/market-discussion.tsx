@@ -133,7 +133,7 @@ export function MarketDiscussion({ marketId, initialComments }: { marketId: stri
       <div className="discussion-list">
         {comments.map((comment) => {
           const markedUseful = useful.has(comment.id);
-          const usefulCount = Math.max(0, comment.usefulCount + (markedUseful ? 1 : 0));
+          const usefulCount = Math.max(0, comment.usefulCount + (markedUseful && !comment.viewerUseful ? 1 : 0) - (!markedUseful && comment.viewerUseful ? 1 : 0));
           return (
             <article className="comment" key={comment.id}>
               <span className="profile-avatar">{comment.initials}</span>

@@ -65,5 +65,5 @@ test("mock adapter exposes market, rewards, discussion, trading, account and cry
 
   const analytics = await mockAdapter.getAnalytics();
   expect(analytics.volumeSeries.length).toBeGreaterThan(0);
-  expect(analytics.categories.reduce((sum, row) => sum + row.value, 0)).toBe(100);
+  expect(analytics.categories.reduce((sum, row) => sum + row.value, 0)).toBe(analytics.volumeTotal ? 100 : 0);
 });

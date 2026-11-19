@@ -1,35 +1,50 @@
 "use client";
 
 import { Activity, ArrowDownRight, ArrowUpRight } from "lucide-react";
-import { useId, useMemo, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { useEffect, useId, useMemo, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { dataAdapter } from "@/lib/data";
 
-const ranges = ["1H", "1D", "1W", "1M", "ALL"] as const;
+const ranges = ["7 pts", "11 pts", "17 pts", "24 pts", "ALL"] as const;
 type Range = (typeof ranges)[number];
 
 const windows: Record<Range, number> = {
-  "1H": 7,
-  "1D": 11,
-  "1W": 17,
-  "1M": 24,
+  "7 pts": 7,
+  "11 pts": 11,
+  "17 pts": 17,
+  "24 pts": 24,
   ALL: Number.POSITIVE_INFINITY
 };
 
-export function PriceChart({ values }: { values: number[] }) {
-  const [range, setRange] = useState<Range>("1M");
+export function PriceChart({ values, marketId }: { values: number[]; marketId?: string }) {
+  const [samples, setSamples] = useState(values);
+  useEffect(() => {
+    if (!marketId) return;
+    let mounted = true;
+    const refresh = () => {
+      void dataAdapter.listMarkets().then((markets) => {
+        const found = markets.find((market) => market.id === marketId);
+        if (mounted && found) setSamples(found.chart);
+      }).catch(() => {});
+    };
+    refresh();
+    window.addEventListener("opinny:paper-update", refresh);
+    return () => { mounted = false; window.removeEventListener("opinny:paper-update", refresh); };
+  }, [marketId]);
+  const [range, setRange] = useState<Range>("24 pts");
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const gradientId = `chart-fill-${useId().replaceAll(":", "")}`;
 
   const chart = useMemo(() => {
     const width = 800;
     const height = 260;
-    const visibleValues = values.slice(-Math.min(values.length, windows[range]));
+    const visibleValues = samples.slice(-Math.min(samples.length, windows[range]));
     if (!visibleValues.length) {
       return { width, height, values: visibleValues, points: [] as { x: number; y: number; value: number }[], polyline: "", low: 0, high: 0, open: 0, current: 0, axisMin: 0, axisMax: 100 };
     }
     const low = Math.min(...visibleValues);
     const high = Math.max(...visibleValues);
-    const min = low - Math.max((high - low) * 0.18, 3);
-    const max = high + Math.max((high - low) * 0.18, 3);
+    const min = Math.max(0, low - Math.max((high - low) * 0.18, 3));
+    const max = Math.min(100, high + Math.max((high - low) * 0.18, 3));
     const points = visibleValues.map((value, index) => {
       const x = (index / Math.max(visibleValues.length - 1, 1)) * width;
       const y = height - ((value - min) / Math.max(max - min, 1)) * height;
@@ -48,7 +63,7 @@ export function PriceChart({ values }: { values: number[] }) {
       open: visibleValues[0] ?? 0,
       current: visibleValues.at(-1) ?? 0
     };
-  }, [range, values]);
+  }, [range, samples]);
 
   const selectedIndex = hoverIndex ?? Math.max(chart.points.length - 1, 0);
   const selectedPoint = chart.points[selectedIndex];
@@ -65,7 +80,7 @@ export function PriceChart({ values }: { values: number[] }) {
   if (!chart.values.length) {
     return (
       <section className="chart-card" aria-labelledby="probability-chart-title">
-        <div className="chart-head"><div><span id="probability-chart-title">Implied probability</span><strong>—</strong><em>No history available</em></div></div>
+        <div className="chart-head"><div><span id="probability-chart-title">Sampled probability</span><strong>—</strong><em>No history available</em></div></div>
         <div className="table-empty large" role="status"><Activity size={22} /><strong>No probability history</strong><span>The connected integration has not supplied chart data for this market.</span></div>
       </section>
     );
@@ -75,14 +90,14 @@ export function PriceChart({ values }: { values: number[] }) {
     <section className="chart-card" aria-labelledby="probability-chart-title">
       <div className="chart-head">
         <div>
-          <span id="probability-chart-title">Implied probability</span>
+          <span id="probability-chart-title">Sampled probability</span>
           <strong>{chart.current}%</strong>
           <em className={positive ? "positive" : "negative"}>
             {positive ? <ArrowUpRight size={13} /> : <ArrowDownRight size={13} />}
             {positive ? "+" : ""}{change.toFixed(1)} pts this period
           </em>
         </div>
-        <div className="range-tabs" aria-label="Chart time range">
+        <div className="range-tabs" aria-label="Number of recent sampled points">
           {ranges.map((item) => (
             <button
               className={range === item ? "active" : ""}
@@ -101,12 +116,12 @@ export function PriceChart({ values }: { values: number[] }) {
         <span><small>Open</small><strong>{chart.open}%</strong></span>
         <span><small>Period high</small><strong>{chart.high}%</strong></span>
         <span><small>Period low</small><strong>{chart.low}%</strong></span>
-        <span className="chart-live"><Activity size={13} /><small>Market signal</small><strong>Live</strong></span>
+        <span className="chart-live"><Activity size={13} /><small>Market signal</small><strong>Simulated</strong></span>
       </div>
 
       <div className="chart-area interactive-chart" onPointerMove={inspect} onPointerLeave={() => setHoverIndex(null)}>
         <div className="chart-y-axis"><span>{(chart.axisMax - (chart.axisMax - chart.axisMin) * 0.25).toFixed(0)}%</span><span>{((chart.axisMax + chart.axisMin) / 2).toFixed(0)}%</span><span>{(chart.axisMin + (chart.axisMax - chart.axisMin) * 0.25).toFixed(0)}%</span></div>
-        <svg viewBox={`0 0 ${chart.width} ${chart.height}`} preserveAspectRatio="none" role="img" aria-label={`Probability history for ${range}. Current probability ${chart.current} percent.`}>
+        <svg viewBox={`0 0 ${chart.width} ${chart.height}`} preserveAspectRatio="none" role="img" aria-label={`Sampled probability history with ${range}. Current probability ${chart.current} percent.`}>
           <defs>
             <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="currentColor" stopOpacity="0.22" />

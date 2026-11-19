@@ -13,7 +13,7 @@ export function VolumeChart({ analytics, changePercent }: { analytics: AdminAnal
   return (
     <section className="admin-chart" aria-labelledby="admin-volume-title">
       <div className="admin-chart-head">
-        <div><h2 id="admin-volume-title">Trading volume</h2><span>Daily settled notional · Last 30 days</span></div>
+        <div><h2 id="admin-volume-title">Trading volume</h2><span>Browser-local paper fills · Last 30 days</span></div>
         <div><strong>{formatCurrency(analytics.volumeTotal, { compact: true, maximumFractionDigits: 2 })}</strong><em>{changePercent >= 0 ? "+" : ""}{changePercent.toFixed(1)}%</em></div>
       </div>
       <div className="admin-chart-summary"><span><small>Daily average</small><strong>{formatCurrency(analytics.dailyAverage, { compact: true, maximumFractionDigits: 0 })}</strong></span><span><small>Peak day</small><strong>{formatCurrency(analytics.peakDay, { compact: true, maximumFractionDigits: 0 })}</strong></span><span><small>Settlement rate</small><strong>{analytics.settlementRate.toFixed(1)}%</strong></span></div>
@@ -25,7 +25,7 @@ export function VolumeChart({ analytics, changePercent }: { analytics: AdminAnal
           <polygon points={`0,230 ${points} 800,230`} fill={`url(#${gradientId})`} /><polyline points={points} />
         </svg>
       </div>
-      <div className="admin-chart-axis"><span>Jul 6</span><span>Jul 13</span><span>Jul 20</span><span>Jul 27</span><span>Aug 4</span></div>
+      <div className="admin-chart-axis"><span>29 days ago</span><span>3 weeks ago</span><span>2 weeks ago</span><span>1 week ago</span><span>Today</span></div>
     </section>
   );
 }
@@ -36,7 +36,7 @@ export function CategoryBreakdown({ analytics }: { analytics: AdminAnalytics }) 
       <div className="table-title"><div><h2 id="category-volume-title">Volume by category</h2><span>Trailing 30 days</span></div></div>
       <div className="donut-wrap">
         <div className="donut-chart" role="img" aria-label={`Category distribution: ${analytics.categories.map((row) => `${row.label} ${row.value} percent`).join(", ")}`}><span><strong>{formatCurrency(analytics.categoryTotal, { compact: true, maximumFractionDigits: 1 })}</strong><small>Total</small></span></div>
-        <div className="donut-legend">{analytics.categories.map((row, index) => <div key={row.label}><i className={`dot-${index + 1}`} /><span>{row.label}<b><em style={{ width: `${row.value}%` }} /></b></span><strong>{row.value}%</strong></div>)}</div>
+        <div className="donut-legend">{analytics.categories.length === 0 ? <p>No browser-local matched trades yet.</p> : null}{analytics.categories.map((row, index) => <div key={row.label}><i className={`dot-${index + 1}`} /><span>{row.label}<b><em style={{ width: `${row.value}%` }} /></b></span><strong>{row.value}%</strong></div>)}</div>
       </div>
     </section>
   );

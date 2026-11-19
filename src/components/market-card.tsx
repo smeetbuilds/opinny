@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Bookmark, MessageCircle, TrendingUp } from "lucide-react";
 import type { Market } from "@/core/contracts/domain";
 import { formatCurrency, formatDate } from "@/lib/format";
+import { marketHref } from "@/lib/market-href";
 import { useApp } from "./app-provider";
 
 const statusLabels: Record<Market["status"], string> = {
@@ -29,7 +30,7 @@ export function MarketCard({ market: initialMarket, compact = false }: { market:
             {market.category}
             {market.live && tradingOpen ? <em>Paper</em> : <em className={`market-status-chip ${market.status}`}>{statusLabels[market.status]}</em>}
           </span>
-          <Link href={`/market/${market.slug}`}>{market.shortQuestion}</Link>
+          <Link href={marketHref(market.slug, market.id)}>{market.shortQuestion}</Link>
         </div>
         <button className={`bookmark-button ${bookmarked ? "active" : ""}`} aria-label={bookmarked ? `Remove ${market.shortQuestion} from watchlist` : `Add ${market.shortQuestion} to watchlist`} aria-pressed={bookmarked} onClick={() => toggleFavorite(market.id)}><Bookmark size={17} fill={bookmarked ? "currentColor" : "none"} /></button>
       </div>
@@ -38,7 +39,7 @@ export function MarketCard({ market: initialMarket, compact = false }: { market:
 
       <div className="outcome-list">
         {market.outcomes.slice(0, compact ? 2 : 4).map((outcome, index) => {
-          const href = tradingOpen ? `/market/${market.slug}?outcome=${encodeURIComponent(outcome.id)}` : `/market/${market.slug}`;
+          const href = marketHref(market.slug, market.id, tradingOpen ? outcome.id : undefined);
           const action = tradingOpen ? (index === 0 ? "Buy" : "Trade") : market.status === "resolved" ? "Result" : "View";
           return <Link className="outcome-row" href={href} key={outcome.id} aria-label={`${outcome.label}, ${outcome.probability} percent probability`}><span title={outcome.label}>{outcome.label}</span><div className="probability-track" aria-hidden="true"><i style={{ width: `${outcome.probability}%` }} /></div><strong>{outcome.probability}%</strong>{index < 2 ? <span className="outcome-action">{action}</span> : null}</Link>;
         })}

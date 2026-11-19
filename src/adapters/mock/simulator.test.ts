@@ -7,9 +7,11 @@ import {
   paperActivity,
   paperAdminUsers,
   paperBalances,
+  paperJournal,
   paperMarkets,
   paperResolutionCases,
   paperOrders,
+  paperOrderBook,
   paperPositions,
   paperTransactions,
   previewPaperOrder,
@@ -38,7 +40,10 @@ test("paper exchange conserves collateral and tracks orders, fills, positions, a
   const preview = previewPaperOrder(buy);
   expect(preview.estimatedShares).toBeGreaterThan(150);
   expect(preview.estimatedCollateral + preview.estimatedFee).toBeLessThanOrEqual(100.00001);
+  const beforeDepth = preview.estimatedPrice;
+  expect(beforeDepth).toBeGreaterThan(0.63);
   expect(executePaperOrder(buy)).toContain("filled");
+  expect(paperJournal().some((entry) => entry.kind === "fill" && entry.fee > 0)).toBe(true);
   expect(balance().available).toBeLessThan(start);
   expect(paperPositions().find((position) => position.marketId === "mkt-001" && position.outcome === "Yes")!.shares).toBeGreaterThan(originalShares);
   const afterBuy = balance().available;
@@ -141,7 +146,8 @@ test("admin sandbox decisions persist in paper account and gate trading", () => 
     resolutionSource: "Sample source", resolutionRules: "Resolves based on the sample source."
   });
   expect(paperMarkets().find((market) => market.id === id)?.status).toBe("draft");
-  expect(() => setPaperMarketStatus(id, "open")).toThrow();
+  expect(setPaperMarketStatus(id, "open")).toContain("open");
+  expect(paperMarkets().find((market) => market.id === id)?.status).toBe("open");
 
   setPaperUserStatus("usr-1001", "review");
   expect(paperAdminUsers().find((user) => user.id === "usr-1001")?.status).toBe("review");
@@ -155,4 +161,54 @@ test("admin sandbox decisions persist in paper account and gate trading", () => 
     expect(settled.outcomes.find((outcome) => outcome.label === "Yes")?.probability).toBe(100);
     expect(settled.outcomes.filter((outcome) => outcome.label !== "Yes").every((outcome) => outcome.probability === 0)).toBe(true);
   }
+});
+
+
+test("paper market fills consume only finite displayed synthetic liquidity", () => {
+  seedPaperExchangeForTests();
+  const before = paperOrderBook("mkt-001", "yes");
+  const best = before.asks[0];
+  const intent = { clientRequestId: "depth-fill-test", marketId: "mkt-001", outcomeId: "yes", side: "buy" as const, type: "market" as const, collateralAmount: 100 };
+  const estimate = previewPaperOrder(intent);
+  expect(estimate.priceImpactBps).toBe(0);
+  const larger = previewPaperOrder({ ...intent, clientRequestId: "depth-multiple-levels", collateralAmount: 1000 });
+  expect(larger.priceImpactBps).toBeGreaterThan(0);
+  // The default 1% warning must not reject a small order merely for crossing the spread.
+  expect(previewPaperOrder({ ...intent, maxSlippageBps: 100 }).estimatedShares).toBeGreaterThan(0);
+  executePaperOrder(intent);
+  const after = paperOrderBook("mkt-001", "yes");
+  expect(after.asks.find((level) => level.price === best.price)!.size).toBeLessThan(best.size);
+  expect(paperMarkets().find((market) => market.id === "mkt-001")!.outcomes.find((outcome) => outcome.id === "yes")!.probability).toBeGreaterThan(63);
+  expect(paperJournal().filter((entry) => entry.kind === "fill").length).toBeGreaterThan(0);
+  expect(() => previewPaperOrder({ ...intent, clientRequestId: "too-large", collateralAmount: 200_000 })).toThrow();
+});
+
+test("paper market orders respect visible depth and slippage guards", () => {
+  seedPaperExchangeForTests();
+  expect(() => previewPaperOrder({ clientRequestId: "slippage", marketId: "mkt-001", outcomeId: "yes", side: "buy", type: "market", collateralAmount: 1000, maxSlippageBps: 10 })).toThrow();
+  const positionsBefore = paperPositions().find((position) => position.marketId === "mkt-001" && position.outcome === "Yes")!.shares;
+  const sold = previewPaperOrder({ clientRequestId: "sell-depth", marketId: "mkt-001", outcomeId: "yes", side: "sell", type: "market", shares: 10 });
+  expect(sold.estimatedPrice).toBeLessThan(0.63);
+  executePaperOrder({ clientRequestId: "sell-depth", marketId: "mkt-001", outcomeId: "yes", side: "sell", type: "market", shares: 10 });
+  expect(paperPositions().find((position) => position.marketId === "mkt-001" && position.outcome === "Yes")!.shares).toBe(positionsBefore - 10);
+});
+
+
+test("paper reserve journal reconciles available and locked balances through partial fills", () => {
+  seedPaperExchangeForTests();
+  const start = paperBalances().find((row) => row.asset === "USDC")!;
+  const request = { clientRequestId: "journal-limit-test", marketId: "mkt-001", outcomeId: "yes", side: "buy" as const, type: "limit" as const, collateralAmount: 40, limitPrice: 0.25 };
+  executePaperOrder(request);
+  const afterPost = paperBalances().find((row) => row.asset === "USDC")!;
+  const journalAfterPost = paperJournal();
+  expect(afterPost.available).toBeCloseTo(start.available - 40, 4);
+  expect(journalAfterPost.some((row) => row.kind === "reserve")).toBe(true);
+  matchPaperOrder(request.clientRequestId);
+  const afterFill = paperBalances().find((row) => row.asset === "USDC")!;
+  expect(afterFill.available).toBeCloseTo(afterPost.available, 4);
+  expect(afterFill.locked).toBeLessThan(afterPost.locked);
+  const deltaAvailable = paperJournal().reduce((sum, row) => sum + (row.asset === "USDC" ? row.cashDelta : 0), 0);
+  const deltaLocked = paperJournal().reduce((sum, row) => sum + (row.asset === "USDC" ? row.lockedDelta : 0), 0);
+  expect(afterFill.available - start.available).toBeCloseTo(deltaAvailable, 4);
+  expect(afterFill.locked - start.locked).toBeCloseTo(deltaLocked, 4);
 });

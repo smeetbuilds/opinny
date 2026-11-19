@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { AlertTriangle, ArrowUpRight, CheckCircle2, Clock3, ShieldAlert, UsersRound } from "lucide-react";
+import { AlertTriangle, ArrowUpRight, CheckCircle2, Clock3, ShieldAlert } from "lucide-react";
 import { AdminShell } from "@/components/admin/admin-shell";
-import { CategoryBreakdown, VolumeChart } from "@/components/admin/admin-charts";
+import { AdminOverviewLive } from "@/components/admin/admin-overview-live";
 import { dataAdapter } from "@/lib/data";
 
 export default async function AdminOverviewPage() {
@@ -25,16 +25,7 @@ export default async function AdminOverviewPage() {
         <Link href="/admin/transactions"><AlertTriangle size={16} /><span>Transaction attention</span><strong>{pendingTransactions}</strong></Link>
       </div>
 
-      <div className="admin-metric-grid">{metrics.map((metric, index) => (
-        <article key={metric.label}>
-          <div><span>{metric.label}</span>{index === 2 ? <UsersRound size={18} /> : index === 3 ? <ShieldAlert size={18} /> : <ArrowUpRight size={18} />}</div>
-          <strong>{metric.value}</strong>
-          <em className={metric.change >= 0 ? "positive" : "negative"}>{metric.change >= 0 ? "+" : ""}{metric.change}% <small>vs prior period</small></em>
-          <small>{metric.hint}</small>
-        </article>
-      ))}</div>
-
-      <div className="admin-dashboard-grid"><VolumeChart analytics={analytics} changePercent={metrics[0]?.change ?? 0} /><CategoryBreakdown analytics={analytics} /></div>
+      <AdminOverviewLive initialMetrics={metrics} initialAnalytics={analytics} />
 
       <div className="admin-dashboard-grid lower-grid">
         <section className="admin-panel">

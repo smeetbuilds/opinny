@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { UserOrder } from "@/core/contracts/domain";
 import { dataAdapter } from "@/lib/data";
 import { formatDate } from "@/lib/format";
+import { marketHref } from "@/lib/market-href";
 import { captureException } from "@/lib/observability";
 import { useApp } from "./app-provider";
 
@@ -18,7 +19,7 @@ const filterLabels: { value: Filter; label: string }[] = [
 ];
 
 export function OrdersTable({ orders }: { orders: UserOrder[] }) {
-  const { connected, setWalletOpen, notify } = useApp();
+  const { connected, setWalletOpen, notify, marketCatalog } = useApp();
   const items = orders;
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
@@ -130,7 +131,7 @@ export function OrdersTable({ orders }: { orders: UserOrder[] }) {
                 const cancellable = order.status === "open" || order.status === "partially-filled";
                 return (
                   <tr key={order.id}>
-                    <td className="wide-cell" data-label="Market"><Link href={`/market/${order.marketSlug}`}>{order.marketQuestion}<small>{order.outcome} · {order.id}</small></Link></td>
+                    <td className="wide-cell" data-label="Market"><Link href={marketHref(order.marketSlug, marketCatalog.find((market) => market.slug === order.marketSlug)?.id)}>{order.marketQuestion}<small>{order.outcome} · {order.id}</small></Link></td>
                     <td data-label="Side"><span className={`side-pill ${order.side}`}>{order.side}</span></td>
                     <td data-label="Type" className="capitalize">{order.type}</td>
                     <td data-label="Price">{Math.round(order.price * 100)}¢</td>
@@ -138,7 +139,7 @@ export function OrdersTable({ orders }: { orders: UserOrder[] }) {
                     <td data-label="Filled"><div className="fill-cell"><span>{order.filled.toLocaleString()} <small>{progress.toFixed(0)}%</small></span><i><b style={{ width: `${progress}%` }} /></i></div></td>
                     <td data-label="Status"><span className={`status-pill ${order.status}`}>{order.status.replace("-", " ")}</span></td>
                     <td data-label="Date">{formatDate(order.createdAt)}</td>
-                    <td className="order-row-actions">{cancellable ? <div className="paper-order-actions">{dataAdapter.simulateFillOrder ? <button className="row-action paper-match-action" type="button" disabled={Boolean(matching)} onClick={() => void simulateMatch(order)}>{matching === order.id ? <LoaderCircle className="spin" size={13} /> : null}Match 50%</button> : null}<button className="row-action danger-action" type="button" onClick={() => requestCancellation(order)}>Cancel</button></div> : <Link className="row-action" href={`/market/${order.marketSlug}`} aria-label={`Open ${order.marketQuestion}`}>View <ArrowUpRight size={14} /></Link>}</td>
+                    <td className="order-row-actions">{cancellable ? <div className="paper-order-actions">{dataAdapter.simulateFillOrder ? <button className="row-action paper-match-action" type="button" disabled={Boolean(matching)} onClick={() => void simulateMatch(order)}>{matching === order.id ? <LoaderCircle className="spin" size={13} /> : null}Match 50%</button> : null}<button className="row-action danger-action" type="button" onClick={() => requestCancellation(order)}>Cancel</button></div> : <Link className="row-action" href={marketHref(order.marketSlug, marketCatalog.find((market) => market.slug === order.marketSlug)?.id)} aria-label={`Open ${order.marketQuestion}`}>View <ArrowUpRight size={14} /></Link>}</td>
                   </tr>
                 );
               })}</tbody>

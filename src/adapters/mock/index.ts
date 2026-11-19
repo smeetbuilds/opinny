@@ -1,9 +1,8 @@
-import type { Market, MarketComment, RewardOpportunity } from "@/core/contracts/domain";
+import type { AdminAnalytics, AdminMetric, Market, MarketComment, RewardOpportunity } from "@/core/contracts/domain";
 import type { MarketQuery, OpinnyIntegrationAdapter } from "@/core/contracts/ports";
 import { appConfig } from "@/lib/config";
-import { addPaperComment, cancelPaperOrder, createPaperMarket, executePaperOrder, matchPaperOrder, paperActivity, paperAdminUsers, paperBalances, paperComments, paperMarkets, paperOrderBook, paperOrders, paperPositions, paperResolutionCases, paperTrades, paperTransactions, previewPaperOrder, paperReplyCount, paperUseful, redeemPaperPosition, resetPaperExchange, setPaperMarketStatus, setPaperResolution, setPaperUserStatus, setPaperUseful, settlePaperFunding } from "./simulator";
+import { addPaperComment, cancelPaperOrder, createPaperMarket, executePaperOrder, matchPaperOrder, paperActivity, paperAdminUsers, paperAllTrades, paperBalances, paperComments, paperMarkets, paperOrderBook, paperOrders, paperPositions, paperResolutionCases, paperRewardEarnings, paperTrades, paperTransactions, previewPaperOrder, paperReplyCount, paperUseful, redeemPaperPosition, resetPaperExchange, setPaperMarketStatus, setPaperResolution, setPaperUserStatus, setPaperUseful, settlePaperFunding } from "./simulator";
 import {
-  adminMetrics,
   leaderboard,
   markets,
   recentTrades,
@@ -11,10 +10,6 @@ import {
 
 const wait = <T,>(value: T) => Promise.resolve(value);
 const referenceContract = "0x0000000000000000000000000000000000000001";
-
-function slugify(value: string) {
-  return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-}
 
 function buildReferenceComments(marketId: string): MarketComment[] {
   const marketIndex = Math.max(markets.findIndex((market) => market.id === marketId), 0);
@@ -57,26 +52,69 @@ function withDiscussionCount(market: Market): Market {
 }
 
 function buildRewardOpportunities(): RewardOpportunity[] {
-  return markets
-    .filter((market) => market.status === "open")
-    .slice(0, 12)
-    .map((market, index) => {
-      const dailyReward = 40 + (index % 5) * 20;
-      return {
-        id: `reward-${market.id}`,
-        marketId: market.id,
-        marketSlug: market.slug,
-        marketQuestion: market.shortQuestion,
-        category: market.category,
-        maxSpreadCents: 3 + (index % 3),
-        minimumShares: 20 + (index % 4) * 10,
-        dailyReward,
-        competitionPercent: Math.min(94, 34 + (index * 9) % 58),
-        earned: index % 4 === 0 ? Number((dailyReward * 0.18).toFixed(2)) : 0,
-        outcomePrices: market.outcomes.slice(0, 3).map((outcome) => ({ label: outcome.label, price: outcome.probability / 100 })),
-        eligible: index % 3 !== 2
-      };
-    });
+  return paperMarkets().filter((market) => market.status === "open").slice(0, 12).map((market, index) => {
+    const maxSpreadCents = 3 + (index % 3);
+    const minimumShares = 20 + (index % 4) * 10;
+    const resting = paperOrders().filter((order) =>
+      order.marketSlug === market.slug && order.type === "limit" && ["open", "partially-filled"].includes(order.status)
+      && order.shares - order.filled >= minimumShares
+      && market.outcomes.some((outcome) => outcome.label === order.outcome && Math.abs(order.price - outcome.probability / 100) * 100 <= maxSpreadCents));
+    const book = paperOrderBook(market.id, market.outcomes[0].id);
+    const visibleSize = [...book.bids, ...book.asks].reduce((sum, level) => sum + level.size, 0);
+    const ownSize = resting.reduce((sum, order) => sum + order.shares - order.filled, 0);
+    return {
+      id: "reward-" + market.id, marketId: market.id, marketSlug: market.slug,
+      marketQuestion: market.shortQuestion, category: market.category,
+      maxSpreadCents, minimumShares, dailyReward: 40 + (index % 5) * 20,
+      competitionPercent: visibleSize ? Math.max(0, Math.min(100, Math.round(100 * (1 - ownSize / visibleSize)))) : 0,
+      earned: paperRewardEarnings(market.id), eligible: resting.length > 0,
+      outcomePrices: market.outcomes.slice(0, 3).map((outcome) => ({ label: outcome.label, price: outcome.probability / 100 }))
+    };
+  });
+}
+
+/** Local fills only: seeded display volume is deliberately excluded from operational reporting. */
+function buildPaperAnalytics(): AdminAnalytics {
+  const latest = paperAllTrades();
+  const days = Array.from({ length: 30 }, (_, offset) => {
+    const day = new Date();
+    day.setUTCHours(0, 0, 0, 0);
+    day.setUTCDate(day.getUTCDate() - (29 - offset));
+    return day.toISOString().slice(0, 10);
+  });
+  const volumeSeries = days.map((day) => Math.round(latest.filter((trade) => trade.createdAt?.slice(0, 10) === day).reduce((sum, trade) => sum + trade.value, 0)));
+  const volumeTotal = latest.filter((trade) => trade.createdAt && days.includes(trade.createdAt.slice(0, 10))).reduce((sum, trade) => sum + trade.value, 0);
+  const totals = new Map<string, number>();
+  const marketsById = new Map(paperMarkets().map((market) => [market.id, market]));
+  for (const trade of latest) {
+    const category = marketsById.get(trade.marketId)?.category ?? "Other";
+    totals.set(category, (totals.get(category) ?? 0) + trade.value);
+  }
+  const allVolume = [...totals.values()].reduce((sum, value) => sum + value, 0);
+  let assigned = 0;
+  const categories = [...totals].map(([label, value], index, entries) => {
+    const percent = index === entries.length - 1 ? 100 - assigned : allVolume ? Math.round(value * 100 / allVolume) : 0;
+    assigned += percent;
+    return { label, value: percent };
+  });
+  const allMarkets = paperMarkets();
+  const due = allMarkets.filter((market) => market.status === "resolved" || Date.parse(market.endDate) <= Date.now());
+  const resolved = due.filter((market) => market.status === "resolved").length;
+  return {
+    volumeSeries, volumeTotal, dailyAverage: volumeTotal / 30, peakDay: Math.max(0, ...volumeSeries),
+    settlementRate: due.length ? Math.round(resolved / due.length * 1000) / 10 : 0,
+    categoryTotal: allVolume, categories
+  };
+}
+function buildPaperMetrics(): AdminMetric[] {
+  const analytics = buildPaperAnalytics();
+  const allMarkets = paperMarkets();
+  return [
+    { label: "Paper volume (30d)", value: "$" + Math.round(analytics.volumeTotal).toLocaleString(), change: 0, hint: "Your browser-local matched trades" },
+    { label: "Open markets", value: allMarkets.filter((market) => market.status === "open").length.toLocaleString(), change: 0, hint: "Includes sample markets" },
+    { label: "Paper fills", value: paperAllTrades().length.toLocaleString(), change: 0, hint: "Simulated counterparty trades" },
+    { label: "Settlement rate", value: analytics.settlementRate + "%", change: 0, hint: "Resolved among closed sample markets" }
+  ];
 }
 
 export const mockAdapter: OpinnyIntegrationAdapter = {
@@ -117,16 +155,10 @@ export const mockAdapter: OpinnyIntegrationAdapter = {
   getOrders: () => wait(paperOrders()),
   getActivity: () => wait(paperActivity()),
   getLeaderboard: () => wait(leaderboard),
-  getMetrics: () => wait(adminMetrics),
-  getAnalytics: () => wait({
-    volumeSeries: [28, 35, 31, 42, 38, 47, 51, 49, 58, 62, 56, 67, 72, 69, 78, 84, 81, 92, 88, 96, 102, 98, 111, 118, 115, 126, 132, 129, 141, 148],
-    volumeTotal: 12_840_000,
-    dailyAverage: 428_000,
-    peakDay: 512_000,
-    settlementRate: 99.4,
-    categoryTotal: 48_200_000,
-    categories: [{ label: "Crypto", value: 32 }, { label: "Politics", value: 24 }, { label: "Technology", value: 18 }, { label: "Economy", value: 14 }, { label: "Other", value: 12 }]
-  }),
+  getMetrics: () => wait(buildPaperMetrics()),
+  getAnalytics: () => wait(buildPaperAnalytics()),
+
+
   getUsers: () => wait(paperAdminUsers()),
   getResolutionQueue: () => wait(paperResolutionCases()),
   getTransactions: () => wait(paperTransactions()),
@@ -181,7 +213,7 @@ export const mockAdapter: OpinnyIntegrationAdapter = {
   createMarket: (input) => {
     try {
       const id = createPaperMarket(input);
-      return wait({ id, status: "accepted" as const, message: "Local market draft saved. Publication requires a live backend." });
+      return wait({ id, status: "accepted" as const, message: "Local market draft saved. Publish it from the admin market list; it is visible only in this browser." });
     } catch (error) {
       return wait({ id: "market-invalid", status: "rejected" as const, message: error instanceof Error ? error.message : "Market draft invalid." });
     }

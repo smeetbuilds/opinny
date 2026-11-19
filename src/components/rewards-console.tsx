@@ -5,6 +5,7 @@ import { ArrowUpRight, CheckCircle2, Coins, Info, Search, SlidersHorizontal, Spa
 import { useEffect, useMemo, useState } from "react";
 import type { RewardOpportunity } from "@/core/contracts/domain";
 import { appConfig } from "@/lib/config";
+import { dataAdapter } from "@/lib/data";
 import { useApp } from "./app-provider";
 
 type RewardSort = "reward" | "competition" | "spread";
@@ -20,12 +21,20 @@ export function RewardsConsole({ initialRewards }: { initialRewards: RewardOppor
   const [eligibleOnly, setEligibleOnly] = useState(false);
   const [sort, setSort] = useState<RewardSort>("reward");
   const [selected, setSelected] = useState<RewardOpportunity | null>(null);
+  const [rewards, setRewards] = useState(initialRewards);
+  useEffect(() => {
+    let mounted = true;
+    const refresh = () => { void dataAdapter.getRewardOpportunities().then((items) => { if (mounted) setRewards(items); }).catch(() => {}); };
+    refresh();
+    window.addEventListener("opinny:paper-update", refresh);
+    return () => { mounted = false; window.removeEventListener("opinny:paper-update", refresh); };
+  }, []);
 
-  const categories = useMemo(() => ["All", ...Array.from(new Set(initialRewards.map((reward) => reward.category))).sort()], [initialRewards]);
+  const categories = useMemo(() => ["All", ...Array.from(new Set(rewards.map((reward) => reward.category))).sort()], [rewards]);
 
   const visible = useMemo(() => {
     const normalized = query.trim().toLowerCase();
-    return [...initialRewards]
+    return [...rewards]
       .filter((reward) => category === "All" || reward.category === category)
       .filter((reward) => !eligibleOnly || reward.eligible)
       .filter((reward) => !normalized || `${reward.marketQuestion} ${reward.category}`.toLowerCase().includes(normalized))
@@ -34,11 +43,11 @@ export function RewardsConsole({ initialRewards }: { initialRewards: RewardOppor
         if (sort === "spread") return a.maxSpreadCents - b.maxSpreadCents;
         return b.dailyReward - a.dailyReward;
       });
-  }, [category, eligibleOnly, initialRewards, query, sort]);
+  }, [category, eligibleOnly, rewards, query, sort]);
 
-  const totalDaily = initialRewards.reduce((sum, reward) => sum + reward.dailyReward, 0);
-  const earned = initialRewards.reduce((sum, reward) => sum + reward.earned, 0);
-  const qualifying = initialRewards.filter((reward) => reward.eligible).length;
+  const totalDaily = rewards.reduce((sum, reward) => sum + reward.dailyReward, 0);
+  const earned = rewards.reduce((sum, reward) => sum + reward.earned, 0);
+  const qualifying = rewards.filter((reward) => reward.eligible).length;
 
   useEffect(() => {
     if (!selected) return;
