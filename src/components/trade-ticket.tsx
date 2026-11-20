@@ -89,7 +89,7 @@ export function TradeTicket({ market: initialMarket }: { market: Market }) {
       setLimitPrice(String(next.probability));
       setSubmitError("");
       if (window.matchMedia("(max-width: 980px)").matches) setMobileOpen(true);
-      else document.getElementById("trade-ticket")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      else document.getElementById("trade-ticket")?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "center" });
     };
     window.addEventListener("opinny:trade", openForOutcome);
     return () => window.removeEventListener("opinny:trade", openForOutcome);

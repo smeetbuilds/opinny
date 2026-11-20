@@ -36,3 +36,45 @@ Opinny uses one light-mode visual language: warm neutral canvas, white informati
 - Modal dialogs receive focus on open, contain Tab and Shift+Tab navigation, recover stray focus, and return focus to their trigger when closed.
 - Search uses combobox/listbox semantics with an explicit active descendant for keyboard navigation.
 - Horizontal overflow is intentionally contained within tabs and tables.
+
+## Trading-first design direction (November 2026)
+
+The market-detail screen, paper desk, and discovery cards establish the **Opinny editorial exchange** language. This is an original information-led approach, not a copy of another prediction market or a generic SaaS dashboard.
+
+### Information hierarchy
+
+1. On a market detail page, lead with the exact question and close date. The outcome contract prices are the primary action. Volume, sample participants, and liquidity are context, never marketing proof.
+2. On a market card, make the question readable, followed by leading contract probability, outcome rows, and supporting metadata. Do not put emoji/letter illustrations ahead of market information.
+3. In a trade ticket, prioritize: buy/sell, contract, order type, quantity, **visible paper balance**, realistic estimate and submit action. Fees, price impact, potential payout, and errors must remain legible.
+4. In market depth, show explicit bid/ask headings, column labels, a spread, finite simulated depth, and the distinction between sample prints and the user's paper matches.
+5. In the chart, use sequential sample windows (Recent 6, All samples), never fictitious 1D/1W/1M labels over an undated array. Expose the first-outcome limitation until the adapter can provide per-outcome timestamped history.
+
+### Visual design decisions
+
+- **Canvas:** warm neutral; white information surfaces with a single fine stroke and almost no elevation. Most cards should be flat.
+- **Ink:** strong dark evergreen for actions and high-contrast primary data. Use coral/red only to denote negative/sell-related states, not decoration.
+- **Typography:** Instrument Serif is reserved for editorial hero and major panel headers; all transaction prices, metadata, inputs, controls and charts use Inter and tabular figures.
+- **Information density:** prefer compact but readable rows, not 7–9px labels. Standard metadata should be at least 11px and substantive interactive text at least 12px.
+- **Spacing:** use deliberate divisions and quiet rule lines to separate content instead of a card-within-card-within-card pattern.
+- **Feedback:** focus, selected state, disabled state, pending preview, errors and success must be readable without animation or color alone.
+- **Responsive:** outcome quotes stack actions below prices below 430px. Tablet uses the mobile trade sheet below 1024px; desktop keeps the order ticket sticky but independently scrollable.
+- **Motion:** no ambient pulses, hover lifts, floating cards or gradient glows as signifiers of quality. Honor reduced-motion preferences for programmatic scrolling and transitions.
+
+### Anti-patterns forbidden in future Opinny work
+
+- A new pastel illustration tile or arbitrarily colored emoji avatar on every market.
+- Repeating the same probability in multiple decorated widgets without adding a new fact.
+- Unexplained badges for normal section metadata.
+- Fake historical timing, fabricated live-price labels, or treating simulated volume as verified market activity.
+- Overlapping translucent panels, radial decorative halos, glow-on-hover cards, or gradients that convey no state.
+- Extremely small captions compensated for by excessive whitespace.
+- A UI polish pass that removes actual executable controls, loading, errors, keyboard handling or contrast.
+- Copying branded iconography, layouts or visual assets from other trading platforms.
+
+### Design acceptance gate
+
+Evaluate the market page, home, discovery grid and mobile trade sheet at 320, 375, 430, 768, 1024 and 1440 pixels. Confirm readable probabilities, full question access, contrast, keyboard outcome and order selection, focus handling, no horizontal overflow and a coherent primary action. Use a real browser and screenshots: CI passing does **not** prove design quality.
+
+### Implementation debt
+
+The styles are currently composed from `globals-01.css` through numbered override files. The most recent detail/discovery direction is in `globals-23.css`, `globals-24.css`, and `globals-25.css`. This is a *transitional cascade*, not a sustainable final architecture. Before future large-scale redesigns, consolidate duplicate selectors into component-scoped or purpose-built stylesheets, with visual regression checks. Do not pile on another global override file for routine maintenance.

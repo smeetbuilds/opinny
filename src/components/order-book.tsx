@@ -25,8 +25,8 @@ function Side({ levels, type }: { levels: OrderBookLevel[]; type: "asks" | "bids
 }
 
 export function OrderBook({ bids, asks }: { bids: OrderBookLevel[]; asks: OrderBookLevel[] }) {
-  const bestBid = bids[0]?.price ?? 0;
-  const bestAsk = asks[0]?.price ?? 0;
+  const bestBid = bids.length ? Math.max(...bids.map((level) => level.price)) : 0;
+  const bestAsk = asks.length ? Math.min(...asks.map((level) => level.price)) : 0;
   const spread = bestBid && bestAsk ? Math.max(bestAsk - bestBid, 0) : 0;
   const midpoint = bestBid && bestAsk ? (bestBid + bestAsk) / 2 : bestBid || bestAsk;
 

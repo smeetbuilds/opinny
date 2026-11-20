@@ -79,3 +79,20 @@ assigning an LCP, CLS or INP pass/fail verdict.
 
 For deployment-specific configuration and eventual production integrations, see
 `docs/INTEGRATION_GUIDE.md` and `docs/PRODUCT_REQUIREMENTS.md`.
+
+## Design acceptance — editorial market interface
+
+Design-focused inspection should cover the November 2026 implementation of the market-detail outcome board, sequential-sample chart, order ticket, order book, trade tape, homepage and discovery cards.
+
+| Surface | Test | Pass criterion |
+| --- | --- | --- |
+| Market detail | 320px portrait and 1440px desktop | Question remains fully readable; outcome prices and Trade actions do not clip |
+| Contract board | Two and four outcome markets | One clear row per outcome, a meaningful number, label, probability bar and operable action |
+| Sample chart | Recent 6 / All, keyboard navigation and touch | Chart never suggests unsupported calendar-time history; focus and selected sample remain accessible |
+| Order ticket | Side/outcome/type changes, market/limit previews | Available simulated balance, estimate, fee and CTA read in order without decorative cards |
+| Market depth | Open, partially consumed and resolved books | Bid/ask headers, data, spread and no-depth states are legible and truthful |
+| Homepage | Small phone, tablet and laptop | A single featured contract replaces floating card stacks, with no irrelevant ornament |
+| Discovery | Category filters, bookmarked and resolved markets | Flat market cards keep title, odds and links visible; no pastel emoji thumbnails |
+| Interaction | 200% zoom, reduced motion, keyboard, screen reader | Accessible focus, names and status, no hidden trade actions |
+
+**QA scope:** the existing lint/type/test/build checks verify code integrity. They do not replace manual screenshot comparison or assistive-technology testing.
