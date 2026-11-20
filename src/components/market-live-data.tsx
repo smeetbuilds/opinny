@@ -101,8 +101,8 @@ export function MarketLiveData({
     <section className="market-live-section" id="market-depth" aria-labelledby="market-depth-title">
       <div className="market-live-toolbar">
         <div>
-          <span className="eyebrow">Simulated liquidity</span>
-          <h2 id="market-depth-title">Market depth & trades</h2>
+          <span className="eyebrow">EXECUTION DATA</span>
+          <h2 id="market-depth-title">Depth & trade tape</h2>
         </div>
         <div className="market-live-controls">
           {market.outcomes.length > 1 ? (
@@ -122,7 +122,7 @@ export function MarketLiveData({
           ) : null}
           <span className={`market-sync-state ${syncState}`} role="status" aria-live="polite">
             <RefreshCw className={syncState === "syncing" ? "spin" : ""} size={13} />
-            {syncState === "syncing" ? "Syncing" : syncState === "stale" ? "Feed unavailable" : sequence ? "Paper feed" : "Market snapshot"}
+            {syncState === "syncing" ? "Syncing" : syncState === "stale" ? "Feed unavailable" : sequence ? "Paper events applied" : "Sample snapshot"}
           </span>
         </div>
       </div>

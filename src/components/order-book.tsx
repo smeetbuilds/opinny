@@ -3,50 +3,51 @@ import { formatNumber } from "@/lib/format";
 
 function Side({ levels, type }: { levels: OrderBookLevel[]; type: "asks" | "bids" }) {
   const max = Math.max(1, ...levels.map((level) => level.total));
-
-  if (!levels.length) {
-    return <div className="book-empty">No {type === "asks" ? "sell" : "buy"} liquidity yet.</div>;
-  }
+  const asks = type === "asks";
 
   return (
-    <div className={`book-side ${type}`} aria-label={type === "asks" ? "Sell orders" : "Buy orders"}>
-      {levels.map((level) => (
-        <div className="book-row" key={`${type}-${level.price}`} aria-label={`${Math.round(level.price * 100)} cents, ${formatNumber(level.size)} shares, ${formatNumber(level.total)} total`}>
-          <i style={{ width: `${(level.total / max) * 100}%` }} />
-          <span data-label="Price">{Math.round(level.price * 100)}¢</span>
-          <span data-label="Size">{formatNumber(level.size)}</span>
-          <span data-label="Total">{formatNumber(level.total)}</span>
+    <div className={`book-side ${type}`} aria-label={asks ? "Simulated sell offers" : "Simulated buy bids"}>
+      <div className="book-side-heading">
+        <strong>{asks ? "Sell offers" : "Buy bids"}</strong>
+        <span>{levels.length} price levels</span>
+      </div>
+      <div className="book-column-head" aria-hidden="true"><span>Price</span><span>Shares</span><span>Cumulative</span></div>
+      {levels.length ? levels.map((level) => (
+        <div className="book-row" key={`${type}-${level.price}`} aria-label={`${(level.price * 100).toFixed(1)} cents, ${formatNumber(level.size)} shares, ${formatNumber(level.total)} cumulative`}>
+          <i style={{ width: `${level.total / max * 100}%` }} aria-hidden="true" />
+          <span data-label="Price">{(level.price * 100).toFixed(1)}¢</span>
+          <span data-label="Shares">{formatNumber(level.size)}</span>
+          <span data-label="Cumulative">{formatNumber(level.total)}</span>
         </div>
-      ))}
+      )) : <div className="book-empty">No {asks ? "sell offers" : "buy bids"} in the current simulated book.</div>}
     </div>
   );
 }
 
 export function OrderBook({ bids, asks }: { bids: OrderBookLevel[]; asks: OrderBookLevel[] }) {
-  const bestBid = bids.length ? Math.max(...bids.map((level) => level.price)) : 0;
-  const bestAsk = asks.length ? Math.min(...asks.map((level) => level.price)) : 0;
+  const bestBid = bids[0]?.price ?? 0;
+  const bestAsk = asks[0]?.price ?? 0;
   const spread = bestBid && bestAsk ? Math.max(bestAsk - bestBid, 0) : 0;
   const midpoint = bestBid && bestAsk ? (bestBid + bestAsk) / 2 : bestBid || bestAsk;
-  const spreadPercent = midpoint ? (spread / midpoint) * 100 : 0;
 
   return (
-    <section className="book-card" aria-labelledby="order-book-title">
+    <section className="book-card opinny-order-book" aria-labelledby="order-book-title">
       <div className="book-head">
-        <div><h3 id="order-book-title">Order book</h3><span><i />Reference depth</span></div>
-        <div className="book-legend" aria-hidden="true"><span>Price</span><span>Size</span><span>Total</span></div>
+        <div><h3 id="order-book-title">Order book</h3><span>Finite simulated counterparty liquidity</span></div>
       </div>
       <div className="book-quote-strip">
-        <span><small>Best bid</small><strong>{bestBid ? `${Math.round(bestBid * 100)}¢` : "—"}</strong></span>
-        <span><small>Midpoint</small><strong>{midpoint ? `${Math.round(midpoint * 100)}¢` : "—"}</strong></span>
-        <span><small>Best ask</small><strong>{bestAsk ? `${Math.round(bestAsk * 100)}¢` : "—"}</strong></span>
+        <span><small>Best bid</small><strong>{bestBid ? `${(bestBid * 100).toFixed(1)}¢` : "—"}</strong></span>
+        <span><small>Midpoint</small><strong>{midpoint ? `${(midpoint * 100).toFixed(1)}¢` : "—"}</strong></span>
+        <span><small>Best ask</small><strong>{bestAsk ? `${(bestAsk * 100).toFixed(1)}¢` : "—"}</strong></span>
       </div>
       <Side levels={[...asks].sort((a, b) => b.price - a.price)} type="asks" />
       <div className="book-spread">
         <span>Bid–ask spread</span>
-        <strong>{spread ? `${Math.round(spread * 100)}¢` : "—"}</strong>
-        <em>{spread ? `${spreadPercent.toFixed(1)}%` : "Waiting for both sides"}</em>
+        <strong>{bestBid && bestAsk ? `${(spread * 100).toFixed(1)}¢` : "—"}</strong>
+        <em>{bestBid && bestAsk ? `${(spread / midpoint * 100).toFixed(2)}% of midpoint` : "No two-sided market"}</em>
       </div>
       <Side levels={[...bids].sort((a, b) => b.price - a.price)} type="bids" />
+      <p className="book-footnote">Depth is synthetic. Your own resting orders appear separately and are not executable against yourself.</p>
     </section>
   );
 }
