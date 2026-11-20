@@ -49,3 +49,30 @@ html body var {
   outline-offset: 2px;
   border-radius: 6px;
 }
+
+/* Keep the fixed desktop trade-ticket track shrink-safe across browser engines. */
+.trade-ticket,
+.ticket-content,
+.ticket-field,
+.ticket-label-row,
+.amount-input,
+.quick-amounts {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.ticket-label-row,
+.amount-input,
+.quick-amounts {
+  width: 100%;
+}
+
+.ticket-label-row > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quick-amounts { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.quick-amounts button { min-width: 0; }
