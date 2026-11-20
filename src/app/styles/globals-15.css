@@ -48,7 +48,7 @@
 
 /* Portfolio and redemption */
 .claimable-card { position: relative; }
-.claimable-card.active { border-color: #b9d7cb; background: linear-gradient(145deg, var(--surface), #f0f8f4); }
+.claimable-card.active { border-color: var(--green); background: var(--surface-soft); }
 .claimable-card > button { align-self: start; border: 0; margin-top: 3px; padding: 0; color: var(--brand-2); background: transparent; cursor: pointer; font-size: 11px; font-weight: 850; text-align: left; }
 .portfolio-table-title { align-items: center; }
 .portfolio-table-title .panel-tabs { margin-left: auto; }

@@ -15,7 +15,7 @@
 .account-button svg { transition: transform .18s ease; }
 .account-button svg.rotated { transform: rotate(180deg); }
 .search-trigger { transition: border-color .18s ease, background .18s ease, box-shadow .18s ease; }
-.search-trigger:hover { border-color: #bcc8c1; background: #fff; box-shadow: 0 7px 22px rgba(22, 59, 54, .07); }
+.search-trigger:hover { border-color: var(--line-strong); background: var(--surface-soft); box-shadow: none; }
 .clear-search { display: grid; width: 28px; height: 28px; place-items: center; border: 0; border-radius: 8px; color: var(--ink-3); background: var(--surface-soft); cursor: pointer; }
 .command-results { min-height: 148px; }
 .command-results-head { display: flex; align-items: center; justify-content: space-between; padding-right: 8px; }
@@ -50,11 +50,11 @@
 .category-tabs button:active { transform: scale(.97); }
 
 .market-card { isolation: isolate; padding: 17px; }
-.market-card::before { content: ""; position: absolute; z-index: -1; top: -74px; right: -74px; width: 150px; height: 150px; border-radius: 50%; background: radial-gradient(circle, rgba(34, 94, 84, .075), transparent 69%); pointer-events: none; }
+
 .market-card-title > a { font-size: 13.5px; }
 .market-card-title > a::after { content: ""; position: absolute; inset: 0; z-index: -1; }
 .bookmark-button { position: relative; z-index: 2; }
-.market-card-snapshot { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 1px 12px; margin-top: 15px; border: 1px solid #e8ece7; border-radius: 11px; padding: 10px 11px; background: linear-gradient(135deg, #fbfcfa, #f4f8f5); }
+.market-card-snapshot { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 1px 12px; margin-top: 15px; border: 1px solid #e8ece7; border-radius: 11px; padding: 10px 11px; background: var(--surface-soft); }
 .market-card-snapshot > span { display: grid; gap: 1px; }
 .market-card-snapshot small { color: var(--ink-3); font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
 .market-card-snapshot strong { overflow: hidden; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
@@ -72,7 +72,7 @@
 
 .account-sidebar { overflow: hidden; padding: 0; }
 .account-summary { padding: 16px; }
-.account-balance { display: grid; gap: 2px; border-bottom: 1px solid var(--line); padding: 14px 16px; background: linear-gradient(135deg, var(--brand), #245a51); color: #fff; }
+.account-balance { display: grid; gap: 2px; border-bottom: 1px solid var(--line); padding: 14px 16px; background: var(--brand); color: #fff; }
 .account-balance > span { color: rgba(255, 255, 255, .6); font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 .account-balance strong { font-size: 21px; letter-spacing: -.03em; }
 .account-balance small { display: flex; align-items: center; gap: 6px; color: rgba(255, 255, 255, .72); font-size: 11px; }
@@ -82,7 +82,7 @@
 .account-sidebar nav a span { flex: 1; }
 .account-page-head { border-bottom: 1px solid var(--line); padding-bottom: 19px; }
 .account-page-head p { max-width: 650px; }
-.account-tabs-mobile { position: sticky; z-index: 15; top: 66px; padding: 8px 0; background: linear-gradient(var(--canvas) 76%, transparent); }
+.account-tabs-mobile { position: sticky; z-index: 15; top: 66px; padding: 8px 0; background: var(--canvas); }
 .collection-summary { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; border: 1px solid var(--line); border-radius: 12px; padding: 10px 13px; background: rgba(255, 255, 255, .65); color: var(--ink-2); font-size: 11px; }
 .collection-summary strong { color: var(--ink); }
 .collection-summary a { color: var(--brand-2); font-weight: 800; }
@@ -94,7 +94,7 @@
 .responsive-table thead { position: sticky; z-index: 2; top: 0; }
 .responsive-table tbody tr { transition: background .15s ease; }
 .responsive-table tbody tr:hover { background: #fafbf9; }
-.table-title { background: linear-gradient(180deg, #fff, #fdfefc); }
+.table-title { background: #fff; }
 .panel-tabs button { white-space: nowrap; }
 
 @media (max-width: 1180px) {

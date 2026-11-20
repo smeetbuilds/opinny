@@ -1,8 +1,8 @@
 /* Rewards, liquidity incentives and market-context order management */
 .rewards-page { display: grid; gap: 22px; }
-.rewards-hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 30px; border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 30px; background: linear-gradient(135deg, var(--surface) 0%, var(--brand-soft) 160%); box-shadow: var(--shadow-sm); }
+.rewards-hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 30px; border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 30px; background: var(--surface); box-shadow: none; }
 .rewards-hero > div { max-width: 760px; }
-.rewards-hero h1 { max-width: 680px; margin: 5px 0 10px; font-size: clamp(34px, 4.5vw, 58px); line-height: .98; letter-spacing: -.035em; }
+.rewards-hero h1 { max-width: 680px; margin: 5px 0 10px; font-family: var(--font-display); font-size: clamp(36px, 4.5vw, 58px); font-weight: 400; line-height: 1.1; letter-spacing: -.025em; }
 .rewards-hero p { max-width: 720px; margin: 0; color: var(--ink-2); font-size: 15px; line-height: 1.65; }
 .rewards-connected { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 7px; border: 1px solid #cbe3d8; border-radius: 999px; padding: 9px 12px; color: var(--green); background: var(--green-soft); font-size: 12px; font-weight: 800; }
 
