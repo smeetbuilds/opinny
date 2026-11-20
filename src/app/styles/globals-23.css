@@ -1,0 +1,185 @@
+
+/* Opinny / Market detail — editorial market typography and execution-first layout.
+   Deliberately no decorative gradients, faux-live glows, emoji illustration or floating marketing cards. */
+
+.market-page { --market-ink: #172b25; --market-muted: #566b60; --market-line: #dbe3dc; }
+.market-page .market-layout { grid-template-columns: minmax(0, 1fr) minmax(320px, 350px); gap: 24px; }
+.market-page .market-main { gap: 20px; }
+.market-page .market-hero-card,
+.market-page .chart-card,
+.market-page .market-info-card,
+.market-page .book-card,
+.market-page .trades-card,
+.market-page .trade-ticket,
+.market-page .market-orders-card {
+  border: 1px solid var(--market-line);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: none;
+}
+.market-page .market-hero-card { padding: clamp(20px, 3vw, 32px); }
+.market-page .market-title-row { align-items: flex-start; justify-content: space-between; gap: 24px; }
+.market-page .market-title-copy { flex: 1; min-width: 0; }
+.market-page .market-title-row h1 {
+  max-width: 800px;
+  color: var(--market-ink);
+  font-family: "Instrument Serif";
+  font-size: clamp(38px, 4.1vw, 56px);
+  font-weight: 400;
+  letter-spacing: -.025em;
+  line-height: 1.04;
+  text-wrap: balance;
+}
+.market-page .market-meta-line {
+  flex-wrap: wrap;
+  margin-bottom: 17px;
+  gap: 9px;
+  color: var(--market-muted);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: .045em;
+}
+.market-page .market-meta-separator { color: #b1beb5; }
+.market-page .market-status-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-left: 8px;
+  color: #315c48;
+  font-weight: 740;
+  letter-spacing: .02em;
+}
+.market-page .market-status-text::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.market-page .market-status-text.status-paused,
+.market-page .market-status-text.status-draft { color: #856536; }
+.market-page .market-status-text.status-resolved { color: #53665a; }
+.market-page .market-deadline { margin: 16px 0 0; color: var(--market-muted); font-size: 12px; }
+.market-page .market-actions { display: flex; flex: 0 0 auto; gap: 8px; }
+.market-page .market-actions .icon-button {
+  width: 42px;
+  height: 42px;
+  border-color: var(--market-line);
+  border-radius: 10px;
+  color: #354b40;
+  background: #fff;
+}
+.market-page .market-actions .icon-button:hover { border-color: #779b86; background: #f6f9f6; }
+.market-page .contract-board { margin-top: 32px; border-top: 1px solid var(--market-line); }
+.market-page .contract-board-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 19px 0 14px;
+}
+.market-page .contract-board-head .eyebrow { color: #668274; font-size: 10px; font-weight: 750; letter-spacing: .11em; }
+.market-page .contract-board-head h2 { margin: 4px 0 0; font-family: "Inter"; color: var(--market-ink); font-size: 17px; font-weight: 720; letter-spacing: -.025em; }
+.market-page .contract-board-head p { margin: 0; color: var(--market-muted); font-size: 11px; text-align: right; }
+.market-page .contract-list { border: 1px solid var(--market-line); border-radius: 11px; overflow: hidden; background: #fff; }
+.market-page .contract-quote-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(110px, 150px) minmax(96px, 112px);
+  align-items: center;
+  gap: clamp(10px, 2vw, 22px);
+  padding: 14px 17px;
+  background: #fff;
+}
+.market-page .contract-quote-row + .contract-quote-row { border-top: 1px solid #e9eee8; }
+.market-page .contract-quote-row:hover { background: #f8faf8; }
+.market-page .contract-name { display: grid; min-width: 0; gap: 4px; }
+.market-page .contract-name > strong { color: var(--market-ink); font-size: 15px; line-height: 1.28; font-weight: 730; overflow-wrap: anywhere; }
+.market-page .contract-name > span { font-size: 11px; font-weight: 640; }
+.market-page .contract-move-label { color: var(--market-muted); font-weight: 480; }
+.market-page .contract-pricing { display: grid; justify-items: end; gap: 8px; }
+.market-page .contract-pricing > strong { color: var(--market-ink); font-size: 29px; font-weight: 680; line-height: 1; letter-spacing: -.045em; font-variant-numeric: tabular-nums; }
+.market-page .contract-pricing small { margin-left: 1px; font-size: 15px; letter-spacing: 0; }
+.market-page .contract-probability-bar { display: block; width: min(100%, 125px); height: 4px; overflow: hidden; border-radius: 3px; background: #e4eae3; }
+.market-page .contract-probability-bar i { display: block; height: 100%; background: #3b6956; }
+.market-page .contract-trade-action,
+.market-page .contract-closed { display: inline-flex; min-height: 40px; align-items: center; justify-content: center; border: 1px solid #294c3d; border-radius: 9px; padding: 8px 10px; color: #fff; background: #254d3d; cursor: pointer; font: 700 12px "Inter"; white-space: nowrap; }
+.market-page .contract-trade-action:hover { background: #183e30; }
+.market-page .contract-closed { border-color: var(--market-line); color: var(--market-muted); background: #f7f8f6; cursor: default; }
+.market-page .market-key-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 23px 0 0; border-top: 1px solid var(--market-line); }
+.market-page .market-key-stats > div { display: grid; min-width: 0; gap: 7px; padding: 17px 12px 0 0; }
+.market-page .market-key-stats dt { color: var(--market-muted); font-size: 11px; }
+.market-page .market-key-stats dd { margin: 0; color: var(--market-ink); font-size: 16px; font-weight: 700; letter-spacing: -.025em; font-variant-numeric: tabular-nums; }
+
+.market-page .opinny-probability-chart { padding: 25px 27px 22px; }
+.market-page .opinny-probability-chart .chart-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
+.market-page .opinny-probability-chart .chart-heading { display: grid; gap: 4px; }
+.market-page .opinny-probability-chart .chart-heading .eyebrow { grid-column: auto; font-size: 10px; color: #668274; letter-spacing: .11em; }
+.market-page .opinny-probability-chart .chart-heading h2 { margin: 1px 0 0; font-family: "Inter"; font-size: 18px; font-weight: 710; letter-spacing: -.02em; color: var(--market-ink); }
+.market-page .opinny-probability-chart .chart-heading p { margin: 2px 0 0; font-size: 12px; color: var(--market-muted); line-height: 1.5; }
+.market-page .opinny-probability-chart .chart-head-reading { display: grid; justify-items: end; gap: 3px; flex: 0 0 auto; }
+.market-page .opinny-probability-chart .chart-head-reading strong { font-family: "Inter"; font-size: 29px; font-weight: 700; letter-spacing: -.035em; color: var(--market-ink); line-height: 1.15; font-variant-numeric: tabular-nums; }
+.market-page .opinny-probability-chart .chart-head-reading span { font-size: 11px; font-weight: 650; text-align: right; }
+.market-page .chart-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 13px; padding: 18px 0 9px; }
+.market-page .chart-sample-summary { display: flex; align-items: center; flex-wrap: wrap; gap: 20px; }
+.market-page .chart-sample-summary > span { display: grid; gap: 1px; }
+.market-page .chart-sample-summary small { color: var(--market-muted); font-size: 10px; }
+.market-page .chart-sample-summary strong { color: var(--market-ink); font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.market-page .chart-toolbar .range-tabs { display: flex; align-items: center; gap: 2px; border: 1px solid var(--market-line); border-radius: 8px; padding: 3px; background: #fff; }
+.market-page .chart-toolbar .range-tabs button { min-height: 33px; height: auto; padding: 6px 10px; color: var(--market-muted); font: 650 11px "Inter"; border-radius: 5px; }
+.market-page .chart-toolbar .range-tabs button.active { color: var(--market-ink); background: #edf1ec; box-shadow: none; }
+.market-page .chart-plot-row { display: grid; grid-template-columns: 39px minmax(0, 1fr); gap: 4px; margin-top: 11px; }
+.market-page .chart-axis-values { display: flex; flex-direction: column; justify-content: space-between; padding: 0 8px 0 0; color: var(--market-muted); font-size: 10px; text-align: right; font-variant-numeric: tabular-nums; }
+.market-page .opinny-probability-chart .chart-area { height: 235px; margin: 0; padding: 0; color: #255b44; border-left: 1px solid #e5ebe4; }
+.market-page .opinny-probability-chart .chart-area .grid-line { stroke: #e7ece6; }
+.market-page .opinny-probability-chart .chart-area polyline { stroke: #235940; stroke-width: 2.1; stroke-linecap: round; stroke-linejoin: round; }
+.market-page .opinny-probability-chart .chart-cursor { stroke: #9aaea2; }
+.market-page .opinny-probability-chart .chart-point { fill: #fff; stroke: #235940; stroke-width: 2.5; }
+.market-page .opinny-probability-chart .chart-tooltip { min-width: 82px; border-radius: 6px; box-shadow: 0 6px 16px rgba(17, 44, 33, .13); }
+.market-page .opinny-probability-chart .chart-tooltip small { font-size: 10px; letter-spacing: 0; text-transform: none; }
+.market-page .opinny-probability-chart .chart-tooltip strong { font-size: 13px; }
+.market-page .opinny-probability-chart .chart-x-axis { margin: 8px 0 0 43px; font-size: 10px; }
+.market-page .chart-caption { margin: 20px 0 0; padding-top: 12px; border-top: 1px solid #e9eee9; color: var(--market-muted); font-size: 11px; line-height: 1.55; }
+.market-page .market-info-card .content-tabs { position: static; padding-inline: 16px; }
+.market-page .market-info-card .market-description { padding: 24px; }
+.market-page .market-info-card .market-description h2 { font-family: "Instrument Serif"; font-weight: 400; font-size: 30px; }
+
+@media (max-width: 1180px) {
+  .market-page .market-layout { grid-template-columns: minmax(0, 1fr) 322px; gap: 15px; }
+  .market-page .contract-quote-row { grid-template-columns: minmax(0, 1fr) minmax(92px, 120px) 94px; gap: 8px; padding-inline: 12px; }
+}
+@media (max-width: 1024px) {
+  .market-page .market-layout { display: block; }
+}
+@media (max-width: 760px) {
+  .market-page .market-hero-card { padding: 19px; }
+  .market-page .market-title-row h1 { font-size: clamp(33px, 8.7vw, 46px); }
+  .market-page .market-title-row { gap: 10px; }
+  .market-page .contract-board { margin-top: 25px; }
+  .market-page .contract-board-head { align-items: flex-start; }
+  .market-page .contract-board-head p { max-width: 142px; line-height: 1.4; }
+  .market-page .market-key-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 0; }
+  .market-page .market-key-stats > div { padding-top: 12px; }
+  .market-page .opinny-probability-chart { padding: 19px; }
+  .market-page .opinny-probability-chart .chart-area { height: 202px; }
+  .market-page .chart-sample-summary { gap: 16px; }
+  .market-page .contract-quote-row { grid-template-columns: minmax(0, 1fr) 91px 88px; gap: 9px; padding: 11px; }
+  .market-page .contract-pricing > strong { font-size: 24px; }
+  .market-page .contract-pricing small { font-size: 13px; }
+  .market-page .contract-trade-action { padding-inline: 7px; font-size: 11px; }
+}
+@media (max-width: 430px) {
+  .market-page .market-hero-card { padding: 16px; }
+  .market-page .market-title-row { flex-wrap: wrap; }
+  .market-page .market-title-copy { flex: 1 1 100%; }
+  .market-page .market-actions { margin-left: auto; }
+  .market-page .contract-board-head { display: block; }
+  .market-page .contract-board-head p { margin-top: 7px; max-width: none; text-align: left; }
+  .market-page .contract-quote-row { grid-template-columns: minmax(0, 1fr) minmax(80px, 100px); gap: 7px; }
+  .market-page .contract-pricing { justify-items: end; }
+  .market-page .contract-trade-action, .market-page .contract-closed { grid-column: 1 / -1; min-height: 36px; }
+  .market-page .contract-name > strong { font-size: 14px; }
+  .market-page .contract-move-label { display: none; }
+  .market-page .opinny-probability-chart .chart-head { flex-wrap: wrap; }
+  .market-page .opinny-probability-chart .chart-head-reading { justify-items: start; }
+  .market-page .chart-toolbar .range-tabs { width: 100%; }
+  .market-page .chart-toolbar .range-tabs button { flex: 1; }
+  .market-page .chart-plot-row { grid-template-columns: 34px minmax(0, 1fr); }
+  .market-page .opinny-probability-chart .chart-x-axis { margin-left: 38px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .market-page .contract-trade-action { transition: none; }
+}

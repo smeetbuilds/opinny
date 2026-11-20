@@ -1,167 +1,163 @@
 "use client";
 
-import { Activity, ArrowDownRight, ArrowUpRight } from "lucide-react";
-import { useEffect, useId, useMemo, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { useEffect, useMemo, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { dataAdapter } from "@/lib/data";
 
-const ranges = ["7 pts", "11 pts", "17 pts", "24 pts", "ALL"] as const;
-type Range = (typeof ranges)[number];
+type Window = "recent" | "all";
+const WIDTH = 800;
+const HEIGHT = 248;
 
-const windows: Record<Range, number> = {
-  "7 pts": 7,
-  "11 pts": 11,
-  "17 pts": 17,
-  "24 pts": 24,
-  ALL: Number.POSITIVE_INFINITY
-};
-
-export function PriceChart({ values, marketId }: { values: number[]; marketId?: string }) {
+export function PriceChart({
+  values,
+  marketId,
+  outcomeLabel = "First outcome"
+}: {
+  values: number[];
+  marketId?: string;
+  outcomeLabel?: string;
+}) {
   const [samples, setSamples] = useState(values);
+  const [label, setLabel] = useState(outcomeLabel);
+  const [windowSize, setWindowSize] = useState<Window>("all");
+  const [inspectedIndex, setInspectedIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    setSamples(values);
+    setLabel(outcomeLabel);
+  }, [marketId, values, outcomeLabel]);
+
   useEffect(() => {
     if (!marketId) return;
     let mounted = true;
     const refresh = () => {
       void dataAdapter.listMarkets().then((markets) => {
-        const found = markets.find((market) => market.id === marketId);
-        if (mounted && found) setSamples(found.chart);
+        if (!mounted) return;
+        const match = markets.find((market) => market.id === marketId);
+        if (!match) return;
+        setSamples(match.chart);
+        setLabel(match.outcomes[0]?.label ?? outcomeLabel);
       }).catch(() => {});
     };
     refresh();
     window.addEventListener("opinny:paper-update", refresh);
-    return () => { mounted = false; window.removeEventListener("opinny:paper-update", refresh); };
-  }, [marketId]);
-  const [range, setRange] = useState<Range>("24 pts");
-  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
-  const gradientId = `chart-fill-${useId().replaceAll(":", "")}`;
+    return () => {
+      mounted = false;
+      window.removeEventListener("opinny:paper-update", refresh);
+    };
+  }, [marketId, outcomeLabel]);
 
   const chart = useMemo(() => {
-    const width = 800;
-    const height = 260;
-    const visibleValues = samples.slice(-Math.min(samples.length, windows[range]));
-    if (!visibleValues.length) {
-      return { width, height, values: visibleValues, points: [] as { x: number; y: number; value: number }[], polyline: "", low: 0, high: 0, open: 0, current: 0, axisMin: 0, axisMax: 100 };
-    }
-    const low = Math.min(...visibleValues);
-    const high = Math.max(...visibleValues);
-    const min = Math.max(0, low - Math.max((high - low) * 0.18, 3));
-    const max = Math.min(100, high + Math.max((high - low) * 0.18, 3));
-    const points = visibleValues.map((value, index) => {
-      const x = (index / Math.max(visibleValues.length - 1, 1)) * width;
-      const y = height - ((value - min) / Math.max(max - min, 1)) * height;
-      return { x, y, value };
-    });
-    return {
-      width,
-      height,
-      values: visibleValues,
-      points,
-      polyline: points.map((point) => `${point.x},${point.y}`).join(" "),
-      low,
-      high,
-      axisMin: min,
-      axisMax: max,
-      open: visibleValues[0] ?? 0,
-      current: visibleValues.at(-1) ?? 0
-    };
-  }, [range, samples]);
+    const readings = windowSize === "recent" ? samples.slice(-6) : samples;
+    if (!readings.length) return { readings, low: 0, high: 0, axisMin: 0, axisMax: 100, points: [] as { x: number; y: number; value: number }[], polyline: "" };
+    const low = Math.min(...readings);
+    const high = Math.max(...readings);
+    const pad = Math.max(3, (high - low) * 0.17);
+    const axisMin = Math.max(0, Math.floor(low - pad));
+    const axisMax = Math.min(100, Math.ceil(high + pad));
+    const points = readings.map((value, index) => ({
+      x: (index / Math.max(readings.length - 1, 1)) * WIDTH,
+      y: HEIGHT - (value - axisMin) / Math.max(axisMax - axisMin, 1) * HEIGHT,
+      value
+    }));
+    return { readings, low, high, axisMin, axisMax, points, polyline: points.map((point) => `${point.x},${point.y}`).join(" ") };
+  }, [samples, windowSize]);
 
-  const selectedIndex = hoverIndex ?? Math.max(chart.points.length - 1, 0);
-  const selectedPoint = chart.points[selectedIndex];
-  const inspectWithKeyboard = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    const last = chart.points.length - 1;
+  const selectedIndex = inspectedIndex === null ? chart.points.length - 1 : Math.min(inspectedIndex, chart.points.length - 1);
+  const selected = chart.points[selectedIndex];
+  const start = chart.readings[0] ?? 0;
+  const last = chart.readings.at(-1) ?? 0;
+  const change = last - start;
+  const changeText = `${change >= 0 ? "+" : ""}${change.toFixed(1)} pp`;
+
+  const onKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    const lastIndex = chart.points.length - 1;
     let next = selectedIndex;
-    if (event.key === "ArrowLeft" || event.key === "ArrowDown") next = Math.max(0, selectedIndex - 1);
-    else if (event.key === "ArrowRight" || event.key === "ArrowUp") next = Math.min(last, selectedIndex + 1);
+    if (event.key === "ArrowRight" || event.key === "ArrowUp") next = Math.min(lastIndex, selectedIndex + 1);
+    else if (event.key === "ArrowLeft" || event.key === "ArrowDown") next = Math.max(0, selectedIndex - 1);
     else if (event.key === "Home") next = 0;
-    else if (event.key === "End") next = last;
+    else if (event.key === "End") next = lastIndex;
     else return;
     event.preventDefault();
-    setHoverIndex(next);
+    setInspectedIndex(next);
   };
-  const change = chart.current - chart.open;
-  const positive = change >= 0;
 
   const inspect = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (!chart.points.length) return;
     const rect = event.currentTarget.getBoundingClientRect();
-    const ratio = Math.min(Math.max((event.clientX - rect.left) / Math.max(rect.width, 1), 0), 1);
-    setHoverIndex(Math.round(ratio * Math.max(chart.points.length - 1, 0)));
+    const ratio = Math.max(0, Math.min(1, (event.clientX - rect.left) / Math.max(rect.width, 1)));
+    setInspectedIndex(Math.round(ratio * (chart.points.length - 1)));
   };
 
-  if (!chart.values.length) {
-    return (
-      <section className="chart-card" aria-labelledby="probability-chart-title">
-        <div className="chart-head"><div><span id="probability-chart-title">Sampled probability</span><strong>—</strong><em>No history available</em></div></div>
-        <div className="table-empty large" role="status"><Activity size={22} /><strong>No probability history</strong><span>The connected integration has not supplied chart data for this market.</span></div>
-      </section>
-    );
-  }
-
   return (
-    <section className="chart-card" aria-labelledby="probability-chart-title">
-      <div className="chart-head">
-        <div>
-          <span id="probability-chart-title">Sampled probability</span>
-          <strong>{chart.current}%</strong>
-          <em className={positive ? "positive" : "negative"}>
-            {positive ? <ArrowUpRight size={13} /> : <ArrowDownRight size={13} />}
-            {positive ? "+" : ""}{change.toFixed(1)} pts this period
-          </em>
+    <section className="chart-card opinny-probability-chart" aria-labelledby="probability-chart-title">
+      <header className="chart-head">
+        <div className="chart-heading">
+          <span className="eyebrow">PROBABILITY TRACE</span>
+          <h2 id="probability-chart-title">{label} · sampled history</h2>
+          <p>Sequential simulation samples, not a real-time price feed.</p>
         </div>
-        <div className="range-tabs" aria-label="Number of recent sampled points">
-          {ranges.map((item) => (
-            <button
-              className={range === item ? "active" : ""}
-              type="button"
-              aria-pressed={range === item}
-              onClick={() => { setRange(item); setHoverIndex(null); }}
-              key={item}
+        <div className="chart-head-reading">
+          <strong>{last.toFixed(1)}%</strong>
+          <span className={change >= 0 ? "positive" : "negative"}>{changeText} across shown samples</span>
+        </div>
+      </header>
+      <div className="chart-toolbar">
+        <div className="chart-sample-summary">
+          <span><small>Low</small><strong>{chart.low.toFixed(1)}%</strong></span>
+          <span><small>High</small><strong>{chart.high.toFixed(1)}%</strong></span>
+          <span><small>Samples</small><strong>{chart.readings.length}</strong></span>
+        </div>
+        <div className="range-tabs" role="group" aria-label="Probability sample window">
+          <button type="button" aria-pressed={windowSize === "recent"} className={windowSize === "recent" ? "active" : ""} onClick={() => { setWindowSize("recent"); setInspectedIndex(null); }}>Recent 6</button>
+          <button type="button" aria-pressed={windowSize === "all"} className={windowSize === "all" ? "active" : ""} onClick={() => { setWindowSize("all"); setInspectedIndex(null); }}>All samples</button>
+        </div>
+      </div>
+      {chart.points.length ? (
+        <>
+          <div className="chart-plot-row">
+            <div className="chart-axis-values" aria-hidden="true">
+              <span>{chart.axisMax}%</span>
+              <span>{((chart.axisMin + chart.axisMax) / 2).toFixed(0)}%</span>
+              <span>{chart.axisMin}%</span>
+            </div>
+            <div
+              className="chart-area interactive-chart"
+              role="slider"
+              tabIndex={0}
+              aria-label={`Inspect ${label} probability samples with arrow keys`}
+              aria-valuemin={1}
+              aria-valuemax={chart.points.length}
+              aria-valuenow={selectedIndex + 1}
+              aria-valuetext={`Sample ${selectedIndex + 1} of ${chart.points.length}: ${selected?.value ?? last} percent`}
+              onKeyDown={onKeyDown}
+              onBlur={() => setInspectedIndex(null)}
+              onPointerMove={inspect}
+              onPointerLeave={() => setInspectedIndex(null)}
             >
-              {item}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="chart-insights">
-        <span><small>Open</small><strong>{chart.open}%</strong></span>
-        <span><small>Period high</small><strong>{chart.high}%</strong></span>
-        <span><small>Period low</small><strong>{chart.low}%</strong></span>
-        <span className="chart-live"><Activity size={13} /><small>Market signal</small><strong>Simulated</strong></span>
-      </div>
-
-      <div className="chart-area interactive-chart" role="slider" tabIndex={0}
-        aria-label="Inspect probability history. Use left and right arrow keys to move between samples."
-        aria-valuemin={1} aria-valuemax={chart.points.length} aria-valuenow={selectedIndex + 1}
-        aria-valuetext={`Sample ${selectedIndex + 1}: ${selectedPoint?.value ?? chart.current} percent`}
-        onKeyDown={inspectWithKeyboard} onBlur={() => setHoverIndex(null)}
-        onPointerMove={inspect} onPointerLeave={() => setHoverIndex(null)}>
-        <div className="chart-y-axis"><span>{(chart.axisMax - (chart.axisMax - chart.axisMin) * 0.25).toFixed(0)}%</span><span>{((chart.axisMax + chart.axisMin) / 2).toFixed(0)}%</span><span>{(chart.axisMin + (chart.axisMax - chart.axisMin) * 0.25).toFixed(0)}%</span></div>
-        <svg viewBox={`0 0 ${chart.width} ${chart.height}`} preserveAspectRatio="none" role="img" aria-label={`Sampled probability history with ${range}. Current probability ${chart.current} percent.`}>
-          <defs>
-            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="currentColor" stopOpacity="0.22" />
-              <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-          <line x1="0" y1="65" x2="800" y2="65" className="grid-line" />
-          <line x1="0" y1="130" x2="800" y2="130" className="grid-line" />
-          <line x1="0" y1="195" x2="800" y2="195" className="grid-line" />
-          <polygon points={`0,260 ${chart.polyline} 800,260`} fill={`url(#${gradientId})`} />
-          <polyline points={chart.polyline} fill="none" vectorEffect="non-scaling-stroke" />
-          {selectedPoint ? <>
-            <line className="chart-cursor" x1={selectedPoint.x} y1="0" x2={selectedPoint.x} y2="260" />
-            <circle className="chart-point" cx={selectedPoint.x} cy={selectedPoint.y} r="5" vectorEffect="non-scaling-stroke" />
-          </> : null}
-        </svg>
-        {selectedPoint ? (
-          <div className="chart-tooltip" style={{ left: `${(selectedPoint.x / chart.width) * 100}%`, top: `${(selectedPoint.y / chart.height) * 100}%` }}>
-            <small>{hoverIndex === null ? "Latest" : `Point ${selectedIndex + 1}`}</small>
-            <strong>{selectedPoint.value}%</strong>
+              <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} preserveAspectRatio="none" aria-hidden="true" focusable="false">
+                <line className="grid-line" x1="0" y1="0" x2={WIDTH} y2="0" />
+                <line className="grid-line" x1="0" y1={HEIGHT / 2} x2={WIDTH} y2={HEIGHT / 2} />
+                <line className="grid-line" x1="0" y1={HEIGHT} x2={WIDTH} y2={HEIGHT} />
+                <polyline points={chart.polyline} fill="none" vectorEffect="non-scaling-stroke" />
+                {selected && (
+                  <>
+                    <line className="chart-cursor" x1={selected.x} y1="0" x2={selected.x} y2={HEIGHT} />
+                    <circle className="chart-point" cx={selected.x} cy={selected.y} r="4" vectorEffect="non-scaling-stroke" />
+                  </>
+                )}
+              </svg>
+              {selected && inspectedIndex !== null ? (
+                <div className="chart-tooltip" style={{ left: `${selected.x / WIDTH * 100}%`, top: `${selected.y / HEIGHT * 100}%` }}>
+                  <small>Sample {selectedIndex + 1}</small>
+                  <strong>{selected.value.toFixed(1)}%</strong>
+                </div>
+              ) : null}
+            </div>
           </div>
-        ) : null}
-      </div>
-      <div className="chart-x-axis"><span>Earlier</span><span>Mid-period</span><span>Recent</span><span>Now</span></div>
+          <div className="chart-x-axis"><span>Earlier samples</span><span>Most recent</span></div>
+        </>
+      ) : <div className="table-empty" role="status"><strong>No sample history</strong><p>Price samples will appear when the simulator has history for this outcome.</p></div>}
+      <p className="chart-caption">This trace follows the first listed outcome only. Select a book outcome below to inspect its executable simulated depth.</p>
     </section>
   );
 }

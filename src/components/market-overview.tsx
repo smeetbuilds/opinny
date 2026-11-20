@@ -1,6 +1,5 @@
 "use client";
 
-import { Activity, CalendarDays, CircleDollarSign, Clock3, TrendingUp, Users } from "lucide-react";
 import type { Market } from "@/core/contracts/domain";
 import { formatCurrency, formatDate, formatNumber } from "@/lib/format";
 import { appConfig } from "@/lib/config";
@@ -8,46 +7,74 @@ import { useApp } from "./app-provider";
 import { TradeOutcomeButton } from "./trade-outcome-button";
 import { MarketActions } from "./market-actions";
 
-/** A single live snapshot drives the headline, prices and status after every paper action. */
+const statusName: Record<Market["status"], string> = {
+  open: "Trading open",
+  paused: "Trading paused",
+  resolved: "Resolved",
+  draft: "Not published"
+};
+
+/**
+ * Trading-first editorial header: the question and executable outcome prices
+ * lead. Simulated volume is context, not a promotional hero metric.
+ */
 export function MarketOverview({ initialMarket }: { initialMarket: Market }) {
   const { marketCatalog } = useApp();
   const market = marketCatalog.find((item) => item.id === initialMarket.id) ?? initialMarket;
-  const leader = [...market.outcomes].sort((a, b) => b.probability - a.probability)[0];
+  const paper = appConfig.adapter === "mock";
 
   return (
-            <section className="market-hero-card">
-              <div className="market-title-row">
-                <span className={`market-avatar large ${market.imageTone}`} aria-hidden="true">{market.icon}</span>
-                <div>
-                  <div className="market-meta-line"><span>{market.category}</span>{market.live ? <em><i />{appConfig.adapter === "mock" ? "Paper activity" : "Live"}</em> : null}<span>Closes {formatDate(market.endDate)}</span></div>
-                  <h1>{market.question}</h1>
-                </div>
-                <MarketActions marketId={market.id} title={market.question} />
-              </div>
+    <section className="market-hero-card opinny-market-overview" aria-labelledby="market-question">
+      <div className="market-title-row">
+        <div className="market-title-copy">
+          <div className="market-meta-line">
+            <span>{market.category}</span>
+            <span className="market-meta-separator" aria-hidden="true">/</span>
+            <span>{market.kind === "binary" ? "Binary market" : `${market.outcomes.length} outcomes`}</span>
+            <span className={`market-status-text status-${market.status}`}>{statusName[market.status]}</span>
+          </div>
+          <h1 id="market-question">{market.question}</h1>
+          <p className="market-deadline">Scheduled close: <time dateTime={market.endDate}>{formatDate(market.endDate)}</time></p>
+        </div>
+        <MarketActions marketId={market.id} title={market.question} />
+      </div>
 
-              <div className="market-signal-strip">
-                <div><TrendingUp size={17} /><span><small>Market leader</small><strong>{leader.label} · {leader.probability}%</strong></span></div>
-                <div><Activity size={17} /><span><small>{appConfig.adapter === "mock" ? "24h sample" : "24h activity"}</small><strong>{formatCurrency(market.volume24h, { compact: true })}</strong></span></div>
-                <div><Clock3 size={17} /><span><small>Status</small><strong>{market.status === "open" ? "Trading open" : market.status}</strong></span></div>
+      <div className="contract-board" aria-label="Market outcome prices">
+        <div className="contract-board-head">
+          <div>
+            <span className="eyebrow">OUTCOME PRICES</span>
+            <h2>Where the market stands</h2>
+          </div>
+          <p>{paper ? "Simulated quotes · not live market data" : "Current implied probabilities"}</p>
+        </div>
+        <div className="contract-list">
+          {market.outcomes.map((outcome) => (
+            <div className="contract-quote-row" key={outcome.id}>
+              <div className="contract-name">
+                <strong>{outcome.label}</strong>
+                <span className={outcome.change24h >= 0 ? "positive" : "negative"}>
+                  {outcome.change24h >= 0 ? "+" : ""}{outcome.change24h.toFixed(1)} pp
+                  <span className="contract-move-label">{paper ? " · sample move" : " · 24h"}</span>
+                </span>
               </div>
+              <div className="contract-pricing">
+                <strong>{outcome.probability.toFixed(1)}<small>%</small></strong>
+                <span className="contract-probability-bar" aria-hidden="true"><i style={{ width: `${outcome.probability}%` }} /></span>
+              </div>
+              {market.status === "open"
+                ? <TradeOutcomeButton outcomeId={outcome.id} label={outcome.label} className="contract-trade-action" />
+                : <span className="contract-closed">{market.status === "resolved" ? "Final" : "Closed"}</span>}
+            </div>
+          ))}
+        </div>
+      </div>
 
-              <div className="headline-outcomes">
-                {market.outcomes.map((outcome, index) => (
-                  <div className={index === 0 ? "headline-outcome primary" : "headline-outcome"} key={outcome.id}>
-                    <span>{outcome.label}</span>
-                    <strong>{outcome.probability}%</strong>
-                    <em className={outcome.change24h >= 0 ? "positive" : "negative"}>{outcome.change24h >= 0 ? "+" : ""}{outcome.change24h.toFixed(1)} {appConfig.adapter === "mock" ? "paper move" : "today"}</em>
-                    {market.status === "open" ? <TradeOutcomeButton outcomeId={outcome.id} label={outcome.label} className={index === 0 ? "yes-button" : "no-button"} /> : <span className="outcome-closed-action">{market.status === "resolved" ? "Final" : "Unavailable"}</span>}
-                  </div>
-                ))}
-              </div>
-
-              <div className="market-stat-grid">
-                <div><CircleDollarSign size={17} /><span>Volume</span><strong>{formatCurrency(market.volume, { compact: true })}</strong></div>
-                <div><CircleDollarSign size={17} /><span>Liquidity</span><strong>{formatCurrency(market.liquidity, { compact: true })}</strong></div>
-                <div><Users size={17} /><span>Traders</span><strong>{formatNumber(market.traders, true)}</strong></div>
-                <div><CalendarDays size={17} /><span>Ends</span><strong>{formatDate(market.endDate)}</strong></div>
-              </div>
-            </section>
+      <dl className="market-key-stats">
+        <div><dt>{paper ? "Sample volume" : "Total volume"}</dt><dd>{formatCurrency(market.volume, { compact: true })}</dd></div>
+        <div><dt>{paper ? "Simulated depth" : "Liquidity"}</dt><dd>{formatCurrency(market.liquidity, { compact: true })}</dd></div>
+        <div><dt>{paper ? "Sample participants" : "Traders"}</dt><dd>{formatNumber(market.traders, true)}</dd></div>
+        <div><dt>{paper ? "Sample 24h volume" : "24h volume"}</dt><dd>{formatCurrency(market.volume24h, { compact: true })}</dd></div>
+      </dl>
+    </section>
   );
 }

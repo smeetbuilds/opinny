@@ -51,7 +51,7 @@ export default async function MarketPage({ params }: { params: Promise<{ slug: s
           <div className="market-main">
             <MarketOverview initialMarket={market} />
 
-            <PriceChart marketId={market.id} values={market.chart} />
+            <PriceChart marketId={market.id} outcomeLabel={market.outcomes[0].label} values={market.chart} />
 
             <section className="market-info-card" id="overview">
               <nav className="content-tabs" aria-label="Market sections">

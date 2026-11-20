@@ -52,7 +52,7 @@ function LocalPaperMarket() {
           <div className="market-layout">
             <div className="market-main">
               <MarketOverview initialMarket={loaded.market} />
-              <PriceChart marketId={loaded.market.id} values={loaded.market.chart} />
+              <PriceChart marketId={loaded.market.id} outcomeLabel={loaded.market.outcomes[0].label} values={loaded.market.chart} />
               <section className="market-info-card"><div className="market-description"><div className="section-copy-head"><div><span className="eyebrow">Market context</span><h2>Resolution rules</h2></div></div><p>{loaded.market.resolutionRules}</p><div className="rules-box"><div><ShieldCheck size={18} /><span><strong>Primary source</strong><p>{loaded.market.resolutionSource}</p></span></div></div></div></section>
               <MarketLiveData market={loaded.market} initialBook={loaded.book} initialTrades={loaded.trades} />
               <div id="market-open-orders"><MarketOpenOrders marketSlug={loaded.market.slug} /></div>
