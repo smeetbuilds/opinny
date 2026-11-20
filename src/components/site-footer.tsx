@@ -30,6 +30,14 @@ const policyLinks = [
   ["Terms", "/terms"]
 ] as const;
 
+const mobileGroups = [
+  ["Product", productLinks],
+  ["Trading", tradingLinks],
+  ["Explore", exploreLinks],
+  ["Account", accountLinks],
+  ["Information", policyLinks]
+] as const;
+
 export function SiteFooter() {
   return (
     <footer className="site-footer">
@@ -48,6 +56,16 @@ export function SiteFooter() {
         <nav aria-label="Explore links"><strong>Explore</strong>{exploreLinks.map(([label, href]) => <Link href={href} key={href}>{label}</Link>)}</nav>
         <nav aria-label="Account links"><strong>Account</strong>{accountLinks.map(([label, href]) => <Link href={href} key={href}>{label}</Link>)}</nav>
         <nav aria-label="Policy links"><strong>Information</strong>{policyLinks.map(([label, href]) => <Link href={href} key={href}>{label}</Link>)}</nav>
+        <div className="footer-mobile-groups" aria-label="Site links">
+          {mobileGroups.map(([group, links]) => (
+            <details key={group}>
+              <summary>{group}</summary>
+              <nav aria-label={`${group} links`}>
+                {links.map(([label, href]) => <Link href={href} key={href}>{label}</Link>)}
+              </nav>
+            </details>
+          ))}
+        </div>
       </div>
       <div className="page-container footer-bottom">
         <span>© {new Date().getFullYear()} {appConfig.name}</span>
