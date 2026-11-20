@@ -312,3 +312,40 @@ test("created paper market supports publish, trade, outcome selection, settlemen
   expect(() => redeemPaperPosition(won.id)).toThrow();
   expect(() => setPaperResolution(resolutionCase.id, "First")).toThrow();
 });
+
+test("resting sell orders reserve shares without prematurely debiting the portfolio", () => {
+  seedPaperExchangeForTests();
+  const shares = paperPositions().find((item) => item.marketId === "mkt-001" && item.outcome === "Yes")!.shares;
+  const before = paperBalances().find((item) => item.asset === "USDC")!.available;
+  executePaperOrder({
+    clientRequestId: "sell-reserve-all", marketId: "mkt-001", outcomeId: "yes",
+    side: "sell", type: "limit", shares, limitPrice: 0.99
+  });
+  expect(paperOrders().find((item) => item.id === "sell-reserve-all")?.status).toBe("open");
+  expect(paperPositions().find((item) => item.marketId === "mkt-001" && item.outcome === "Yes")?.shares).toBe(shares);
+  expect(paperBalances().find((item) => item.asset === "USDC")!.available).toBe(before);
+  expect(() => previewPaperOrder({
+    clientRequestId: "oversell", marketId: "mkt-001", outcomeId: "yes",
+    side: "sell", type: "market", shares: 1
+  })).toThrow();
+  cancelPaperOrder("sell-reserve-all");
+  expect(previewPaperOrder({
+    clientRequestId: "shares-released", marketId: "mkt-001", outcomeId: "yes",
+    side: "sell", type: "market", shares: 1
+  }).estimatedShares).toBe(1);
+  expect(paperBalances().find((item) => item.asset === "USDC")!.available).toBe(before);
+});
+
+test("each multi-outcome paper fill keeps probabilities normalised", () => {
+  seedPaperExchangeForTests();
+  const initial = paperMarkets().find((item) => item.id === "mkt-003")!;
+  expect(initial.outcomes.reduce((total, item) => total + item.probability, 0)).toBe(100);
+  executePaperOrder({
+    clientRequestId: "four-outcome-normalisation", marketId: "mkt-003",
+    outcomeId: "two", side: "buy", type: "market", collateralAmount: 45
+  });
+  const updated = paperMarkets().find((item) => item.id === "mkt-003")!;
+  expect(updated.outcomes.reduce((total, item) => total + item.probability, 0)).toBeCloseTo(100, 4);
+  expect(updated.outcomes.every((item) => item.probability >= 0 && item.probability <= 100)).toBe(true);
+  expect(updated.chart.at(-1)).toBeCloseTo(updated.outcomes[0].probability, 4);
+});

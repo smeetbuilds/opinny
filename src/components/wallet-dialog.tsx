@@ -14,6 +14,10 @@ const wallets = [
 export function WalletDialog({ open, onClose, onConnect }: { open: boolean; onClose: () => void; onConnect: (provider?: string) => Promise<void>; referenceMode?: boolean }) {
   const [connecting, setConnecting] = useState("");
   const sheetRef = useRef<HTMLElement>(null);
+  const closeRef = useRef(onClose);
+  const connectingRef = useRef(connecting);
+  useEffect(() => { closeRef.current = onClose; }, [onClose]);
+  useEffect(() => { connectingRef.current = connecting; }, [connecting]);
   const referenceMode = appConfig.adapter === "mock";
 
   useEffect(() => {
@@ -24,7 +28,7 @@ export function WalletDialog({ open, onClose, onConnect }: { open: boolean; onCl
       sheetRef.current?.querySelector<HTMLElement>('[aria-label="Close wallet dialog"]')?.focus();
     });
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !connecting) { event.preventDefault(); onClose(); return; }
+      if (event.key === "Escape" && !connectingRef.current) { event.preventDefault(); closeRef.current(); return; }
       if (event.key !== "Tab") return;
       const focusables = [...(sheetRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], input:not([disabled]), [tabindex]:not([tabindex="-1"])') ?? [])];
       if (!focusables.length) { event.preventDefault(); return; }
@@ -40,7 +44,7 @@ export function WalletDialog({ open, onClose, onConnect }: { open: boolean; onCl
       window.removeEventListener("keydown", onKeyDown);
       returnFocus?.focus();
     };
-  }, [connecting, open, onClose]);
+  }, [open]);
 
   if (!open) return null;
 

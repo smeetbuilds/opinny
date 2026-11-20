@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronRight, Clock3, ExternalLink, Search, ShieldAlert, X } from "lucide-react";
 import type { ResolutionCase } from "@/core/contracts/domain";
 import { dataAdapter } from "@/lib/data";
@@ -29,18 +29,33 @@ export function AdminResolutionsConsole({ initialCases }: { initialCases: Resolu
     setSelected(item);
   }
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const detailRef = useRef<HTMLElement>(null);
+  const pendingRef = useRef(pendingId);
+  useEffect(() => { pendingRef.current = pendingId; }, [pendingId]);
 
   useEffect(() => {
     if (!selected) return;
-    const onKeyDown = (event: KeyboardEvent) => event.key === "Escape" && !pendingId && setSelected(null);
+    const returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const previous = document.body.style.overflow;
+    const frame = window.requestAnimationFrame(() => detailRef.current?.querySelector<HTMLElement>('[aria-label="Close evidence panel"]')?.focus());
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !pendingRef.current) { event.preventDefault(); setSelected(null); return; }
+      if (event.key !== "Tab") return;
+      const focusables = [...(detailRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]), select:not([disabled]), a[href], input:not([disabled])') ?? [])];
+      if (!focusables.length) { event.preventDefault(); return; }
+      const first = focusables[0], last = focusables[focusables.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
     document.body.style.overflow = "hidden";
     window.addEventListener("keydown", onKeyDown);
     return () => {
+      window.cancelAnimationFrame(frame);
       document.body.style.overflow = previous;
       window.removeEventListener("keydown", onKeyDown);
+      returnFocus?.focus();
     };
-  }, [pendingId, selected]);
+  }, [selected?.id]);
 
   const counts = useMemo(() => ({
     all: cases.length,
@@ -85,7 +100,7 @@ export function AdminResolutionsConsole({ initialCases }: { initialCases: Resolu
         {filtered.length ? <div className="resolution-board resolution-board-enhanced">{filtered.map((item) => <article className={`resolution-card resolution-${item.status}`} key={item.id}><header><div><span className={`status-pill ${item.status}`}>{item.status}</span><small>{item.id} · {item.marketId ? "Closes" : "Ended"} {item.endDate}</small></div><button type="button" className="icon-button" aria-label={`Inspect resolution case ${item.id}`} onClick={() => inspect(item)}><ExternalLink size={17} /></button></header><h2>{item.market}</h2><div className="resolution-detail-grid"><div><span>Proposed outcome</span><strong>{item.proposedOutcome}</strong></div><div><span>Resolution source</span><strong>{item.source}</strong></div><div><span>Disputes</span><strong className={item.disputes ? "negative" : "positive"}>{item.disputes}</strong></div></div><footer>{item.status === "approved" ? <span className="resolution-complete"><Check size={15} />Approved</span> : item.status === "disputed" ? <button type="button" className="secondary-button compact" onClick={() => inspect(item)}><ShieldAlert size={15} />Review dispute</button> : <button type="button" className="primary-button compact" disabled={pendingId === item.id} onClick={() => item.marketId ? inspect(item) : void approve(item)}><Check size={15} />{pendingId === item.id ? "Approving…" : item.marketId ? "Choose result" : "Approve"}</button>}<button type="button" className="text-button" onClick={() => inspect(item)}>View evidence <ChevronRight size={13} /></button></footer></article>)}</div> : <div className="admin-empty-state"><Check size={22} /><h3>No cases in this view</h3><p>The selected workflow stage has no matching resolution cases.</p><button type="button" className="secondary-button compact" onClick={() => { setQuery(""); setStatus("all"); }}>Show all cases</button></div>}
       </section>
 
-      {selected ? <div className="admin-modal-wrap"><button type="button" className="admin-modal-backdrop" disabled={Boolean(pendingId)} onClick={() => setSelected(null)} aria-label="Close evidence panel" /><aside className="admin-side-panel" role="dialog" aria-modal="true" aria-labelledby="evidence-title"><header><div><span className={`status-pill ${selected.status}`}>{selected.status}</span><h2 id="evidence-title">Resolution evidence</h2><p>{selected.id}</p></div><button type="button" className="icon-button" disabled={Boolean(pendingId)} onClick={() => setSelected(null)} aria-label="Close evidence panel"><X size={17} /></button></header><div className="admin-side-panel-body"><section><span>Market</span><strong>{selected.market}</strong></section><div className="resolution-evidence-grid"><section><span>Proposed outcome</span><strong>{selected.proposedOutcome}</strong></section><section><span>{selected.marketId ? "Market closes" : "Market ended"}</span><strong>{selected.endDate}</strong></section><section><span>Dispute count</span><strong className={selected.disputes ? "negative" : "positive"}>{selected.disputes}</strong></section></div>{selectedMarket && selected.status !== "approved" ? <section className="paper-resolution-choice"><label htmlFor="paper-winning-outcome">Winning outcome (paper scenario)</label><select id="paper-winning-outcome" value={chosenOutcome} onChange={(event) => setChosenOutcome(event.target.value)}>{selectedMarket.outcomes.map((outcome) => <option key={outcome.id} value={outcome.label}>{outcome.label}</option>)}</select><p>Local simulation only. Approving immediately closes trading, cancels remaining orders and enables winning-share redemption. No real-world result is verified.</p></section> : null}<section className="evidence-source-card"><span>Primary resolution source</span><strong>{selected.source}</strong><p>This record represents evidence supplied by the adapter. Production integrations should provide source URL, captured timestamp and immutable evidence hash.</p></section>{selected.status === "disputed" ? <div className="admin-warning-box"><ShieldAlert size={18} /><span><strong>Dispute review required</strong><p>{selected.disputes} challenge{selected.disputes === 1 ? "" : "s"} must be reviewed before settlement.</p></span></div> : null}</div><footer>{selected.status !== "approved" ? <button type="button" className="primary-button" disabled={pendingId === selected.id} onClick={() => void approve(selected, selectedMarket ? chosenOutcome : selected.proposedOutcome)}><Check size={16} />{pendingId === selected.id ? "Approving…" : `Approve ${selectedMarket ? chosenOutcome : selected.proposedOutcome}`}</button> : <span className="resolution-complete"><Check size={15} />This case is approved</span>}<button type="button" className="secondary-button" disabled={Boolean(pendingId)} onClick={() => setSelected(null)}>Close review</button></footer></aside></div> : null}
+      {selected ? <div className="admin-modal-wrap"><button type="button" className="admin-modal-backdrop" disabled={Boolean(pendingId)} onClick={() => setSelected(null)} aria-label="Close evidence panel" /><aside ref={detailRef} className="admin-side-panel" role="dialog" aria-modal="true" aria-labelledby="evidence-title"><header><div><span className={`status-pill ${selected.status}`}>{selected.status}</span><h2 id="evidence-title">Resolution evidence</h2><p>{selected.id}</p></div><button type="button" className="icon-button" disabled={Boolean(pendingId)} onClick={() => setSelected(null)} aria-label="Close evidence panel"><X size={17} /></button></header><div className="admin-side-panel-body"><section><span>Market</span><strong>{selected.market}</strong></section><div className="resolution-evidence-grid"><section><span>Proposed outcome</span><strong>{selected.proposedOutcome}</strong></section><section><span>{selected.marketId ? "Market closes" : "Market ended"}</span><strong>{selected.endDate}</strong></section><section><span>Dispute count</span><strong className={selected.disputes ? "negative" : "positive"}>{selected.disputes}</strong></section></div>{selectedMarket && selected.status !== "approved" ? <section className="paper-resolution-choice"><label htmlFor="paper-winning-outcome">Winning outcome (paper scenario)</label><select id="paper-winning-outcome" value={chosenOutcome} onChange={(event) => setChosenOutcome(event.target.value)}>{selectedMarket.outcomes.map((outcome) => <option key={outcome.id} value={outcome.label}>{outcome.label}</option>)}</select><p>Local simulation only. Approving immediately closes trading, cancels remaining orders and enables winning-share redemption. No real-world result is verified.</p></section> : null}<section className="evidence-source-card"><span>Primary resolution source</span><strong>{selected.source}</strong><p>This record represents evidence supplied by the adapter. Production integrations should provide source URL, captured timestamp and immutable evidence hash.</p></section>{selected.status === "disputed" ? <div className="admin-warning-box"><ShieldAlert size={18} /><span><strong>Dispute review required</strong><p>{selected.disputes} challenge{selected.disputes === 1 ? "" : "s"} must be reviewed before settlement.</p></span></div> : null}</div><footer>{selected.status !== "approved" ? <button type="button" className="primary-button" disabled={pendingId === selected.id || (Boolean(selected.marketId) && !selectedMarket)} onClick={() => void approve(selected, selectedMarket ? chosenOutcome : selected.proposedOutcome)}><Check size={16} />{pendingId === selected.id ? "Approving…" : `Approve ${selectedMarket ? chosenOutcome : selected.proposedOutcome}`}</button> : <span className="resolution-complete"><Check size={15} />This case is approved</span>}<button type="button" className="secondary-button" disabled={Boolean(pendingId)} onClick={() => setSelected(null)}>Close review</button></footer></aside></div> : null}
     </>
   );
 }
