@@ -6,9 +6,9 @@
 .wallet-option small { color: var(--ink-3); }
 .wallet-mark { display: grid; width: 39px; height: 39px; flex: 0 0 auto; place-items: center; border-radius: 12px; color: var(--brand); background: var(--brand-soft); font-size: 11px; font-weight: 900; }
 .wallet-assurance { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 15px; }
-.wallet-assurance div { display: grid; gap: 7px; border-radius: 10px; padding: 10px; color: var(--ink-2); background: var(--surface-soft); font-size: 10px; }
+.wallet-assurance div { display: grid; gap: 7px; border-radius: 10px; padding: 10px; color: var(--ink-2); background: var(--surface-soft); font-size: 11px; }
 .wallet-assurance svg { color: var(--brand-2); }
-.dialog-footnote { margin: 14px 0 0; color: var(--ink-3); font-size: 10px; text-align: center; }
+.dialog-footnote { margin: 14px 0 0; color: var(--ink-3); font-size: 11px; text-align: center; }
 .toast-viewport { position: fixed; z-index: 150; right: 20px; bottom: 20px; display: grid; width: min(390px, calc(100% - 40px)); gap: 8px; }
 .toast { display: flex; align-items: flex-start; gap: 10px; border: 1px solid var(--line); border-radius: 13px; padding: 12px; background: var(--surface); box-shadow: var(--shadow-md); animation: toast-in .28s ease; }
 .toast > svg { margin-top: 1px; color: var(--green); }
@@ -39,7 +39,7 @@
 .signal-strip > div { display: grid; min-width: 0; grid-template-columns: auto auto minmax(0, 1fr) auto; align-items: center; gap: 9px; padding: 13px 18px; }
 .signal-strip > div + div { border-left: 1px solid var(--line); }
 .signal-strip svg { color: var(--accent); }
-.signal-strip > div > span { color: var(--ink-3); font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.signal-strip > div > span { color: var(--ink-3); font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
 .signal-strip a { overflow: hidden; font-size: 12px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
 .signal-strip strong { font-size: 12px; }
 .home-content-grid { display: grid; grid-template-columns: minmax(0, 1fr) 330px; align-items: start; gap: 28px; }
@@ -66,7 +66,7 @@
 .market-card:hover { border-color: #c7d0c9; transform: translateY(-2px); box-shadow: 0 14px 30px rgba(28, 49, 43, .08); }
 .market-card-top { display: flex; align-items: flex-start; gap: 11px; }
 .market-avatar { display: grid; width: 43px; height: 43px; flex: 0 0 auto; place-items: center; border-radius: 13px; color: #23302d; font-size: 12px; font-weight: 900; box-shadow: inset 0 0 0 1px rgba(35, 48, 45, .05); }
-.market-avatar.small { width: 34px; height: 34px; border-radius: 10px; font-size: 10px; }
+.market-avatar.small { width: 34px; height: 34px; border-radius: 10px; font-size: 11px; }
 .market-avatar.large { width: 64px; height: 64px; border-radius: 18px; font-size: 17px; }
 .market-avatar.mint { background: #dff3e9; }
 .market-avatar.coral { background: #ffe2d8; }
@@ -77,6 +77,6 @@
 .market-avatar.rose { background: #f4dfe7; }
 .market-avatar.lime { background: #e7efc9; }
 .market-card-title { display: grid; min-width: 0; flex: 1; gap: 4px; }
-.category-label { display: flex; align-items: center; gap: 7px; color: var(--ink-3); font-size: 9px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
-.category-label em, .market-meta-line em { border-radius: 999px; padding: 2px 6px; color: var(--green); background: var(--green-soft); font-size: 8px; font-style: normal; letter-spacing: .04em; }
+.category-label { display: flex; align-items: center; gap: 7px; color: var(--ink-3); font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.category-label em, .market-meta-line em { border-radius: 999px; padding: 2px 6px; color: var(--green); background: var(--green-soft); font-size: 11px; font-style: normal; letter-spacing: .04em; }
 .market-card-title > a { display: -webkit-box; overflow: hidden; font-size: 13px; font-weight: 780; line-height: 1.42; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }

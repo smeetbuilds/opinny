@@ -21,7 +21,7 @@
   .account-layout { display: block; }
   .account-sidebar { display: none; }
   .account-tabs-mobile { display: flex; overflow: auto; gap: 4px; margin: -4px 0 16px; scrollbar-width: none; }
-  .account-tabs-mobile a { flex: 0 0 auto; border: 1px solid var(--line); border-radius: 999px; padding: 7px 11px; color: var(--ink-3); background: var(--surface); font-size: 9px; font-weight: 750; }
+  .account-tabs-mobile a { flex: 0 0 auto; border: 1px solid var(--line); border-radius: 999px; padding: 7px 11px; color: var(--ink-3); background: var(--surface); font-size: 11px; font-weight: 750; }
   .account-tabs-mobile a.active { border-color: var(--brand); color: #fff; background: var(--brand); }
   .portfolio-summary-grid { grid-template-columns: repeat(2, 1fr); }
   .featured-balance { grid-column: 1 / -1; }
