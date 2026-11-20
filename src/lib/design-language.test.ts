@@ -55,7 +55,7 @@ test("tablet navigation remains accessible when desktop navigation collapses", (
   const baseCss = readFileSync(join(root, "src", "app", "styles", "globals-08.css"), "utf8");
   const header = readFileSync(join(root, "src", "components", "header.tsx"), "utf8");
   expect(baseCss).toContain(".desktop-nav { display: none; }");
-  expect(stylesheet).toMatch(/@media \(max-width: 1024px\)\s*\{\s*\.topbar \.mobile-menu-trigger \{ display: inline-flex/);
+  expect(stylesheet).toMatch(/@media \(max-width: 1180px\)\s*\{\s*\.topbar \.desktop-nav \{ display: none; \}\s*\.topbar \.mobile-menu-trigger \{ display: inline-flex/);
   expect(stylesheet).toContain('(max-width: 900px)');
   expect(header).toContain('className="mobile-drawer"');
   expect(header).toContain('aria-label="Account menu"');
@@ -101,4 +101,41 @@ test("interactive states have a strong visible focus ring and mobile controls st
   expect(stylesheet).toContain("min-height: 44px");
   expect(stylesheet).toContain(".site-footer .footer-mobile-groups nav a");
   expect(stylesheet).toContain('max-width: 479px');
+});
+
+
+test("market ticket and the quote interaction agree on the 1024px desktop boundary", () => {
+  const ticket = readFileSync(join(root, "src", "components", "trade-ticket.tsx"), "utf8");
+  expect(ticket).toContain('matchMedia("(max-width: 1023px)")');
+  expect(ticket).toContain('data-trade-outcome={item.id}');
+  expect(ticket).toContain("button.dataset.tradeOutcome === outcomeId");
+  expect(ticket).toContain('target?.focus({ preventScroll: true })');
+  expect(stylesheet).toMatch(/@media \(min-width: 1024px\) and \(max-width: 1279px\)/);
+  expect(stylesheet).toContain(".market-page .desktop-ticket {\n    display: block;");
+  expect(stylesheet).toContain(".market-page .mobile-trade-button { display: none; }");
+  expect(stylesheet).toContain(".market-page .desktop-ticket { display: none; }");
+});
+
+test("modal focus and account actions have coherent keyboard semantics", () => {
+  const header = readFileSync(join(root, "src", "components", "header.tsx"), "utf8");
+  const notifications = readFileSync(join(root, "src", "components", "notification-center.tsx"), "utf8");
+  expect(header).toContain('role="group" aria-label="Account actions"');
+  expect(header).not.toContain('role="menuitem"');
+  expect(header).toContain("returnFocus?.getClientRects().length");
+  expect(header).toContain('document.addEventListener("pointerdown", closeOnOutsideClick)');
+  expect(notifications).toContain("dialogRef.current?.querySelectorAll<HTMLElement>");
+  expect(notifications).toContain('event.key !== "Tab"');
+  expect(notifications).toContain("triggerRef.current.focus()");
+});
+
+test("search and secondary pages use restrained typography rather than placeholders", () => {
+  const header = readFileSync(join(root, "src", "components", "header.tsx"), "utf8");
+  expect(header).not.toContain("market.imageTone");
+  expect(header).not.toContain("market.icon");
+  expect(header).toContain('className="command-market-copy"');
+  for (const rule of [".policy-content :is(p, ul, li)",".help-topic-grid strong",".help-safety-card p",".reward-rule-note",".admin-page-kpis article::after"]) {
+    expect(stylesheet).toContain(rule);
+  }
+  expect(stylesheet).toContain(".admin-page-kpis article::after { display: none; }");
+  expect(stylesheet).toContain(".policy-content :is(p, ul, li) { color: var(--ink-2); font-size: 15px;");
 });

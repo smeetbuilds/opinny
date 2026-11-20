@@ -207,8 +207,7 @@ export function Header() {
               <div className="command-results-head"><span className="command-label">{query ? "Matching markets" : "Trending now"}</span><small>{results.length} shown</small></div>
               {results.map((market, index) => (
                 <button id={`market-search-option-${market.id}`} className={index === activeResult ? "active" : ""} role="option" aria-selected={index === activeResult} key={market.id} onMouseEnter={() => setActiveResult(index)} onClick={() => openMarket(market.slug, market.id)}>
-                  <span className={`market-avatar ${market.imageTone}`}>{market.icon}</span>
-                  <span><strong>{market.shortQuestion}</strong><small>{market.category} · {market.status === "open" ? `$${Math.round(market.volume24h / 1000)}K sample 24h` : market.status}</small></span>
+                  <span className="command-market-copy"><strong>{market.shortQuestion}</strong><small>{market.category} · {market.status === "open" ? `${Math.round(market.volume24h / 1000)}K sample 24h` : market.status}</small></span>
                   <em>{Math.max(...market.outcomes.map((outcome) => outcome.probability))}%</em>
                 </button>
               ))}

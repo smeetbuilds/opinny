@@ -169,3 +169,32 @@ translation is centralized in `src/app/styles/opinny-workspace.css` and
 loaded last. Do not add more numbered global overrides for simple changes.
 Consolidate shared rules into the canonical layer carefully, with browser
 visual regression baselines before removing legacy selectors.
+
+## November 2026 detailed audit addendum
+
+A subsequent source audit identified additional mismatches and addressed them
+in code rather than treating the earlier green CI as visual proof.
+
+- **Trading boundary:** the existing 1024px stylesheet and the 980px trade
+  interaction were inconsistent with this document. At 1024–1279px the
+  trading layout now uses a visible desktop ticket; below 1024px the same
+  outcome interaction opens a mobile modal. Resizing closes a stale sheet.
+  Desktop quote interactions now focus their chosen contract.
+- **Navigation:** full desktop navigation now collapses by 1180px to avoid
+  crowding. Keyboard focus returns to a *visible* search/menu trigger,
+  including when search was opened from the mobile drawer.
+- **Account and notifications:** account actions expose normal keyboard
+  link semantics and dismiss on outside clicks or Escape; the notifications
+  dialog traps Tab/Shift+Tab, focuses its close button and restores focus.
+- **Search result hierarchy:** placeholder market emoji squares were removed
+  in favor of information-led rows with a question, sample-volume context
+  and tabular probability.
+- **Secondary pages:** legal body copy, help topics, safety notices, reward
+  rules, admin KPIs and forms use the same readable Inter scale, fine borders
+  and restrained backgrounds. Decorative KPI halos were removed.
+
+**Verification status:** compilation, lint, typechecking and contract tests
+run in the existing `bun run check` gate. Deployed-route HTML and font URLs
+can be checked independently. Precise visual/layout measurements, real
+interactive browser testing and screen-reader validation are still required
+before a claim of complete pixel-perfect fidelity.
