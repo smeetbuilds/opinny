@@ -3,7 +3,7 @@
 .admin-page-kpis article { position:relative; display:grid; min-height:112px; align-content:center; gap:5px; overflow:hidden; border:1px solid var(--line); border-radius:14px; padding:16px; background:linear-gradient(145deg,#fff,#fafbf8); box-shadow:0 8px 22px rgba(24,45,38,.035); }
 .admin-page-kpis article::after { position:absolute; right:-26px; bottom:-35px; width:95px; height:95px; border-radius:50%; background:var(--brand-soft); content:""; opacity:.62; }
 .admin-page-kpis span { color:var(--ink-3); font-size:9px; font-weight:750; letter-spacing:.04em; text-transform:uppercase; }
-.admin-page-kpis strong { position:relative; z-index:1; font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif; font-size:31px; font-weight:600; letter-spacing:-.035em; }
+.admin-page-kpis strong { position:relative; z-index:1; font-family:var(--font-ui); font-size:31px; font-weight:600; letter-spacing:-.035em; }
 .admin-page-kpis small { position:relative; z-index:1; color:var(--ink-3); font-size:8px; }
 .admin-console-panel { overflow:visible; }
 .admin-console-head { display:flex; align-items:flex-end; justify-content:space-between; gap:20px; border-bottom:1px solid var(--line); padding:18px; }

@@ -12,7 +12,7 @@
 .operation-overlay { z-index: 145; }
 .operation-dialog { width: min(520px, 100%); overflow: hidden; border: 1px solid rgba(255,255,255,.78); border-radius: 21px; background: var(--surface); box-shadow: 0 34px 100px rgba(13,31,26,.25); animation: dialog-in .2s ease; }
 .operation-dialog > header { display: grid; grid-template-columns: auto minmax(0,1fr) auto; align-items: start; gap: 12px; border-bottom: 1px solid var(--line); padding: 19px; }
-.operation-dialog h2 { margin: 3px 0 3px; font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; font-size: 29px; letter-spacing: -.035em; }
+.operation-dialog h2 { margin: 3px 0 3px; font-family: var(--font-display); font-size: 29px; letter-spacing: -.035em; }
 .operation-dialog header p { margin: 0; color: var(--ink-2); font-size: 10px; line-height: 1.55; }
 .operation-icon { display: grid; width: 42px; height: 42px; place-items: center; border-radius: 13px; }
 .operation-icon.warning { color: var(--amber); background: var(--amber-soft); }
@@ -33,7 +33,7 @@
 /* Account activity */
 .enhanced-activity-panel { overflow: hidden; }
 .activity-panel-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--line); padding: 17px 18px; }
-.activity-panel-head h2 { margin: 2px 0 2px; font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; font-size: 25px; letter-spacing: -.025em; }
+.activity-panel-head h2 { margin: 2px 0 2px; font-family: var(--font-display); font-size: 25px; letter-spacing: -.025em; }
 .activity-panel-head p { margin: 0; color: var(--ink-3); font-size: 9px; }
 .activity-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); padding: 10px 13px; background: #fbfcfa; }
 .activity-filter-row { display: flex; align-items: center; gap: 4px; overflow-x: auto; scrollbar-width: none; }

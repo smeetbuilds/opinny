@@ -11,7 +11,7 @@
 .notification-center { position: absolute; top: 78px; right: max(20px, calc((100vw - var(--container)) / 2)); display: flex; width: min(430px, calc(100% - 24px)); max-height: min(690px, calc(100vh - 96px)); overflow: hidden; flex-direction: column; border: 1px solid rgba(255, 255, 255, .8); border-radius: 20px; background: var(--surface); box-shadow: 0 28px 90px rgba(13, 31, 26, .24); animation: dialog-in .2s ease; }
 .notification-center > header { display: flex; align-items: flex-start; gap: 16px; border-bottom: 1px solid var(--line); padding: 18px; }
 .notification-center > header > div { min-width: 0; flex: 1; }
-.notification-center h2 { margin: 2px 0 2px; font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; font-size: 29px; letter-spacing: -.03em; }
+.notification-center h2 { margin: 2px 0 2px; font-family: var(--font-display); font-size: 29px; letter-spacing: -.03em; }
 .notification-center header p { margin: 0; color: var(--ink-3); font-size: 10px; }
 .notification-tools { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); padding: 8px 12px; background: #fbfcfa; }
 .notification-tools button { display: inline-flex; align-items: center; gap: 6px; border: 0; padding: 5px 7px; color: var(--ink-3); background: transparent; cursor: pointer; font-size: 9px; font-weight: 800; }
@@ -50,7 +50,7 @@
 .enhanced-funding-dialog .asset-selector { margin-top: 10px; }
 .dialog-field { display: grid; gap: 6px; margin-top: 12px; }
 .dialog-field > span { font-size: 9px; font-weight: 800; }
-.address-input { width: 100%; height: 42px; border: 1px solid var(--line); border-radius: 10px; outline: 0; padding: 0 11px; background: #fbfcfa; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 10px; }
+.address-input { width: 100%; height: 42px; border: 1px solid var(--line); border-radius: 10px; outline: 0; padding: 0 11px; background: #fbfcfa; font-family: var(--font-ui); font-size: 10px; }
 .address-input:focus, .dialog-field input:focus { border-color: var(--brand-2); box-shadow: 0 0 0 3px var(--brand-soft); }
 .field-hint { display: flex; align-items: center; justify-content: space-between; color: var(--ink-3); font-size: 8px; }
 .field-hint button { border: 0; color: var(--brand-2); background: transparent; cursor: pointer; font-weight: 800; }
@@ -63,7 +63,7 @@
 .enhanced-funding-dialog .network-notice svg { flex: 0 0 auto; color: var(--amber); }
 .funding-prepared { display: grid; place-items: center; padding-top: 8px; text-align: center; }
 .prepared-icon { display: grid; width: 54px; height: 54px; place-items: center; border-radius: 17px; color: var(--green); background: var(--green-soft); }
-.funding-prepared h3 { margin: 13px 0 3px; font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; font-size: 27px; }
+.funding-prepared h3 { margin: 13px 0 3px; font-family: var(--font-display); font-size: 27px; }
 .funding-prepared > p { max-width: 370px; margin: 0; color: var(--ink-2); font-size: 10px; }
 .prepared-summary { display: grid; width: 100%; grid-template-columns: 1fr 1fr; gap: 7px; margin: 17px 0; text-align: left; }
 .prepared-summary span { display: grid; min-width: 0; gap: 3px; border: 1px solid var(--line); border-radius: 10px; padding: 9px; background: var(--surface-soft); }
@@ -105,7 +105,7 @@
 /* Help and policy surfaces */
 .policy-page, .help-page { padding: 38px 0 86px; }
 .policy-hero, .help-hero { max-width: 830px; padding: 42px 0 34px; }
-.policy-hero h1, .help-hero h1 { margin: 0; font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; font-size: clamp(48px, 6vw, 78px); font-weight: 600; letter-spacing: -.055em; line-height: .98; }
+.policy-hero h1, .help-hero h1 { margin: 0; font-family: var(--font-display); font-size: clamp(48px, 6vw, 78px); font-weight: 600; letter-spacing: -.055em; line-height: .98; }
 .policy-hero p, .help-hero p { max-width: 660px; margin: 18px 0 0; color: var(--ink-2); font-size: 15px; line-height: 1.65; }
 .policy-hero time { display: block; margin-top: 15px; color: var(--ink-3); font-size: 9px; font-weight: 700; }
 .policy-layout { display: grid; grid-template-columns: 230px minmax(0, 760px); gap: 56px; align-items: start; }
@@ -115,7 +115,7 @@
 .policy-layout > aside a:hover { color: var(--brand-2); background: var(--brand-soft); }
 .policy-content { display: grid; gap: 12px; }
 .policy-content section { scroll-margin-top: 96px; border: 1px solid var(--line); border-radius: 15px; padding: 23px 25px; background: var(--surface); box-shadow: var(--shadow-sm); }
-.policy-content h2 { margin: 0 0 11px; font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; font-size: 27px; letter-spacing: -.025em; }
+.policy-content h2 { margin: 0 0 11px; font-family: var(--font-display); font-size: 27px; letter-spacing: -.025em; }
 .policy-content p { margin: 0 0 10px; color: var(--ink-2); font-size: 11px; line-height: 1.75; }
 .policy-content p:last-child { margin-bottom: 0; }
 .policy-content ul { display: grid; gap: 7px; margin: 13px 0 0; padding-left: 19px; color: var(--ink-2); font-size: 10px; line-height: 1.55; }

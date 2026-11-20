@@ -15,9 +15,9 @@
   overflow: visible;
 }
 .opinny-desk-home .hero-grid.desk-hero::before { display: none; }
-.opinny-desk-home .hero-kicker { margin: 0 0 27px; padding: 0; border: 0; border-radius: 0; color: #607e6c; background: none; font: 760 11px "Inter"; letter-spacing: .12em; }
+.opinny-desk-home .hero-kicker { margin: 0 0 27px; padding: 0; border: 0; border-radius: 0; color: #607e6c; background: none; font: 760 11px var(--font-ui); letter-spacing: .12em; }
 .opinny-desk-home .hero-copy { align-self: center; }
-.opinny-desk-home .hero-copy h1 { font: 400 clamp(55px, 5.4vw, 83px)/.97 "Instrument Serif"; letter-spacing: -.025em; color: #172c24; text-wrap: balance; }
+.opinny-desk-home .hero-copy h1 { font: 400 clamp(55px, 5.4vw, 83px)/.97 var(--font-display); letter-spacing: -.025em; color: #172c24; text-wrap: balance; }
 .opinny-desk-home .hero-copy h1 em { color: #426954; font-style: normal; }
 .opinny-desk-home .hero-copy > p { max-width: 460px; margin-top: 21px; color: #52665b; font-size: 15px; line-height: 1.7; }
 .opinny-desk-home .hero-actions { gap: 9px; margin-top: 26px; flex-wrap: wrap; }
@@ -28,7 +28,7 @@
 .opinny-desk-home .hero-proof dd { margin: 0; color: #1e382a; font-size: 19px; font-weight: 740; letter-spacing: -.025em; font-variant-numeric: tabular-nums; }
 .opinny-desk-home .featured-market-panel { display: flex; min-width: 0; flex-direction: column; border: 1px solid #dce5dc; border-radius: 13px; padding: 25px; background: #f9fbf9; }
 .opinny-desk-home .featured-market-head { display: flex; align-items: center; flex-wrap: wrap; justify-content: space-between; gap: 6px 10px; color: #607667; font-size: 10px; font-weight: 740; letter-spacing: .055em; }
-.opinny-desk-home .featured-market-panel h2 { margin: 24px 0 16px; font: 400 clamp(25px, 3vw, 36px)/1.11 "Instrument Serif"; color: #1a3026; letter-spacing: -.012em; }
+.opinny-desk-home .featured-market-panel h2 { margin: 24px 0 16px; font: 400 clamp(25px, 3vw, 36px)/1.11 var(--font-display); color: #1a3026; letter-spacing: -.012em; }
 .opinny-desk-home .featured-market-panel h2 a:hover { color: #325e46; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px; }
 .opinny-desk-home .featured-market-quote { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 1px 15px; margin: auto 0 17px; }
 .opinny-desk-home .featured-market-quote span { color: #61796a; font-size: 11px; }
@@ -71,10 +71,10 @@
 .opinny-discovery-card.market-card:focus-within { box-shadow: 0 0 0 3px #e8f1e8; border-color: #659276; }
 .opinny-discovery-card .market-card-top { align-items: start; gap: 13px; }
 .opinny-discovery-card .market-card-title { gap: 10px; }
-.opinny-discovery-card .market-card-title > a { display: block; font: 690 15px/1.44 "Inter"; color: #1c3428; letter-spacing: -.012em; text-wrap: pretty; -webkit-line-clamp: unset; overflow: visible; }
+.opinny-discovery-card .market-card-title > a { display: block; font: 690 15px/1.44 var(--font-ui); color: #1c3428; letter-spacing: -.012em; text-wrap: pretty; -webkit-line-clamp: unset; overflow: visible; }
 .opinny-discovery-card .market-card-title > a::after { display: none; }
 .opinny-discovery-card .market-card-title > a:hover { color: #267249; text-decoration: underline; text-underline-offset: 3px; }
-.opinny-discovery-card .category-label { gap: 7px; color: #6a7b6d; font: 720 10px "Inter"; letter-spacing: .05em; }
+.opinny-discovery-card .category-label { gap: 7px; color: #6a7b6d; font: 720 10px var(--font-ui); letter-spacing: .05em; }
 .opinny-discovery-card .card-meta-divider { color: #9eafa1; }
 .opinny-discovery-card .card-status { color: #2f6b45; }
 .opinny-discovery-card .card-status.status-paused, .opinny-discovery-card .card-status.status-draft { color: #876a35; }
@@ -102,7 +102,7 @@
 .opinny-discovery-card .market-card-footer .market-comments { display: inline-flex; }
 .market-grid-section .market-controls { gap: 10px; }
 .market-grid-section .category-tabs { scrollbar-width: thin; }
-.market-grid-section .section-heading-row h2 { font-family: "Instrument Serif"; font-weight: 400; }
+.market-grid-section .section-heading-row h2 { font-family: var(--font-display); font-weight: 400; }
 .page-hero-metrics { border-radius: 10px; background: #fff; box-shadow: none; }
 .page-hero-metrics span { font-size: 11px; font-weight: 690; letter-spacing: 0; text-transform: none; }
 .page-hero-metrics strong { font-variant-numeric: tabular-nums; }
