@@ -85,7 +85,7 @@ copy. Every depicted market is a real component driven by Opinny's simulator.
 
 **Homepage**: Centered hero, black pill actions, real featured market board,
 purposeful rose/teal/coral journey cards, market pulse, existing discovery,
-dark editorial CTA and six-column footer.
+dark editorial CTA and six-column desktop footer (native accordions on small phones).
 
 **Discovery**: Category pills, accessible search and sorting, flat market
 cards, clear current probabilities, liquidity data and active actions.
@@ -109,7 +109,7 @@ would obscure terms or risk information.
 | Width | Behavior |
 | --- | --- |
 | Below 480px | 36px hero headline, one-column journey cards, full-width controls |
-| 480–767px | Hero around 48–54px, one-column content, reachable mobile trading sheet |
+| 480–767px | Hero around 48–54px; two-up journey cards (third full-width); mobile trading sheet remains reachable |
 | 768–1023px | Two-column feature cards; mobile/tablet trade sheet stays accessible |
 | 1024–1279px | Desktop trading sidebar, information-first market layouts |
 | 1280px and above | Up to 80px editorial hero, 1280px max container, six-column footer |
@@ -117,6 +117,36 @@ would obscure terms or risk information.
 Always test 320px, 375px, 430px, 768px, 1024px and 1440px,
 plus 200% zoom, reduced motion, keyboard-only flow and touch targets.
 Breakpoints alone do not prove rendered pixel fidelity.
+
+## Implementation-hardening audit (20 November 2026)
+
+The following issues were discovered and repaired after the initial reference
+implementation. They are enforced where possible by `design-language.test.ts`
+and the existing CI suite.
+
+- **Tablet navigation:** the original desktop navigation disappeared at 1024px
+  while the menu was hidden until 760px. The hamburger now appears at 1024px;
+  between 761–900px search remains available through the same drawer.
+- **320px header:** wallet text previously competed with the brand, bell and
+  menu buttons. On narrow phones it is an accessible labeled icon button,
+  while the account control collapses its address text.
+- **Top banner:** the black paper-mode strip now precedes the sticky white
+  navigation, echoing the source's stacked marketing header without hiding
+  its crucial simulated-money disclosure.
+- **Market-board overlap:** the pastel supporting note is now a normal-flow
+  element instead of covering active quote links.
+- **Typography floor:** old 7–10px micro-labels across the legacy CSS were
+  increased to at least the reference's 11px micro size. Main controls,
+  account/admin inputs and table filters receive larger explicit sizes.
+- **Footer:** six columns at desktop, three across tablets, two on mobile,
+  and keyboard-operable native accordion navigation below 480px.
+- **Interaction states:** visible keyboard focus, no invisible text,
+  reduced-motion handling and minimum mobile touch sizes.
+- **Paper honesty:** the footer no longer implies real blockchain
+  transactions when the reference mock adapter is active.
+
+These are code and stylesheet checks; passing CI does not establish that
+every device and assistive-technology combination has been visually tested.
 
 ## Verification and honest limitations
 

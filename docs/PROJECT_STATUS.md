@@ -70,3 +70,23 @@ screen-reader trials, 200% zoom, measured CWV and real interaction walkthroughs.
 Do not mistake an automated build pass for those manual test results.
 
 See `docs/PAPER_SIMULATOR_ACCEPTANCE.md` for the full acceptance workflow.
+
+## Design language hardening — 20 November 2026
+
+- [x] Reference-informed palette, hierarchy, typography roles and white canvas
+- [x] Full-pill black actions, secondary outlines and real product-board imagery
+- [x] Pastel functional education cards and dark editorial CTA
+- [x] Homepage/discovery, market detail, account, portfolio, admin and footer baseline styling
+- [x] Tablet nav gap repaired (761–1024px), 320px header controls compacted
+- [x] Promo/paper banner moved above navigation with truthful simulator disclosure
+- [x] Market-board supporting panel removed from the clickable content overlay
+- [x] Small mobile footer accordions, with correct desktop/tablet grid behavior
+- [x] Raised legacy sub-11px microtype to 11px minimum, improved active form sizes
+- [x] Static design-contract regression tests added without new workflows
+
+**Not yet verified:** pixel-by-pixel visual parity against screenshots, browser
+measurement at 320/375/430/768/1024/1440 CSS pixels, VoiceOver/TalkBack
+walkthroughs, actual touchscreen interactions or production Core Web Vitals.
+The supplied Miro text analysis is not a set of exact Opinny screen mocks.
+See `DESIGN.md` for explicit reference-to-product decisions. No proprietary
+Miro font or product graphics were imported.
