@@ -27,7 +27,7 @@ export function MarketOverview({ initialMarket }: { initialMarket: Market }) {
 
               <div className="market-signal-strip">
                 <div><TrendingUp size={17} /><span><small>Market leader</small><strong>{leader.label} · {leader.probability}%</strong></span></div>
-                <div><Activity size={17} /><span><small>24h activity</small><strong>{formatCurrency(market.volume24h, { compact: true })}</strong></span></div>
+                <div><Activity size={17} /><span><small>{appConfig.adapter === "mock" ? "24h sample" : "24h activity"}</small><strong>{formatCurrency(market.volume24h, { compact: true })}</strong></span></div>
                 <div><Clock3 size={17} /><span><small>Status</small><strong>{market.status === "open" ? "Trading open" : market.status}</strong></span></div>
               </div>
 
@@ -36,7 +36,7 @@ export function MarketOverview({ initialMarket }: { initialMarket: Market }) {
                   <div className={index === 0 ? "headline-outcome primary" : "headline-outcome"} key={outcome.id}>
                     <span>{outcome.label}</span>
                     <strong>{outcome.probability}%</strong>
-                    <em className={outcome.change24h >= 0 ? "positive" : "negative"}>{outcome.change24h >= 0 ? "+" : ""}{outcome.change24h.toFixed(1)} paper move</em>
+                    <em className={outcome.change24h >= 0 ? "positive" : "negative"}>{outcome.change24h >= 0 ? "+" : ""}{outcome.change24h.toFixed(1)} {appConfig.adapter === "mock" ? "paper move" : "today"}</em>
                     {market.status === "open" ? <TradeOutcomeButton outcomeId={outcome.id} label={outcome.label} className={index === 0 ? "yes-button" : "no-button"} /> : <span className="outcome-closed-action">{market.status === "resolved" ? "Final" : "Unavailable"}</span>}
                   </div>
                 ))}

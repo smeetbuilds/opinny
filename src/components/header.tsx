@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ChevronDown, Menu, Search, Wallet, X } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useCallback, useEffect, useMemo, useState, useRef, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { Logo } from "./logo";
 import { NotificationCenter } from "./notification-center";
 import { useApp } from "./app-provider";
@@ -35,6 +35,10 @@ export function Header() {
   const [query, setQuery] = useState("");
   const [accountOpen, setAccountOpen] = useState(false);
   const [activeResult, setActiveResult] = useState(0);
+  const searchDialogRef = useRef<HTMLDivElement>(null);
+  const menuDialogRef = useRef<HTMLElement>(null);
+  const searchTriggerRef = useRef<HTMLButtonElement>(null);
+  const menuTriggerRef = useRef<HTMLButtonElement>(null);
 
   const results = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -87,6 +91,29 @@ export function Header() {
     return () => window.removeEventListener("keydown", handler);
   }, [closeSearch, searchOpen]);
 
+  useEffect(() => {
+    if (!searchOpen && !menuOpen) return;
+    const target = searchOpen ? searchDialogRef.current : menuDialogRef.current;
+    const returnFocus = searchOpen ? searchTriggerRef.current : menuTriggerRef.current;
+    const frame = window.requestAnimationFrame(() => {
+      target?.querySelector<HTMLElement>(searchOpen ? 'input[role="combobox"]' : '[aria-label="Close menu"]')?.focus();
+    });
+    const trapTab = (event: KeyboardEvent) => {
+      if (event.key !== "Tab") return;
+      const focusable = [...(target?.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])') ?? [])];
+      if (!focusable.length) { event.preventDefault(); return; }
+      const first = focusable[0], last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    window.addEventListener("keydown", trapTab);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("keydown", trapTab);
+      returnFocus?.focus();
+    };
+  }, [searchOpen, menuOpen]);
+
   function handleSearchKeyDown(event: ReactKeyboardEvent<HTMLInputElement>) {
     if (!results.length) return;
     if (event.key === "ArrowDown") {
@@ -116,7 +143,7 @@ export function Header() {
           <nav className="desktop-nav" aria-label="Primary navigation">
             {navItems.map((item) => <Link className={pathname.startsWith(item.href) ? "active" : ""} href={item.href} key={item.href}>{item.label}</Link>)}
           </nav>
-          <button className="search-trigger" onClick={() => setSearchOpen(true)} aria-label="Search markets" aria-haspopup="dialog">
+          <button ref={searchTriggerRef} className="search-trigger" onClick={() => setSearchOpen(true)} aria-label="Search markets" aria-haspopup="dialog">
             <Search size={17} /><span>Search markets</span><kbd>⌘ K</kbd>
           </button>
           <div className="topbar-actions">
@@ -136,14 +163,14 @@ export function Header() {
                 ) : null}
               </div>
             ) : <button className="primary-button compact" onClick={() => setWalletOpen(true)}><Wallet size={16} />{appConfig.adapter === "mock" ? "Start trading" : "Connect wallet"}</button>}
-            <button className="icon-button mobile-menu-trigger" onClick={() => setMenuOpen(true)} aria-label="Open menu" aria-expanded={menuOpen} aria-haspopup="dialog"><Menu size={20} /></button>
+            <button ref={menuTriggerRef} className="icon-button mobile-menu-trigger" onClick={() => setMenuOpen(true)} aria-label="Open menu" aria-expanded={menuOpen} aria-haspopup="dialog"><Menu size={20} /></button>
           </div>
         </div>
       </header>
 
       {searchOpen ? (
         <div className="overlay search-overlay" onMouseDown={closeSearch}>
-          <div className="command-dialog" role="dialog" aria-modal="true" aria-label="Search markets" onMouseDown={(event) => event.stopPropagation()}>
+          <div ref={searchDialogRef} className="command-dialog" role="dialog" aria-modal="true" aria-label="Search markets" onMouseDown={(event) => event.stopPropagation()}>
             <div className="command-input-wrap">
               <Search size={20} />
               <input
@@ -167,7 +194,7 @@ export function Header() {
               {results.map((market, index) => (
                 <button id={`market-search-option-${market.id}`} className={index === activeResult ? "active" : ""} role="option" aria-selected={index === activeResult} key={market.id} onMouseEnter={() => setActiveResult(index)} onClick={() => openMarket(market.slug, market.id)}>
                   <span className={`market-avatar ${market.imageTone}`}>{market.icon}</span>
-                  <span><strong>{market.shortQuestion}</strong><small>{market.category} · {market.status === "open" ? `$${Math.round(market.volume24h / 1000)}K today` : market.status}</small></span>
+                  <span><strong>{market.shortQuestion}</strong><small>{market.category} · {market.status === "open" ? `$${Math.round(market.volume24h / 1000)}K sample 24h` : market.status}</small></span>
                   <em>{Math.max(...market.outcomes.map((outcome) => outcome.probability))}%</em>
                 </button>
               ))}
@@ -181,7 +208,7 @@ export function Header() {
       {menuOpen ? (
         <div className="mobile-drawer-wrap">
           <button className="drawer-backdrop" aria-label="Close menu" onClick={() => setMenuOpen(false)} />
-          <aside className="mobile-drawer" role="dialog" aria-modal="true" aria-label="Mobile menu">
+          <aside ref={menuDialogRef} className="mobile-drawer" role="dialog" aria-modal="true" aria-label="Mobile menu">
             <div className="mobile-drawer-head"><Logo /><button className="icon-button" aria-label="Close menu" onClick={() => setMenuOpen(false)}><X size={19} /></button></div>
             <button className="drawer-search" onClick={() => { setMenuOpen(false); setSearchOpen(true); }}><Search size={18} />Search markets <kbd>⌘ K</kbd></button>
             <nav aria-label="Mobile primary navigation">
