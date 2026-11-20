@@ -9,7 +9,7 @@ import { activity as seedActivity, adminUsers as seedAdminUsers, markets, orders
  */
 const KEY = "opinny-paper-exchange-v1";
 const FEE_RATE = 0.001;
-type PaperOrder = UserOrder & { marketId?: string; outcomeId?: string; reservedCollateral?: number };
+type PaperOrder = UserOrder & { marketId?: string; outcomeId?: string; reservedCollateral?: number; intentFingerprint?: string };
 type PaperTrade = RecentTrade & { marketId: string; createdAt?: string };
 type PaperState = {
   version: 1;
@@ -51,6 +51,12 @@ let storageListenerAdded = false;
 let cache: PaperState | null = null;
 
 const round = (n: number) => Math.round((n + Number.EPSILON) * 1_000_000) / 1_000_000;
+/** An idempotency key must never silently authorize a different order intent. */
+const fingerprintOrder = (intent: OrderIntent) => JSON.stringify([
+  intent.marketId, intent.outcomeId, intent.side, intent.type,
+  intent.collateralAmount ?? null, intent.shares ?? null,
+  intent.limitPrice ?? null, intent.maxSlippageBps ?? null
+]);
 const active = (order: PaperOrder) => order.status === "open" || order.status === "partially-filled";
 const remaining = (order: PaperOrder) => Math.max(0, order.shares - order.filled);
 /** All admin writes are local sandbox state; production authorization lives elsewhere. */
@@ -514,7 +520,13 @@ export function paperOrderBook(marketId: string, outcomeId: string): { bids: Ord
 export function executePaperOrder(intent: OrderIntent): string {
   const current = state();
   const existing = current.orders.find((order) => order.id === intent.clientRequestId);
-  if (existing) return existing.status === "filled" ? "Order already filled." : "Order already placed.";
+  const intentFingerprint = fingerprintOrder(intent);
+  if (existing) {
+    if (existing.intentFingerprint && existing.intentFingerprint !== intentFingerprint) {
+      throw new Error("This order request ID was already used for a different trade.");
+    }
+    return existing.status === "filled" ? "Order already filled." : "Order already placed.";
+  }
   const plan = planOrder(intent);
   const { market, outcome, fills, filledShares, remainingShares, reserve, spent, fee, preview } = plan;
   const filled = remainingShares < 0.000001;
@@ -524,7 +536,7 @@ export function executePaperOrder(intent: OrderIntent): string {
     side: intent.side, type: intent.type, price: intent.type === "limit" ? intent.limitPrice! : preview.estimatedPrice,
     shares: plan.totalShares, filled: filledShares,
     status: filled ? "filled" : filledShares ? "partially-filled" : "open",
-    createdAt: new Date().toISOString(), reservedCollateral: reserve
+    createdAt: new Date().toISOString(), reservedCollateral: reserve, intentFingerprint
   };
   current.orders.unshift(order);
   if (intent.side === "buy") {

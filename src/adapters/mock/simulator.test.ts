@@ -20,7 +20,8 @@ import {
   setPaperMarketStatus,
   setPaperResolution,
   setPaperUserStatus,
-  settlePaperFunding
+  settlePaperFunding,
+  settlePaperMarket
 } from "./simulator";
 
 test("paper exchange conserves collateral and tracks orders, fills, positions, and funding", () => {
@@ -211,4 +212,70 @@ test("paper reserve journal reconciles available and locked balances through par
   const deltaLocked = paperJournal().reduce((sum, row) => sum + (row.asset === "USDC" ? row.lockedDelta : 0), 0);
   expect(afterFill.available - start.available).toBeCloseTo(deltaAvailable, 4);
   expect(afterFill.locked - start.locked).toBeCloseTo(deltaLocked, 4);
+});
+
+test("paper request IDs reject conflicting replay without changing account state", () => {
+  seedPaperExchangeForTests();
+  const intent = {
+    clientRequestId: "idempotent-order", marketId: "mkt-001", outcomeId: "yes",
+    side: "buy" as const, type: "market" as const, collateralAmount: 24
+  };
+  executePaperOrder(intent);
+  const snapshot = {
+    available: paperBalances().find((item) => item.asset === "USDC")!.available,
+    shares: paperPositions().find((item) => item.marketId === "mkt-001" && item.outcome === "Yes")!.shares,
+    trades: paperTransactions().length
+  };
+  expect(executePaperOrder(intent)).toContain("already");
+  expect(() => executePaperOrder({ ...intent, collateralAmount: 65 })).toThrow("different trade");
+  expect(() => executePaperOrder({ ...intent, outcomeId: "no" })).toThrow("different trade");
+  expect(paperBalances().find((item) => item.asset === "USDC")!.available).toBe(snapshot.available);
+  expect(paperPositions().find((item) => item.marketId === "mkt-001" && item.outcome === "Yes")!.shares).toBe(snapshot.shares);
+  expect(paperTransactions().length).toBe(snapshot.trades);
+});
+
+test("crossing buy limits charge actual fill price, not the more expensive limit", () => {
+  seedPaperExchangeForTests();
+  const before = paperBalances().find((item) => item.asset === "USDC")!;
+  const intent = {
+    clientRequestId: "better-price", marketId: "mkt-001", outcomeId: "yes",
+    side: "buy" as const, type: "limit" as const, collateralAmount: 100, limitPrice: 0.70
+  };
+  const quote = previewPaperOrder(intent);
+  expect(quote.estimatedPrice).toBeLessThan(intent.limitPrice);
+  expect(quote.estimatedCollateral + quote.estimatedFee).toBeLessThan(100);
+  executePaperOrder(intent);
+  const after = paperBalances().find((item) => item.asset === "USDC")!;
+  expect(before.available - after.available).toBeCloseTo(quote.estimatedCollateral + quote.estimatedFee, 4);
+  const order = paperOrders().find((item) => item.id === intent.clientRequestId)!;
+  expect(order.status).toBe("filled");
+  expect(order.price).toBe(intent.limitPrice);
+  expect(after.locked).toBe(before.locked);
+});
+
+test("settlement cancels resting orders, releases collateral and pays winners once", () => {
+  seedPaperExchangeForTests();
+  const resting = {
+    clientRequestId: "settlement-resting", marketId: "mkt-001", outcomeId: "yes",
+    side: "buy" as const, type: "limit" as const, collateralAmount: 70, limitPrice: 0.20
+  };
+  const before = paperBalances().find((item) => item.asset === "USDC")!;
+  executePaperOrder(resting);
+  const placed = paperBalances().find((item) => item.asset === "USDC")!;
+  expect(placed.available).toBeCloseTo(before.available - 70, 4);
+  expect(placed.locked).toBeGreaterThan(before.locked);
+  const position = paperPositions().find((item) => item.marketId === "mkt-001" && item.outcome === "Yes")!;
+  const winnerShares = position.shares;
+  settlePaperMarket("mkt-001", "Yes");
+  expect(paperMarkets().find((item) => item.id === "mkt-001")?.status).toBe("resolved");
+  expect(paperOrders().find((item) => item.id === resting.clientRequestId)?.status).toBe("cancelled");
+  const settled = paperBalances().find((item) => item.asset === "USDC")!;
+  expect(settled.available).toBeCloseTo(before.available, 4);
+  expect(settled.locked).toBeCloseTo(before.locked, 4);
+  const resolved = paperPositions().find((item) => item.id === position.id)!;
+  expect(resolved.claimableAmount).toBeCloseTo(winnerShares, 4);
+  redeemPaperPosition(position.id);
+  expect(paperBalances().find((item) => item.asset === "USDC")!.available).toBeCloseTo(before.available + winnerShares, 4);
+  expect(() => redeemPaperPosition(position.id)).toThrow();
+  expect(() => previewPaperOrder({ ...resting, clientRequestId: "after-settle" })).toThrow();
 });
