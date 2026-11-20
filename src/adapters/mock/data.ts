@@ -189,10 +189,10 @@ export const adminUsers: AdminUser[] = [
 ];
 
 export const resolutions: ResolutionCase[] = [
-  { id: "res-201", market: "Will the research launch occur in Q2?", endDate: "Jul 31, 2026", proposedOutcome: "Yes", source: "Official launch log", disputes: 0, status: "proposed" },
-  { id: "res-202", market: "Will the inflation print be below 3.0%?", endDate: "Aug 2, 2026", proposedOutcome: "No", source: "Statistics release", disputes: 3, status: "disputed" },
-  { id: "res-203", market: "Will Team North win the regional final?", endDate: "Aug 3, 2026", proposedOutcome: "Team North", source: "Official match result", disputes: 0, status: "awaiting" },
-  { id: "res-204", market: "Will the governance proposal pass?", endDate: "Aug 3, 2026", proposedOutcome: "Yes", source: "Onchain vote", disputes: 0, status: "approved" }
+  { id: "res-201", marketId: "mkt-001", market: markets[0].shortQuestion, endDate: "Jan 1, 2027", proposedOutcome: "Yes", source: markets[0].resolutionSource, disputes: 0, status: "proposed" },
+  { id: "res-202", marketId: "mkt-002", market: markets[1].shortQuestion, endDate: "Mar 31, 2028", proposedOutcome: "No", source: markets[1].resolutionSource, disputes: 3, status: "disputed" },
+  { id: "res-203", marketId: "mkt-006", market: markets[5].shortQuestion, endDate: "Jun 30, 2027", proposedOutcome: "Yes", source: markets[5].resolutionSource, disputes: 0, status: "awaiting" },
+  { id: "res-204", marketId: "mkt-009", market: markets[8].shortQuestion, endDate: "Jul 1, 2026", proposedOutcome: "Yes", source: markets[8].resolutionSource, disputes: 0, status: "approved" }
 ];
 
 export const transactions: TransactionRecord[] = [

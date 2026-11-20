@@ -349,3 +349,26 @@ test("each multi-outcome paper fill keeps probabilities normalised", () => {
   expect(updated.outcomes.every((item) => item.probability >= 0 && item.probability <= 100)).toBe(true);
   expect(updated.chart.at(-1)).toBeCloseTo(updated.outcomes[0].probability, 4);
 });
+
+test("every bundled market resolves through a linked paper-admin case", () => {
+  seedPaperExchangeForTests();
+  const cases = paperResolutionCases();
+  const available = paperMarkets();
+  for (const market of available) {
+    const linked = cases.filter((item) => item.marketId === market.id);
+    expect(linked.length).toBe(1);
+    expect(linked[0].source).toBe(market.resolutionSource);
+    expect(market.outcomes.some((item) => item.label === linked[0].proposedOutcome)).toBe(true);
+  }
+  const sample = cases.find((item) => item.marketId === "mkt-003")!;
+  const before = paperPositions().find((item) => item.marketId === "mkt-003" && item.outcome === "2 cuts")!;
+  expect(sample.status).toBe("awaiting");
+  setPaperResolution(sample.id, "2 cuts");
+  expect(paperResolutionCases().find((item) => item.id === sample.id)?.status).toBe("approved");
+  expect(paperMarkets().find((item) => item.id === "mkt-003")?.status).toBe("resolved");
+  const winning = paperPositions().find((item) => item.id === before.id)!;
+  expect(winning.claimableAmount).toBeCloseTo(before.shares, 4);
+  const cashBefore = paperBalances().find((item) => item.asset === "USDC")!.available;
+  redeemPaperPosition(before.id);
+  expect(paperBalances().find((item) => item.asset === "USDC")!.available).toBeCloseTo(cashBefore + before.shares, 4);
+});

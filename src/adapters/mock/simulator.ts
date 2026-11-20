@@ -86,24 +86,32 @@ export function paperAdminUsers(): AdminUser[] {
 }
 export function paperResolutionCases(): ResolutionCase[] {
   const current = state();
-  const locallyCreated = (current.createdMarkets ?? [])
-    .filter((market) => (current.marketStatuses?.[market.id] ?? market.status) !== "draft")
-    .map((market): ResolutionCase => {
-      const caseId = "paper-case-" + market.id;
-      return {
-        id: caseId, marketId: market.id, market: market.shortQuestion,
-        endDate: market.endDate.slice(0, 10),
-        proposedOutcome: market.outcomes[0]?.label ?? "",
-        source: market.resolutionSource, disputes: 0,
-        status: current.resolutionDecisions?.[caseId]?.status
-          ?? (current.resolvedMarkets?.[market.id] ? "approved" : "awaiting")
-      };
-    });
-  return [...locallyCreated, ...seedResolutions].map((item) => ({
-    ...item,
-    status: current.resolutionDecisions?.[item.id]?.status ?? item.status,
-    proposedOutcome: current.resolutionDecisions?.[item.id]?.outcome ?? item.proposedOutcome
-  }));
+  const bundledWithExplicitCases = new Set(seedResolutions.map((item) => item.marketId));
+  const operationalMarkets = [
+    ...(current.createdMarkets ?? []).filter((market) => (current.marketStatuses?.[market.id] ?? market.status) !== "draft"),
+    ...markets.filter((market) => !bundledWithExplicitCases.has(market.id))
+  ];
+  const dynamicCases = operationalMarkets.map((market): ResolutionCase => {
+    const caseId = "paper-case-" + market.id;
+    const resolved = current.resolvedMarkets?.[market.id];
+    const winner = resolved ? market.outcomes.find((item) => item.id === resolved) : undefined;
+    return {
+      id: caseId, marketId: market.id, market: market.shortQuestion,
+      endDate: market.endDate.slice(0, 10),
+      proposedOutcome: winner?.label ?? market.outcomes[0]?.label ?? "",
+      source: market.resolutionSource, disputes: 0,
+      status: resolved || market.status === "resolved" ? "approved" : "awaiting"
+    };
+  });
+  return [...dynamicCases, ...seedResolutions].map((item) => {
+    const decision = current.resolutionDecisions?.[item.id];
+    const resolved = item.marketId && current.resolvedMarkets?.[item.marketId];
+    return {
+      ...item,
+      status: resolved ? "approved" : decision?.status ?? item.status,
+      proposedOutcome: decision?.outcome ?? item.proposedOutcome
+    };
+  });
 }
 
 export function createPaperMarket(input: AdminMarketInput): string {
@@ -161,8 +169,9 @@ export function setPaperResolution(id: string, outcome: string): string {
   if (item.status === "approved") throw new Error("Resolution already approved.");
   if (!outcome.trim()) throw new Error("Select a resolution outcome.");
   const linked = paperMarkets().find((market) => item.marketId ? market.id === item.marketId : market.question === item.market || market.shortQuestion === item.market);
-  if (linked && !linked.outcomes.some((candidate) => candidate.label === outcome || candidate.id === outcome)) throw new Error("The selected outcome does not belong to this market.");
-  if (linked) settlePaperMarket(linked.id, outcome);
+  if (!linked) throw new Error("This resolution case has no paper market to settle.");
+  if (!linked.outcomes.some((candidate) => candidate.label === outcome || candidate.id === outcome)) throw new Error("The selected outcome does not belong to this market.");
+  settlePaperMarket(linked.id, outcome);
   state().resolutionDecisions ??= {};
   state().resolutionDecisions![id] = { status: "approved", outcome };
   event("resolution", "Paper case approved", item.market + " · " + outcome);
