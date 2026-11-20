@@ -18,7 +18,7 @@
   .hero-actions .primary-button, .hero-actions .secondary-button { min-height: 41px; padding-inline: 14px; font-size: 11px; }
   .hero-proof { gap: 18px; margin-top: 25px; }
   .hero-proof strong { font-size: 13px; }
-  .hero-proof span { font-size: 8px; }
+  .hero-proof span { font-size: 11px; }
   .hero-market-stack { position: absolute; right: 0; bottom: 0; left: 0; height: 220px; overflow: hidden; border-radius: 0 0 20px 20px; }
   .stack-card { width: 74%; }
   .stack-1 { top: 32px; left: 8%; transform: rotate(-3deg) scale(.72); transform-origin: top left; }
@@ -73,7 +73,7 @@
   .wallet-assurance div { display: flex; align-items: center; }
   .toast-viewport { right: 12px; bottom: 80px; width: calc(100% - 24px); }
   .mobile-bottom-nav { position: fixed; z-index: 60; right: 0; bottom: 0; left: 0; display: grid; height: calc(64px + env(safe-area-inset-bottom)); grid-template-columns: repeat(5, 1fr); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom); background: rgba(255, 255, 255, .94); backdrop-filter: blur(16px); }
-  .mobile-bottom-nav a { display: grid; place-items: center; align-content: center; gap: 3px; color: var(--ink-3); font-size: 8px; font-weight: 750; }
+  .mobile-bottom-nav a { display: grid; place-items: center; align-content: center; gap: 3px; color: var(--ink-3); font-size: 11px; font-weight: 750; }
   .mobile-bottom-nav a.active { color: var(--brand); }
   .mobile-bottom-nav a.active svg { stroke-width: 2.5; }
   .account-page-head { min-height: 0; align-items: flex-start; }

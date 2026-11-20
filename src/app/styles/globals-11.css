@@ -19,13 +19,13 @@
 .clear-search { display: grid; width: 28px; height: 28px; place-items: center; border: 0; border-radius: 8px; color: var(--ink-3); background: var(--surface-soft); cursor: pointer; }
 .command-results { min-height: 148px; }
 .command-results-head { display: flex; align-items: center; justify-content: space-between; padding-right: 8px; }
-.command-results-head small { color: var(--ink-3); font-size: 10px; }
+.command-results-head small { color: var(--ink-3); font-size: 11px; }
 .command-results > button.active { background: var(--surface-soft); box-shadow: inset 0 0 0 1px var(--line); }
 .command-empty { display: grid; min-height: 160px; place-items: center; align-content: center; gap: 5px; color: var(--ink-3); text-align: center; }
 .command-empty svg { margin-bottom: 5px; color: var(--brand-2); }
 .command-empty strong { color: var(--ink); }
 .drawer-search { justify-content: flex-start; }
-.drawer-search kbd { margin-left: auto; border: 1px solid var(--line-strong); border-radius: 6px; padding: 2px 6px; color: var(--ink-3); background: var(--surface); font-size: 9px; }
+.drawer-search kbd { margin-left: auto; border: 1px solid var(--line-strong); border-radius: 6px; padding: 2px 6px; color: var(--ink-3); background: var(--surface); font-size: 11px; }
 .mobile-drawer nav a.active { color: var(--brand); background: var(--brand-soft); }
 
 .page-hero-wide { display: grid; max-width: none; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 44px; }
@@ -34,7 +34,7 @@
 .page-hero-metrics > div { display: grid; min-width: 0; grid-template-columns: auto 1fr; align-items: center; gap: 3px 8px; padding: 14px 16px; }
 .page-hero-metrics > div + div { border-left: 1px solid var(--line); }
 .page-hero-metrics svg { grid-row: span 2; color: var(--brand-2); }
-.page-hero-metrics span { color: var(--ink-3); font-size: 9px; font-weight: 750; text-transform: uppercase; letter-spacing: .06em; }
+.page-hero-metrics span { color: var(--ink-3); font-size: 11px; font-weight: 750; text-transform: uppercase; letter-spacing: .06em; }
 .page-hero-metrics strong { overflow: hidden; font-size: 16px; text-overflow: ellipsis; white-space: nowrap; }
 
 .market-grid-section { min-width: 0; }
@@ -45,7 +45,7 @@
 .market-search-field button { display: grid; width: 25px; height: 25px; place-items: center; border: 0; border-radius: 7px; color: var(--ink-3); background: var(--surface-soft); cursor: pointer; }
 .market-results-meta { display: flex; margin-left: auto; align-items: baseline; gap: 5px; color: var(--ink-3); font-size: 11px; }
 .market-results-meta strong { color: var(--ink); font-size: 14px; }
-.market-results-meta button { margin-left: 7px; border: 0; padding: 0; color: var(--brand-2); background: transparent; cursor: pointer; font-size: 10px; font-weight: 800; }
+.market-results-meta button { margin-left: 7px; border: 0; padding: 0; color: var(--brand-2); background: transparent; cursor: pointer; font-size: 11px; font-weight: 800; }
 .category-tabs button { transition: color .16s ease, background .16s ease, border-color .16s ease, transform .16s ease; }
 .category-tabs button:active { transform: scale(.97); }
 
@@ -56,10 +56,10 @@
 .bookmark-button { position: relative; z-index: 2; }
 .market-card-snapshot { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 1px 12px; margin-top: 15px; border: 1px solid #e8ece7; border-radius: 11px; padding: 10px 11px; background: linear-gradient(135deg, #fbfcfa, #f4f8f5); }
 .market-card-snapshot > span { display: grid; gap: 1px; }
-.market-card-snapshot small { color: var(--ink-3); font-size: 8px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.market-card-snapshot small { color: var(--ink-3); font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
 .market-card-snapshot strong { overflow: hidden; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
 .market-card-snapshot b { grid-row: span 2; color: var(--brand); font-size: 25px; line-height: 1; letter-spacing: -.04em; }
-.market-card-snapshot em { font-size: 8px; font-style: normal; font-weight: 800; }
+.market-card-snapshot em { font-size: 11px; font-style: normal; font-weight: 800; }
 .outcome-list { margin-top: 10px; }
 .outcome-row { position: relative; z-index: 1; transition: background .15s ease, transform .15s ease; }
 .outcome-row:hover { background: #eef4f0; transform: translateX(2px); }
@@ -73,9 +73,9 @@
 .account-sidebar { overflow: hidden; padding: 0; }
 .account-summary { padding: 16px; }
 .account-balance { display: grid; gap: 2px; border-bottom: 1px solid var(--line); padding: 14px 16px; background: linear-gradient(135deg, var(--brand), #245a51); color: #fff; }
-.account-balance > span { color: rgba(255, 255, 255, .6); font-size: 8px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.account-balance > span { color: rgba(255, 255, 255, .6); font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 .account-balance strong { font-size: 21px; letter-spacing: -.03em; }
-.account-balance small { display: flex; align-items: center; gap: 6px; color: rgba(255, 255, 255, .72); font-size: 8px; }
+.account-balance small { display: flex; align-items: center; gap: 6px; color: rgba(255, 255, 255, .72); font-size: 11px; }
 .account-balance i { width: 6px; height: 6px; border-radius: 50%; background: #6ee3b0; box-shadow: 0 0 0 4px rgba(110, 227, 176, .12); }
 .account-sidebar nav { padding: 8px; }
 .account-sidebar nav a { border-radius: 9px; }
@@ -128,7 +128,7 @@
 @media (max-width: 430px) {
   .page-hero-metrics > div { padding: 12px 13px; }
   .market-card-snapshot b { font-size: 23px; }
-  .market-card-footer .end-date { font-size: 8px; }
+  .market-card-footer .end-date { font-size: 11px; }
   .command-results > button { padding: 9px 8px; }
   .command-results em { font-size: 13px; }
 }
