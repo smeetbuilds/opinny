@@ -195,3 +195,14 @@ test("all visitor-facing shell copy identifies the real scope of browser-local p
   expect(layout.match(/description: siteDescription/g)).toHaveLength(3);
   expect(stylesheet).toContain(".policy-paper-note {");
 });
+
+test("loading and market-state accents are restrained and cannot imply a live feed", () => {
+  const dir = join(root, "src", "app", "styles");
+  const loading = readFileSync(join(dir, "globals-10.css"), "utf8");
+  const states = readFileSync(join(dir, "globals-12.css"), "utf8");
+  expect(loading).not.toContain("linear-gradient(");
+  expect(loading).not.toContain("skeleton-pulse");
+  expect(loading).toContain("background: var(--surface-soft)");
+  expect(states).not.toContain("animation: live-pulse 1.8s");
+  expect(states).toContain("background: var(--green)");
+});

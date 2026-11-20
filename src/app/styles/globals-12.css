@@ -2,7 +2,7 @@
 
 .market-actions .icon-button.active { color: var(--brand); border-color: rgba(34, 94, 84, .22); background: var(--brand-soft); }
 .market-meta-line em { display: inline-flex; align-items: center; gap: 5px; }
-.market-meta-line em i { width: 6px; height: 6px; border-radius: 50%; background: #38b783; box-shadow: 0 0 0 4px rgba(56, 183, 131, .12); animation: live-pulse 1.8s ease-in-out infinite; }
+.market-meta-line em i { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
 .market-signal-strip { display: grid; grid-template-columns: repeat(3, 1fr); overflow: hidden; margin: 20px 0 15px; border: 1px solid var(--line); border-radius: 13px; background: linear-gradient(135deg, #fbfcfa, #f3f7f4); }
 .market-signal-strip > div { display: flex; min-width: 0; align-items: center; gap: 10px; padding: 12px 14px; }
 .market-signal-strip > div + div { border-left: 1px solid var(--line); }
@@ -76,7 +76,7 @@
 .mobile-trade-overlay { align-items: flex-end; }
 
 .book-head > div:first-child > span { display: inline-flex; align-items: center; gap: 5px; }
-.book-head > div:first-child > span i, .live-pulse { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #38b783; box-shadow: 0 0 0 3px rgba(56, 183, 131, .1); }
+.book-head > div:first-child > span i, .live-pulse { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
 .book-quote-strip { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--surface-soft); }
 .book-quote-strip span { display: grid; gap: 2px; padding: 9px 12px; }
 .book-quote-strip span + span { border-left: 1px solid var(--line); }

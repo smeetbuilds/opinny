@@ -233,3 +233,9 @@ executes no real blockchain transactions.
 A static CSS contract test checks that these ornamental treatments do not
 silently return. CI and HTTP responses cannot confirm visual parity, keyboard
 accessibility in a rendered browser or device-specific layout.
+
+**Loading and status treatments:** The loading screen now uses stable neutral
+skeleton blocks instead of an indefinite green-tinted shimmer. Decorative
+"live" pulsing was removed from the market-status accent: an open paper market
+is not a live exchange feed. These changes preserve the loading status
+announcement and the underlying trading state.
