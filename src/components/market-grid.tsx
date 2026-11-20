@@ -83,7 +83,7 @@ export function MarketGrid({
         </div>
       </div>
       <div className="market-discovery-bar">
-        <label className="market-search-field"><Search size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search within markets" aria-label="Search within markets" />{query ? <button onClick={() => setQuery("")} aria-label="Clear market search"><X size={14} /></button> : null}</label>
+        <div className="market-search-field" role="search"><Search size={17} aria-hidden="true" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search within markets" aria-label="Search within markets" />{query ? <button type="button" onClick={() => setQuery("")} aria-label="Clear market search"><X size={14} /></button> : null}</div>
         <div className="market-results-meta" aria-live="polite"><strong>{visible.length}</strong><span>{visible.length === 1 ? "market" : "markets"}</span>{hasActiveFilters ? <button onClick={clearFilters}>Reset filters</button> : null}</div>
       </div>
       {showCategories ? <CategoryTabs categories={categories} active={category} onChange={changeCategory} /> : null}

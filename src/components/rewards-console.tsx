@@ -105,7 +105,7 @@ export function RewardsConsole({ initialRewards }: { initialRewards: RewardOppor
         </div>
 
         <div className="rewards-toolbar">
-          <label className="market-search-field rewards-search"><Search size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search reward markets" aria-label="Search reward markets" />{query ? <button type="button" onClick={() => setQuery("")} aria-label="Clear reward search"><X size={14} /></button> : null}</label>
+          <div className="market-search-field rewards-search" role="search"><Search size={17} aria-hidden="true" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search reward markets" aria-label="Search reward markets" />{query ? <button type="button" onClick={() => setQuery("")} aria-label="Clear reward search"><X size={14} /></button> : null}</div>
           <label className="select-control"><span>Category</span><select value={category} onChange={(event) => setCategory(event.target.value)} aria-label="Reward category">{categories.map((item) => <option value={item} key={item}>{item}</option>)}</select></label>
           <label className="toggle-control"><input type="checkbox" checked={eligibleOnly} onChange={(event) => setEligibleOnly(event.target.checked)} /><span />Qualifying only</label>
           <label className="select-control"><SlidersHorizontal size={15} /><select value={sort} onChange={(event) => setSort(event.target.value as RewardSort)} aria-label="Sort rewards"><option value="reward">Highest reward</option><option value="competition">Lowest competition</option><option value="spread">Tightest spread</option></select></label>

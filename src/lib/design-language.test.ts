@@ -206,3 +206,14 @@ test("loading and market-state accents are restrained and cannot imply a live fe
   expect(states).not.toContain("animation: live-pulse 1.8s");
   expect(states).toContain("background: var(--green)");
 });
+
+test("search controls have independently named inputs and clear actions, not nested interactive labels", () => {
+  const markets = readFileSync(join(root, "src", "components", "market-grid.tsx"), "utf8");
+  const rewards = readFileSync(join(root, "src", "components", "rewards-console.tsx"), "utf8");
+  expect(markets).toContain('className="market-search-field" role="search"');
+  expect(rewards).toContain('className="market-search-field rewards-search" role="search"');
+  expect(markets).toContain('type="button" onClick={() => setQuery("")} aria-label="Clear market search"');
+  expect(rewards).toContain('type="button" onClick={() => setQuery("")} aria-label="Clear reward search"');
+  expect(markets).not.toContain('<label className="market-search-field">');
+  expect(rewards).not.toContain('<label className="market-search-field rewards-search">');
+});
