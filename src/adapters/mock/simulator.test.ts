@@ -372,3 +372,23 @@ test("every bundled market resolves through a linked paper-admin case", () => {
   redeemPaperPosition(before.id);
   expect(paperBalances().find((item) => item.asset === "USDC")!.available).toBeCloseTo(cashBefore + before.shares, 4);
 });
+
+test("resolved books are empty and matched paper depth reduces displayed liquidity", () => {
+  seedPaperExchangeForTests();
+  expect(paperOrderBook("mkt-009", "yes").asks.length).toBe(0);
+  expect(paperOrderBook("mkt-009", "yes").bids.length).toBe(0);
+  const before = paperMarkets().find((item) => item.id === "mkt-001")!;
+  const beforeBook = paperOrderBook("mkt-001", "yes");
+  executePaperOrder({
+    clientRequestId: "liquidity-consumption-test", marketId: "mkt-001",
+    outcomeId: "yes", side: "buy", type: "market", collateralAmount: 80
+  });
+  const after = paperMarkets().find((item) => item.id === "mkt-001")!;
+  const afterBook = paperOrderBook("mkt-001", "yes");
+  expect(after.liquidity).toBeLessThan(before.liquidity);
+  expect(after.volume).toBeGreaterThan(before.volume);
+  expect(afterBook.asks[0].size).toBeLessThan(beforeBook.asks[0].size);
+  settlePaperMarket("mkt-001", "Yes");
+  expect(paperOrderBook("mkt-001", "yes").asks.length).toBe(0);
+  expect(paperOrderBook("mkt-001", "yes").bids.length).toBe(0);
+});

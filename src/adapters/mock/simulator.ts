@@ -66,6 +66,12 @@ export function paperMarkets(): Market[] {
     const resolved = current.resolvedMarkets?.[market.id];
     const prices = current.lastPrices ?? {};
     const history = current.priceHistory?.[market.id] ?? [];
+    const consumedNotional = Object.entries(current.consumedDepth ?? {}).reduce((sum, [key, shares]) => {
+      const [bookMarketId, outcomeId] = key.split("|");
+      if (bookMarketId !== market.id) return sum;
+      const quote = market.outcomes.find((outcome) => outcome.id === outcomeId)?.probability ?? 0;
+      return sum + shares * quote / 100;
+    }, 0);
     return {
       ...market,
       status: resolved ? "resolved" : (current.marketStatuses?.[market.id] ?? market.status) === "open" && Date.parse(market.endDate) <= Date.now() ? "paused" : current.marketStatuses?.[market.id] ?? market.status,
@@ -76,6 +82,7 @@ export function paperMarkets(): Market[] {
       })),
       chart: [...market.chart, ...history.map((point) => point.price)].slice(-160),
       volume: round(market.volume + current.trades.filter((trade) => trade.marketId === market.id).reduce((sum, trade) => sum + trade.value, 0)),
+      liquidity: round(Math.max(0, market.liquidity - consumedNotional)),
       volume24h: round(market.volume24h + current.trades.filter((trade) => trade.marketId === market.id && Date.now() - Date.parse(trade.createdAt ?? "") < 86_400_000).reduce((sum, trade) => sum + trade.value, 0))
     };
   });
@@ -133,7 +140,7 @@ export function createPaperMarket(input: AdminMarketInput): string {
       id: id + "-outcome-" + (index + 1), label, probability: base + (index < extra ? 1 : 0),
       change24h: 0, volume24h: 0
     })),
-    volume: 0, volume24h: 0, liquidity: 0, traders: 0,
+    volume: 0, volume24h: 0, liquidity: 12_500, traders: 0,
     endDate: closeAt.toISOString(), createdAt: new Date().toISOString(),
     resolutionSource: input.resolutionSource.trim(),
     resolutionRules: input.resolutionRules.trim(),
@@ -422,7 +429,7 @@ function recordTrade(market: Market, side: "buy" | "sell", label: string, price:
 function referenceLevels(marketId: string, outcomeId: string, side: "buy" | "sell") {
   const source = [...(state().createdMarkets ?? []), ...markets].find((item) => item.id === marketId);
   const outcome = source?.outcomes.find((item) => item.id === outcomeId);
-  if (!outcome || state().resolvedMarkets?.[marketId]) return [];
+  if (!outcome || source?.status === "resolved" || state().resolvedMarkets?.[marketId]) return [];
   const quote = outcome.probability / 100;
   return [1200, 2400, 3100, 5800].map((initialSize, tier) => {
     const price = round(Math.min(0.99, Math.max(0.01, quote + (side === "buy" ? -1 : 1) * (tier + 1) / 100)));

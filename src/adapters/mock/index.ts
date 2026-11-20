@@ -47,7 +47,7 @@ function withDiscussionCount(market: Market): Market {
   const comments = buildReferenceComments(market.id);
   return {
     ...market,
-    commentCount: comments.length + comments.reduce((sum, comment) => sum + comment.replyCount, 0)
+    commentCount: comments.length + comments.reduce((sum, comment) => sum + comment.replyCount, 0) + paperComments(market.id).length
   };
 }
 
