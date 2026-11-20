@@ -34,6 +34,9 @@ export function TradeTicket({ market: initialMarket }: { market: Market }) {
   const [submitError, setSubmitError] = useState("");
   const [previewState, setPreviewState] = useState<PreviewState | null>(null);
   const previewGeneration = useRef(0);
+  const mobileSheetRef = useRef<HTMLElement>(null);
+  const busyRef = useRef(busy);
+  useEffect(() => { busyRef.current = busy; }, [busy]);
   const marketOpen = market.status === "open";
   const tradingOpen = marketOpen && tradingEnabled;
 
@@ -94,15 +97,29 @@ export function TradeTicket({ market: initialMarket }: { market: Market }) {
 
   useEffect(() => {
     if (!mobileOpen) return;
+    const returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const previous = document.body.style.overflow;
-    const close = (event: KeyboardEvent) => event.key === "Escape" && !busy && setMobileOpen(false);
-    document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", close);
-    return () => {
-      document.body.style.overflow = previous;
-      window.removeEventListener("keydown", close);
+    const frame = window.requestAnimationFrame(() => {
+      mobileSheetRef.current?.querySelector<HTMLElement>('[aria-label="Close trade ticket"]')?.focus();
+    });
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !busyRef.current) { event.preventDefault(); setMobileOpen(false); return; }
+      if (event.key !== "Tab") return;
+      const focusables = [...(mobileSheetRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])') ?? [])];
+      if (!focusables.length) { event.preventDefault(); return; }
+      const first = focusables[0], last = focusables[focusables.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
     };
-  }, [busy, mobileOpen]);
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      document.body.style.overflow = previous;
+      window.removeEventListener("keydown", onKeyDown);
+      returnFocus?.focus();
+    };
+  }, [mobileOpen]);
 
   useEffect(() => {
     const generation = ++previewGeneration.current;
@@ -189,5 +206,5 @@ export function TradeTicket({ market: initialMarket }: { market: Market }) {
 
   const content = (surface: "desktop" | "mobile") => tradingOpen ? renderOpen(surface) : renderClosed();
   const mobileTitle = tradingOpen ? `Trade ${selected.label}` : marketOpen && !tradingEnabled ? maintenanceCopy.title : stateCopy[market.status].title;
-  return <><aside className="trade-ticket desktop-ticket" id="trade-ticket" aria-label={tradingOpen ? "Trade ticket" : "Market status"}>{content("desktop")}</aside><button className={`mobile-trade-button status-${marketOpen && !tradingEnabled ? "paused" : market.status}`} type="button" aria-haspopup="dialog" aria-expanded={mobileOpen} onClick={() => setMobileOpen(true)}><span>{mobileTitle}<small>{tradingOpen ? orderType === "market" ? "Market order" : `Limit · ${limitPrice}¢` : marketOpen && !tradingEnabled ? "Interface maintenance" : market.status === "resolved" ? "View final outcome" : "View market status"}</small></span><strong>{tradingOpen ? `${selected.probability}¢` : market.status === "resolved" ? "Final" : "View"}</strong></button>{mobileOpen ? <div className="overlay mobile-trade-overlay" onMouseDown={() => !busy && setMobileOpen(false)}><aside className="trade-ticket mobile-ticket" role="dialog" aria-modal="true" aria-label={tradingOpen ? `Trade ${market.shortQuestion}` : `${market.shortQuestion} status`} onMouseDown={(event) => event.stopPropagation()}><div className="sheet-handle" />{content("mobile")}</aside></div> : null}</>;
+  return <><aside className="trade-ticket desktop-ticket" id="trade-ticket" aria-label={tradingOpen ? "Trade ticket" : "Market status"}>{content("desktop")}</aside><button className={`mobile-trade-button status-${marketOpen && !tradingEnabled ? "paused" : market.status}`} type="button" aria-haspopup="dialog" aria-expanded={mobileOpen} onClick={() => setMobileOpen(true)}><span>{mobileTitle}<small>{tradingOpen ? orderType === "market" ? "Market order" : `Limit · ${limitPrice}¢` : marketOpen && !tradingEnabled ? "Interface maintenance" : market.status === "resolved" ? "View final outcome" : "View market status"}</small></span><strong>{tradingOpen ? `${selected.probability}¢` : market.status === "resolved" ? "Final" : "View"}</strong></button>{mobileOpen ? <div className="overlay mobile-trade-overlay" onMouseDown={() => !busy && setMobileOpen(false)}><aside ref={mobileSheetRef} className="trade-ticket mobile-ticket" role="dialog" aria-modal="true" aria-label={tradingOpen ? `Trade ${market.shortQuestion}` : `${market.shortQuestion} status`} onMouseDown={(event) => event.stopPropagation()}><div className="sheet-handle" />{content("mobile")}</aside></div> : null}</>;
 }

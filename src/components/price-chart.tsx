@@ -67,6 +67,17 @@ export function PriceChart({ values, marketId }: { values: number[]; marketId?: 
 
   const selectedIndex = hoverIndex ?? Math.max(chart.points.length - 1, 0);
   const selectedPoint = chart.points[selectedIndex];
+  const inspectWithKeyboard = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    const last = chart.points.length - 1;
+    let next = selectedIndex;
+    if (event.key === "ArrowLeft" || event.key === "ArrowDown") next = Math.max(0, selectedIndex - 1);
+    else if (event.key === "ArrowRight" || event.key === "ArrowUp") next = Math.min(last, selectedIndex + 1);
+    else if (event.key === "Home") next = 0;
+    else if (event.key === "End") next = last;
+    else return;
+    event.preventDefault();
+    setHoverIndex(next);
+  };
   const change = chart.current - chart.open;
   const positive = change >= 0;
 
@@ -119,7 +130,12 @@ export function PriceChart({ values, marketId }: { values: number[]; marketId?: 
         <span className="chart-live"><Activity size={13} /><small>Market signal</small><strong>Simulated</strong></span>
       </div>
 
-      <div className="chart-area interactive-chart" onPointerMove={inspect} onPointerLeave={() => setHoverIndex(null)}>
+      <div className="chart-area interactive-chart" role="slider" tabIndex={0}
+        aria-label="Inspect probability history. Use left and right arrow keys to move between samples."
+        aria-valuemin={1} aria-valuemax={chart.points.length} aria-valuenow={selectedIndex + 1}
+        aria-valuetext={`Sample ${selectedIndex + 1}: ${selectedPoint?.value ?? chart.current} percent`}
+        onKeyDown={inspectWithKeyboard} onBlur={() => setHoverIndex(null)}
+        onPointerMove={inspect} onPointerLeave={() => setHoverIndex(null)}>
         <div className="chart-y-axis"><span>{(chart.axisMax - (chart.axisMax - chart.axisMin) * 0.25).toFixed(0)}%</span><span>{((chart.axisMax + chart.axisMin) / 2).toFixed(0)}%</span><span>{(chart.axisMin + (chart.axisMax - chart.axisMin) * 0.25).toFixed(0)}%</span></div>
         <svg viewBox={`0 0 ${chart.width} ${chart.height}`} preserveAspectRatio="none" role="img" aria-label={`Sampled probability history with ${range}. Current probability ${chart.current} percent.`}>
           <defs>

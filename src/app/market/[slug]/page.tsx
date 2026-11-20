@@ -1,18 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Activity, CalendarDays, ChevronRight, CircleDollarSign, Clock3, ShieldCheck, TrendingUp, Users } from "lucide-react";
+import { ChevronRight, ShieldCheck } from "lucide-react";
 import { SiteShell } from "@/components/site-shell";
 import { PriceChart } from "@/components/price-chart";
 import { TradeTicket } from "@/components/trade-ticket";
-import { TradeOutcomeButton } from "@/components/trade-outcome-button";
-import { MarketActions } from "@/components/market-actions";
+import { MarketOverview } from "@/components/market-overview";
 import { MarketDiscussion } from "@/components/market-discussion";
 import { MarketLiveData } from "@/components/market-live-data";
 import { MarketOpenOrders } from "@/components/market-open-orders";
 import { MarketCard } from "@/components/market-card";
 import { dataAdapter } from "@/lib/data";
-import { formatCurrency, formatDate, formatNumber } from "@/lib/format";
 
 export const dynamicParams = false;
 
@@ -39,7 +37,6 @@ export default async function MarketPage({ params }: { params: Promise<{ slug: s
     dataAdapter.listMarkets({ category: market.category })
   ]);
   const related = allMarkets.filter((item) => item.id !== market.id).slice(0, 3);
-  const leader = [...market.outcomes].sort((a, b) => b.probability - a.probability)[0];
 
   return (
     <SiteShell>
@@ -52,40 +49,7 @@ export default async function MarketPage({ params }: { params: Promise<{ slug: s
 
         <div className="market-layout">
           <div className="market-main">
-            <section className="market-hero-card">
-              <div className="market-title-row">
-                <span className={`market-avatar large ${market.imageTone}`} aria-hidden="true">{market.icon}</span>
-                <div>
-                  <div className="market-meta-line"><span>{market.category}</span>{market.live ? <em><i />Live</em> : null}<span>Closes {formatDate(market.endDate)}</span></div>
-                  <h1>{market.question}</h1>
-                </div>
-                <MarketActions marketId={market.id} title={market.question} />
-              </div>
-
-              <div className="market-signal-strip">
-                <div><TrendingUp size={17} /><span><small>Market leader</small><strong>{leader.label} · {leader.probability}%</strong></span></div>
-                <div><Activity size={17} /><span><small>24h activity</small><strong>{formatCurrency(market.volume24h, { compact: true })}</strong></span></div>
-                <div><Clock3 size={17} /><span><small>Status</small><strong>{market.status === "open" ? "Trading open" : market.status}</strong></span></div>
-              </div>
-
-              <div className="headline-outcomes">
-                {market.outcomes.map((outcome, index) => (
-                  <div className={index === 0 ? "headline-outcome primary" : "headline-outcome"} key={outcome.id}>
-                    <span>{outcome.label}</span>
-                    <strong>{outcome.probability}%</strong>
-                    <em className={outcome.change24h >= 0 ? "positive" : "negative"}>{outcome.change24h >= 0 ? "+" : ""}{outcome.change24h.toFixed(1)} today</em>
-                    {market.status === "open" ? <TradeOutcomeButton outcomeId={outcome.id} label={outcome.label} className={index === 0 ? "yes-button" : "no-button"} /> : <span className="outcome-closed-action">{market.status === "resolved" ? "Final" : "Unavailable"}</span>}
-                  </div>
-                ))}
-              </div>
-
-              <div className="market-stat-grid">
-                <div><CircleDollarSign size={17} /><span>Volume</span><strong>{formatCurrency(market.volume, { compact: true })}</strong></div>
-                <div><CircleDollarSign size={17} /><span>Liquidity</span><strong>{formatCurrency(market.liquidity, { compact: true })}</strong></div>
-                <div><Users size={17} /><span>Traders</span><strong>{formatNumber(market.traders, true)}</strong></div>
-                <div><CalendarDays size={17} /><span>Ends</span><strong>{formatDate(market.endDate)}</strong></div>
-              </div>
-            </section>
+            <MarketOverview initialMarket={market} />
 
             <PriceChart marketId={market.id} values={market.chart} />
 

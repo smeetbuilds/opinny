@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronRight, CircleDollarSign, LoaderCircle, Network, ShieldCheck, WalletCards, X, Zap } from "lucide-react";
 import { appConfig } from "@/lib/config";
 
@@ -13,19 +13,32 @@ const wallets = [
 
 export function WalletDialog({ open, onClose, onConnect }: { open: boolean; onClose: () => void; onConnect: (provider?: string) => Promise<void>; referenceMode?: boolean }) {
   const [connecting, setConnecting] = useState("");
+  const sheetRef = useRef<HTMLElement>(null);
   const referenceMode = appConfig.adapter === "mock";
 
   useEffect(() => {
     if (!open) return;
+    const returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const previousOverflow = document.body.style.overflow;
+    const frame = window.requestAnimationFrame(() => {
+      sheetRef.current?.querySelector<HTMLElement>('[aria-label="Close wallet dialog"]')?.focus();
+    });
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !connecting) onClose();
+      if (event.key === "Escape" && !connecting) { event.preventDefault(); onClose(); return; }
+      if (event.key !== "Tab") return;
+      const focusables = [...(sheetRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], input:not([disabled]), [tabindex]:not([tabindex="-1"])') ?? [])];
+      if (!focusables.length) { event.preventDefault(); return; }
+      const first = focusables[0], last = focusables[focusables.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
     };
     document.body.style.overflow = "hidden";
     window.addEventListener("keydown", onKeyDown);
     return () => {
+      window.cancelAnimationFrame(frame);
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", onKeyDown);
+      returnFocus?.focus();
     };
   }, [connecting, open, onClose]);
 
@@ -43,7 +56,7 @@ export function WalletDialog({ open, onClose, onConnect }: { open: boolean; onCl
 
   return (
     <div className="overlay" role="presentation" onMouseDown={() => !connecting && onClose()}>
-      <section className="wallet-sheet" role="dialog" aria-modal="true" aria-labelledby="wallet-title" onMouseDown={(event) => event.stopPropagation()}>
+      <section ref={sheetRef} className="wallet-sheet" role="dialog" aria-modal="true" aria-labelledby="wallet-title" onMouseDown={(event) => event.stopPropagation()}>
         <div className="sheet-handle" />
         <header className="dialog-head">
           <div>
