@@ -198,3 +198,20 @@ run in the existing `bun run check` gate. Deployed-route HTML and font URLs
 can be checked independently. Precise visual/layout measurements, real
 interactive browser testing and screen-reader validation are still required
 before a claim of complete pixel-perfect fidelity.
+
+### Original uploaded reference review
+
+The original user-supplied `Pasted text(6).txt` was reopened and reviewed
+alongside this adapted DESIGN.md. It is a Miro marketing-system analysis
+covering token colors, 80px display typography, pill buttons, input focus,
+responsive grids, FAQ accordions, dark footer, marketing imagery and
+Miro-specific pricing, customer stories, Roobert PRO and download badges.
+
+The general design patterns are adapted. The Miro-specific business features,
+brand assets and proprietary font remain intentionally excluded. Opinny uses
+its real simulated markets instead of images that merely imitate another app.
+
+The Help page and Rewards console now explicitly distinguish browser-local
+paper examples from connected production integrations. The rewards dialog
+also uses keyboard focus containment, and legal text has a 16px reading
+scale consistent with the reference.

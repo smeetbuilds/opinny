@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ArrowUpRight, CheckCircle2, Coins, Info, Search, SlidersHorizontal, Sparkles, Trophy, Wallet, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { RewardOpportunity } from "@/core/contracts/domain";
 import { appConfig } from "@/lib/config";
 import { dataAdapter } from "@/lib/data";
@@ -16,6 +16,9 @@ function tokenAmount(value: number) {
 
 export function RewardsConsole({ initialRewards }: { initialRewards: RewardOpportunity[] }) {
   const { connected, setWalletOpen } = useApp();
+  const paper = appConfig.adapter === "mock";
+  const rulesDialogRef = useRef<HTMLElement>(null);
+  const rulesTriggerRef = useRef<HTMLButtonElement | null>(null);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
   const [eligibleOnly, setEligibleOnly] = useState(false);
@@ -52,12 +55,29 @@ export function RewardsConsole({ initialRewards }: { initialRewards: RewardOppor
   useEffect(() => {
     if (!selected) return;
     const previous = document.body.style.overflow;
-    const close = (event: KeyboardEvent) => event.key === "Escape" && setSelected(null);
+    const frame = window.requestAnimationFrame(() => {
+      rulesDialogRef.current?.querySelector<HTMLButtonElement>('[aria-label="Close reward rules"]')?.focus();
+    });
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setSelected(null);
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const focusable = [...(rulesDialogRef.current?.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])') ?? [])];
+      if (!focusable.length) { event.preventDefault(); return; }
+      const first = focusable[0], last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
     document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", close);
+    window.addEventListener("keydown", onKeyDown);
     return () => {
+      window.cancelAnimationFrame(frame);
       document.body.style.overflow = previous;
-      window.removeEventListener("keydown", close);
+      window.removeEventListener("keydown", onKeyDown);
+      if (rulesTriggerRef.current?.getClientRects().length) rulesTriggerRef.current.focus();
     };
   }, [selected]);
 
@@ -67,15 +87,15 @@ export function RewardsConsole({ initialRewards }: { initialRewards: RewardOppor
         <div>
           <span className="eyebrow">Liquidity incentives</span>
           <h1 id="rewards-title">Rewards for competitive markets</h1>
-          <p>Explore incentive programmes supplied by the connected integration. Competitive limit orders can qualify when they stay within the configured spread and minimum-size rules.</p>
+          <p>{paper ? "Explore illustrative liquidity incentives for paper limit orders. Pools, eligibility and earnings are simulated; no rewards are paid." : "Explore incentive programmes supplied by the connected integration. Competitive limit orders can qualify when they stay within the configured spread and minimum-size rules."}</p>
         </div>
-        {!connected ? <button className="primary-button" type="button" onClick={() => setWalletOpen(true)}><Wallet size={16} />Connect wallet</button> : <span className="rewards-connected"><CheckCircle2 size={16} />Wallet connected</span>}
+        {!connected ? <button className="primary-button" type="button" onClick={() => setWalletOpen(true)}><Wallet size={16} />{paper ? "Start paper session" : "Connect wallet"}</button> : <span className="rewards-connected"><CheckCircle2 size={16} />{paper ? "Paper session active" : "Wallet connected"}</span>}
       </section>
 
       <div className="rewards-summary-grid">
-        <article><span><Coins size={17} />Daily programme</span><strong>{tokenAmount(totalDaily)}</strong><small>Across currently listed opportunities</small></article>
-        <article><span><Trophy size={17} />Qualifying markets</span><strong>{qualifying}</strong><small>Based on integration-supplied rules</small></article>
-        <article><span><Sparkles size={17} />Your earnings</span><strong>{connected ? tokenAmount(earned) : "—"}</strong><small>{connected ? "Reference account estimate" : "Connect to view account rewards"}</small></article>
+        <article><span><Coins size={17} />{paper ? "Sample daily pool" : "Daily programme"}</span><strong>{tokenAmount(totalDaily)}</strong><small>Across currently listed opportunities</small></article>
+        <article><span><Trophy size={17} />{paper ? "Sample qualification" : "Qualifying markets"}</span><strong>{qualifying}</strong><small>Based on integration-supplied rules</small></article>
+        <article><span><Sparkles size={17} />{paper ? "Paper reward estimate" : "Your earnings"}</span><strong>{connected ? tokenAmount(earned) : "—"}</strong><small>{connected ? (paper ? "Illustrative account value · no payout" : "Reference account estimate") : (paper ? "Start a paper session to view sample rewards" : "Connect to view account rewards")}</small></article>
       </div>
 
       <section className="rewards-panel" aria-labelledby="reward-opportunities-title">
@@ -98,7 +118,7 @@ export function RewardsConsole({ initialRewards }: { initialRewards: RewardOppor
               <tbody>{visible.map((reward) => (
                 <tr key={reward.id}>
                   <td className="wide-cell" data-label="Market"><Link href={`/market/${reward.marketSlug}`}>{reward.marketQuestion}<small>{reward.category}</small></Link></td>
-                  <td data-label="Rules"><button className="reward-rule-button" type="button" onClick={() => setSelected(reward)}><Info size={13} />±{reward.maxSpreadCents}¢ · {reward.minimumShares} min</button></td>
+                  <td data-label="Rules"><button className="reward-rule-button" type="button" onClick={(event) => { rulesTriggerRef.current = event.currentTarget; setSelected(reward); }}><Info size={13} />±{reward.maxSpreadCents}¢ · {reward.minimumShares} min</button></td>
                   <td data-label="Reward"><strong>{tokenAmount(reward.dailyReward)}</strong><small>/ day</small></td>
                   <td data-label="Competition"><div className="competition-meter"><span>{reward.competitionPercent}%</span><i><b style={{ width: `${reward.competitionPercent}%` }} /></i></div></td>
                   <td data-label="Earnings">{connected ? tokenAmount(reward.earned) : "—"}</td>
@@ -114,12 +134,12 @@ export function RewardsConsole({ initialRewards }: { initialRewards: RewardOppor
 
       <section className="rewards-explainer">
         <Info size={18} />
-        <div><strong>How qualification works</strong><p>Opinny only presents the programme state supplied by an adapter. A production integration must calculate eligibility, competition, accrual and final reward settlement. The browser does not award or custody funds.</p></div>
+        <div><strong>How qualification works</strong><p>{paper ? "These reward opportunities are sample scenarios. Eligibility and accrual are illustrative; the simulator does not award real tokens or promise payouts." : "Opinny only presents programme state supplied by the integration. The operator calculates authoritative eligibility, competition, accrual and reward settlement."}</p></div>
       </section>
 
       {selected ? (
         <div className="overlay reward-rules-overlay" onMouseDown={() => setSelected(null)}>
-          <section className="reward-rules-dialog" role="dialog" aria-modal="true" aria-labelledby="reward-rules-title" onMouseDown={(event) => event.stopPropagation()}>
+          <section ref={rulesDialogRef} className="reward-rules-dialog" role="dialog" aria-modal="true" aria-labelledby="reward-rules-title" onMouseDown={(event) => event.stopPropagation()}>
             <div className="sheet-handle" />
             <header><div><span className="eyebrow">Reward rules</span><h2 id="reward-rules-title">{selected.marketQuestion}</h2><p>Keep qualifying limit orders competitive to participate in this incentive programme.</p></div><button className="icon-button" type="button" aria-label="Close reward rules" onClick={() => setSelected(null)}><X size={17} /></button></header>
             <div className="reward-rule-grid">
@@ -128,7 +148,7 @@ export function RewardsConsole({ initialRewards }: { initialRewards: RewardOppor
               <span><small>Daily pool</small><strong>{tokenAmount(selected.dailyReward)}</strong></span>
               <span><small>Competition</small><strong>{selected.competitionPercent}%</strong></span>
             </div>
-            <p className="reward-rule-note">Displayed eligibility is informational. The connected backend or protocol remains authoritative for snapshots, scoring, exclusions and settlement.</p>
+            <p className="reward-rule-note">{paper ? "Paper example only. Displayed rewards are hypothetical; there is no external incentive programme or cashable payout." : "Displayed eligibility is informational. The connected backend or protocol remains authoritative for snapshots, scoring, exclusions and settlement."}</p>
             <footer><button className="secondary-button" type="button" onClick={() => setSelected(null)}>Close</button><Link className="primary-button" href={`/market/${selected.marketSlug}`}>Open market <ArrowUpRight size={14} /></Link></footer>
           </section>
         </div>

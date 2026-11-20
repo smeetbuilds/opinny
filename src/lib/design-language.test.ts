@@ -139,3 +139,26 @@ test("search and secondary pages use restrained typography rather than placehold
   expect(stylesheet).toContain(".admin-page-kpis article::after { display: none; }");
   expect(stylesheet).toContain(".policy-content :is(p, ul, li) { color: var(--ink-2); font-size: 15px;");
 });
+
+
+test("reward rules dialog traps focus and returns it to the clicked rule", () => {
+  const rewards = readFileSync(join(root, "src", "components", "rewards-console.tsx"), "utf8");
+  expect(rewards).toContain("rulesDialogRef.current?.querySelectorAll<HTMLElement>");
+  expect(rewards).toContain('event.key !== "Tab"');
+  expect(rewards).toContain("rulesTriggerRef.current.focus()");
+  expect(rewards).toContain("rulesTriggerRef.current = event.currentTarget");
+  expect(rewards).toContain('paper ? "Start paper session" : "Connect wallet"');
+  expect(rewards).toContain("there is no external incentive programme or cashable payout");
+});
+
+test("help explanations distinguish simulated funds from connected-wallet operations", () => {
+  const help = readFileSync(join(root, "src", "app", "help", "page.tsx"), "utf8");
+  expect(help).toContain('const paper = appConfig.adapter === "mock"');
+  expect(help).toContain("Paper USDC is simulated in this browser");
+  expect(help).toContain("A paper session is not a real wallet connection");
+  expect(help).toContain("Paper reward pools and eligibility are illustrative");
+});
+
+test("policy pages use the reference's 16px document body size", () => {
+  expect(stylesheet).toContain(".policy-content :is(p, ul, li) { font-size: 16px; line-height: 1.65; }");
+});
