@@ -1,0 +1,141 @@
+# Opinny — Design Language
+
+**Reference:** User-provided `Miro-design-analysis` (visual-system inspiration).  
+**Status:** Applied to the Opinny paper-market interface in November 2026.  
+**Ownership:** Original Opinny branding and product UI; no borrowed Miro assets or wordmark.
+
+This file is the implementation-facing `DESIGN.md`. For the detailed precedent
+and project-only rules, see `docs/DESIGN_SYSTEM.md` and
+`src/app/styles/opinny-workspace.css`.
+
+## Intent
+
+A confident, friendly, exceptionally clear visual workspace for studying
+prediction markets. Use the supplied reference's white canvas, very dark
+rounded CTAs, balanced typography, purposeful pastel educational panels and
+precise spacing. Reuse the *visual system*, not Miro's product, imagery or
+copy. Every depicted market is a real component driven by Opinny's simulator.
+
+## Fidelity decisions
+
+| Reference component or treatment | Opinny implementation |
+| --- | --- |
+| Stark white marketing canvas | White site canvas and editorial home hero |
+| Black full-pill primary button | Black rounded primary action throughout navigation and trading |
+| White outline pill | Secondary action, market filters, navigation chips |
+| Yellow brand accent | Original Opinny brand-mark dot, paper badge, restrained micro-highlights |
+| Pastel product feature cards | Three genuinely functional paper-trading journey cards |
+| Real product mockup imagery | Embedded, linked sample contract board using Opinny market data |
+| 80px / 1.05 hero type | Responsive 80px / 1.05 display headline at wide desktop |
+| 16px body and 14px buttons | Text scale, form/CTA and accessible trade actions |
+| Flat cards and 1px hairlines | Market cards, account panels, portfolio, admin |
+| 6-column dark marketing footer | Opinny brand column + five real-link navigation groups |
+| Dark bottom CTA | Functional `/markets` CTA under the discovery page |
+| 4/8px spacing units | Documented space tokens and section spacing |
+| Responsive steps at 480/768/1024/1280 | Aligned mobile, tablet, desktop and wide rules |
+| Miro brand wordmark | **Not used**; original Opinny logo retained |
+| Roobert PRO | **Not licensed or bundled**. Project fonts: self-hosted Inter and Instrument Serif |
+| Miro boards, stock imagery | **Not used**; product board built with live React components and mock adapter data |
+| Marketing pricing tiers and app store badges | **Not applicable** to a free frontend-only paper simulator; do not invent these pages |
+
+## Foundation tokens
+
+```css
+--canvas: #ffffff;
+--surface-soft: #f7f8fa;
+--ink: #1c1c1e;
+--ink-2: #555a6a;
+--ink-3: #6b6f7e;
+--line: #e0e2e8;
+--line-strong: #c7cad5;
+--brand: #1c1c1e;
+--accent: #4262ff;
+--op-yellow: #ffd02f;
+--op-rose: #fde0f0;
+--op-coral: #ffc6c6;
+--op-teal: #c3faf5;
+--radius: 16px;
+--radius-lg: 28px;
+--container: 1280px;
+```
+
+## Typographic roles
+
+- **Inter**, self-hosted by `next/font/google`: body, navigation, buttons,
+  labels, balances, charts, percentages, order books, input fields and data.
+- **Instrument Serif**, self-hosted by `next/font/google`: hero, question
+  and editorial section headlines. Major market numbers remain Inter.
+- No copied Roobert PRO, local system stacks, or third-party font files.
+- The font aliases must resolve from the generated classes on `<html>`.
+- Body uses 16px; ordinary controls target 13–14px or higher. Do not hide
+  unreadable microcopy behind a large polished layout.
+
+## Shapes and spacing
+
+- 4px base unit, with 8 / 12 / 16 / 20 / 24 / 32 / 40px increments.
+- Black primary pill buttons 44–48px tall, secondary outlined white pills.
+- Flat card corner radius 16px, large expressive feature cards 28px.
+- Marketing sections separated by roughly 64–96px, hero up to 112px.
+- Subtle 1px gray hairlines between rows; no empty marketing ornament.
+- Reserve shadow for the real featured market board and modal elevation.
+- Preserve clear negative/positive indicators on trade components, and
+  distinguish simulated data from real-money trading.
+
+## Page coverage
+
+**Homepage**: Centered hero, black pill actions, real featured market board,
+purposeful rose/teal/coral journey cards, market pulse, existing discovery,
+dark editorial CTA and six-column footer.
+
+**Discovery**: Category pills, accessible search and sorting, flat market
+cards, clear current probabilities, liquidity data and active actions.
+
+**Market detail**: Clear contract board, simulated sample chart, trading
+ticket, market depth and trade tape. Trading controls must not be hidden by
+marketing treatments.
+
+**Portfolio, orders, wallet and profile**: Whitespace, balances in Inter,
+flat cards, readable tables, responsive controls and honest paper labels.
+
+**Admin and resolutions**: More information density than the homepage but
+the same black/white tokens, status readability and form affordances.
+
+**Legal, help and rewards**: Consistent page typography, readable text,
+dark footer and keyboard focus treatment. Do not add marketing content that
+would obscure terms or risk information.
+
+## Responsive contract
+
+| Width | Behavior |
+| --- | --- |
+| Below 480px | 36px hero headline, one-column journey cards, full-width controls |
+| 480–767px | Hero around 48–54px, one-column content, reachable mobile trading sheet |
+| 768–1023px | Two-column feature cards; mobile/tablet trade sheet stays accessible |
+| 1024–1279px | Desktop trading sidebar, information-first market layouts |
+| 1280px and above | Up to 80px editorial hero, 1280px max container, six-column footer |
+
+Always test 320px, 375px, 430px, 768px, 1024px and 1440px,
+plus 200% zoom, reduced motion, keyboard-only flow and touch targets.
+Breakpoints alone do not prove rendered pixel fidelity.
+
+## Verification and honest limitations
+
+The project runs `bun run check`: ESLint, TypeScript, unit tests and Next.js
+static production build. Font and design-contract tests prevent common CSS
+regressions. Vercel production preview checks confirm generated pages.
+
+**Pixel-perfect cannot be certified from this textual reference alone.**
+It has no target screenshots, exact Opinny page coordinates, imagery, or
+interactive recordings. A full fidelity sign-off additionally needs
+side-by-side desktop/mobile screenshots, browser inspection and hands-on
+keyboard/screen-reader testing. The marketing-specific pricing/customer
+story/whiteboard components are not implemented because they are not
+part of Opinny.
+
+## Maintenance
+
+The legacy CSS currently uses multiple numbered files; the reference
+translation is centralized in `src/app/styles/opinny-workspace.css` and
+loaded last. Do not add more numbered global overrides for simple changes.
+Consolidate shared rules into the canonical layer carefully, with browser
+visual regression baselines before removing legacy selectors.
