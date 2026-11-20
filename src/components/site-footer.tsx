@@ -5,15 +5,21 @@ import { appConfig } from "@/lib/config";
 
 const productLinks = [
   ["Markets", "/markets"],
-  ["Rewards", "/rewards"],
+  ["Rewards", "/rewards"]
+] as const;
+
+const tradingLinks = [
   ["Portfolio", "/portfolio"],
   ["Orders", "/orders"],
-  ["Leaderboard", "/leaderboard"]
+  ["Activity", "/activity"]
+] as const;
+
+const exploreLinks = [
+  ["Leaderboard", "/leaderboard"],
+  ["Watchlist", "/watchlist"]
 ] as const;
 
 const accountLinks = [
-  ["Activity", "/activity"],
-  ["Watchlist", "/watchlist"],
   ["Settings", "/settings"],
   ["Help centre", "/help"]
 ] as const;
@@ -38,6 +44,8 @@ export function SiteFooter() {
           </div>
         </div>
         <nav aria-label="Product links"><strong>Product</strong>{productLinks.map(([label, href]) => <Link href={href} key={href}>{label}</Link>)}</nav>
+        <nav aria-label="Trading links"><strong>Trading</strong>{tradingLinks.map(([label, href]) => <Link href={href} key={href}>{label}</Link>)}</nav>
+        <nav aria-label="Explore links"><strong>Explore</strong>{exploreLinks.map(([label, href]) => <Link href={href} key={href}>{label}</Link>)}</nav>
         <nav aria-label="Account links"><strong>Account</strong>{accountLinks.map(([label, href]) => <Link href={href} key={href}>{label}</Link>)}</nav>
         <nav aria-label="Policy links"><strong>Information</strong>{policyLinks.map(([label, href]) => <Link href={href} key={href}>{label}</Link>)}</nav>
       </div>

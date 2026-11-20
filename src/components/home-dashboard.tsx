@@ -141,6 +141,13 @@ export function HomeDashboard({ initialMarkets, leaderboard }: { initialMarkets:
           </div> : null}
         </aside>
       </div>
+
+      <section className="home-cta" aria-labelledby="home-cta-title">
+        <span>MAKE A CALL. LEARN FROM THE OUTCOME.</span>
+        <h2 id="home-cta-title">Every good forecast starts with a question.</h2>
+        <p>Explore the markets, build a simulated position, and see how your view plays out.</p>
+        <Link className="home-cta-button" href="/markets">Start exploring <ArrowUpRight size={17} /></Link>
+      </section>
     </div>
   );
 }
