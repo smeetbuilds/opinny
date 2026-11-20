@@ -47,3 +47,26 @@
 - [ ] Configure `NEXT_PUBLIC_OPINNY_SITE_URL` with the canonical production origin for sitemap URLs
 
 The exact next production integration item is to register a real adapter in `src/lib/data.ts` and a matching wallet implementation in `src/lib/wallet.ts`. Unknown adapter names fail closed and never fall back to mock data.
+
+
+## Paper simulator hardening — 20 November 2026
+
+- [x] Prevent conflicting order requests from reusing an idempotency key
+- [x] Regression coverage for price improvement, seller reserves, slippage, settlement and cash-journal reconciliation
+- [x] Include public browser-created markets in discovery while hiding unpublished drafts
+- [x] Route local market results through the static-compatible paper market path
+- [x] Refresh the homepage pulse and market-detail probability headline after local state changes
+- [x] Preserve order-book closure on resolution and update liquidity as synthetic depth is consumed
+- [x] Add seven hypothetical market fixtures with explicit settlement rules and more varied sample activity
+- [x] Tie every seeded or locally created market to a real paper-admin resolution case and one-time redemption
+- [x] Improve keyboard chart inspection, focus trapping in key dialogs, mobile chart density and trade touch targets
+- [x] Add fixture-integrity and full local market creation/settlement regression tests
+- [x] Document a manual device, accessibility and performance acceptance matrix
+
+**Automated checks:** the repository's existing `bun run check` gate covers lint, types,
+tests and a production build; Vercel provides deployment compilation feedback.
+**Still requires physical/browser QA:** screenshots at representative device widths,
+screen-reader trials, 200% zoom, measured CWV and real interaction walkthroughs.
+Do not mistake an automated build pass for those manual test results.
+
+See `docs/PAPER_SIMULATOR_ACCEPTANCE.md` for the full acceptance workflow.
