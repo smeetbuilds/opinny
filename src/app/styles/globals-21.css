@@ -53,11 +53,11 @@ main { min-width: 0; }
 }
 .market-card .category-label {
   color: var(--ink-3);
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: .065em;
 }
 .market-card-snapshot small {
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: .025em;
 }
 .market-card-snapshot strong,
@@ -129,7 +129,7 @@ main { min-width: 0; }
 .portfolio-health-strip small,
 .order-health small,
 .operation-summary small {
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: .025em;
 }
 .book-card .book-quote-strip strong,
@@ -206,7 +206,7 @@ main { min-width: 0; }
 @media (max-width: 390px) {
   .market-card-footer .end-date { width: 100%; margin-left: 0; }
   .outcome-row { grid-template-columns: minmax(42px, auto) minmax(22px, 1fr) 32px auto; gap: 6px; padding-inline: 7px; }
-  .outcome-row .outcome-action { min-width: 41px; font-size: 10px; }
+  .outcome-row .outcome-action { min-width: 41px; font-size: 11px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .market-card, .outcome-row { transition: none; transform: none !important; }

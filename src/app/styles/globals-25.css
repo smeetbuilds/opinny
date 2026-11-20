@@ -27,7 +27,7 @@
 .opinny-desk-home .hero-proof dt { color: #677a6c; font-size: 11px; line-height: 1.3; }
 .opinny-desk-home .hero-proof dd { margin: 0; color: #1e382a; font-size: 19px; font-weight: 740; letter-spacing: -.025em; font-variant-numeric: tabular-nums; }
 .opinny-desk-home .featured-market-panel { display: flex; min-width: 0; flex-direction: column; border: 1px solid #dce5dc; border-radius: 13px; padding: 25px; background: #f9fbf9; }
-.opinny-desk-home .featured-market-head { display: flex; align-items: center; flex-wrap: wrap; justify-content: space-between; gap: 6px 10px; color: #607667; font-size: 10px; font-weight: 740; letter-spacing: .055em; }
+.opinny-desk-home .featured-market-head { display: flex; align-items: center; flex-wrap: wrap; justify-content: space-between; gap: 6px 10px; color: #607667; font-size: 11px; font-weight: 740; letter-spacing: .055em; }
 .opinny-desk-home .featured-market-panel h2 { margin: 24px 0 16px; font: 400 clamp(25px, 3vw, 36px)/1.11 var(--font-display); color: #1a3026; letter-spacing: -.012em; }
 .opinny-desk-home .featured-market-panel h2 a:hover { color: #325e46; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px; }
 .opinny-desk-home .featured-market-quote { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 1px 15px; margin: auto 0 17px; }
@@ -45,14 +45,14 @@
 .opinny-desk-home .featured-market-empty { color: #5e7366; line-height: 1.6; }
 .opinny-desk-home .desk-signal-strip { margin: 20px 0 40px; border-radius: 11px; box-shadow: none; }
 .opinny-desk-home .desk-signal-strip > div { grid-template-columns: minmax(0,1fr) auto; align-content: center; gap: 6px 10px; padding: 16px 17px; }
-.opinny-desk-home .desk-signal-strip > div > span { grid-column: 1/-1; font-size: 10px; color: #6a7e70; letter-spacing: .035em; text-transform: none; }
+.opinny-desk-home .desk-signal-strip > div > span { grid-column: 1/-1; font-size: 11px; color: #6a7e70; letter-spacing: .035em; text-transform: none; }
 .opinny-desk-home .desk-signal-strip a { color: #213b2d; font-size: 12px; }
 .opinny-desk-home .desk-signal-strip strong { color: #244e39; font-size: 12px; font-variant-numeric: tabular-nums; }
 .opinny-desk-home .home-content-grid { gap: 26px; }
 .opinny-desk-home .desk-sidebar { border-color: #dfe6df; border-radius: 13px; box-shadow: none; }
 .opinny-desk-home .desk-sidebar .trend-list a { grid-template-columns: 27px minmax(0,1fr) auto; gap: 8px; }
 .opinny-desk-home .desk-sidebar .trend-copy strong { font-size: 12px; }
-.opinny-desk-home .desk-sidebar .trend-copy small { font-size: 10px; color: #62776a; }
+.opinny-desk-home .desk-sidebar .trend-copy small { font-size: 11px; color: #62776a; }
 .opinny-desk-home .desk-sidebar .trend-list em { color: #204d37; font-size: 12px; font-weight: 730; font-style: normal; }
 .opinny-desk-home .desk-sidebar .leaderboard-teaser { box-shadow: none; }
 
@@ -82,12 +82,12 @@
 .opinny-discovery-card .bookmark-button { flex: 0 0 auto; min-width: 34px; min-height: 34px; border-radius: 7px; color: #547463; }
 .opinny-discovery-card .market-card-snapshot { display: flex; min-height: 74px; align-items: flex-end; justify-content: space-between; gap: 9px; margin-top: 19px; border: 0; border-top: 1px solid #e4eae3; border-bottom: 1px solid #e4eae3; border-radius: 0; padding: 13px 0; background: none; }
 .opinny-discovery-card .market-card-leader-label { display: grid; min-width: 0; gap: 5px; }
-.opinny-discovery-card .market-card-leader-label > span { font-size: 9px; color: #637b6a; font-weight: 750; letter-spacing: .08em; }
+.opinny-discovery-card .market-card-leader-label > span { font-size: 11px; color: #637b6a; font-weight: 750; letter-spacing: .08em; }
 .opinny-discovery-card .market-card-leader-label > strong { font-size: 13px; font-weight: 740; color: #243b2d; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
 .opinny-discovery-card .market-card-leading-price { display: grid; justify-items: end; gap: 2px; }
 .opinny-discovery-card .market-card-leading-price b { color: #20503a; font-size: 27px; letter-spacing: -.04em; line-height: 1.1; font-variant-numeric: tabular-nums; }
 .opinny-discovery-card .market-card-leading-price small { font-size: 15px; }
-.opinny-discovery-card .market-card-leading-price em { font-size: 10px; font-style: normal; font-weight: 680; }
+.opinny-discovery-card .market-card-leading-price em { font-size: 11px; font-style: normal; font-weight: 680; }
 .opinny-discovery-card .outcome-list { display: grid; margin: 13px 0; gap: 1px; }
 .opinny-discovery-card .outcome-row { display: grid; grid-template-columns: minmax(0,1fr) minmax(30px,65px) 51px 41px; align-items: center; gap: 8px; min-height: 39px; border: 0; border-radius: 5px; padding: 5px 4px; background: transparent; transition: background .12s ease; }
 .opinny-discovery-card .outcome-row:hover { background: #f1f6f2; border: 0; transform: none; }
@@ -96,9 +96,9 @@
 .opinny-discovery-card .outcome-row .probability-track i { display: block; height: 100%; border-radius: 3px; background: #3e7153; }
 .opinny-discovery-card .outcome-row strong { font-size: 11px; color: #244836; text-align: right; font-variant-numeric: tabular-nums; }
 .opinny-discovery-card .outcome-row .outcome-action { display: flex; align-items: center; justify-content: end; min-width: 0; height: auto; padding: 0; border: 0; color: #315f45; background: transparent; font-size: 11px; font-weight: 750; }
-.opinny-discovery-card .market-card-footer { display: flex; flex-wrap: wrap; align-items: center; gap: 5px 12px; margin-top: auto; padding-top: 13px; border-top: 1px solid #e4eae3; color: #667b6d; font-size: 10px; }
+.opinny-discovery-card .market-card-footer { display: flex; flex-wrap: wrap; align-items: center; gap: 5px 12px; margin-top: auto; padding-top: 13px; border-top: 1px solid #e4eae3; color: #667b6d; font-size: 11px; }
 .opinny-discovery-card .market-card-footer span { display: inline-flex; align-items: center; gap: 4px; }
-.opinny-discovery-card .market-card-footer .end-date { margin-left: 0; font-size: 10px; }
+.opinny-discovery-card .market-card-footer .end-date { margin-left: 0; font-size: 11px; }
 .opinny-discovery-card .market-card-footer .market-comments { display: inline-flex; }
 .market-grid-section .market-controls { gap: 10px; }
 .market-grid-section .category-tabs { scrollbar-width: thin; }
@@ -132,11 +132,11 @@
 }
 @media (max-width: 390px) {
   .opinny-desk-home .hero-proof { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; }
-  .opinny-desk-home .hero-proof dt { font-size: 10px; }
+  .opinny-desk-home .hero-proof dt { font-size: 11px; }
   .opinny-desk-home .hero-proof dd { font-size: 14px; }
   .opinny-desk-home .featured-market-panel { padding: 15px; }
   .opinny-discovery-card .outcome-row { grid-template-columns: minmax(0,1fr) 30px 48px 39px; gap: 5px; }
-  .opinny-discovery-card .outcome-row .outcome-action { font-size: 10px; }
+  .opinny-discovery-card .outcome-row .outcome-action { font-size: 11px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .opinny-discovery-card.market-card, .opinny-discovery-card .outcome-row { transition: none; }

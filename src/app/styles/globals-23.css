@@ -72,7 +72,7 @@
   gap: 12px;
   padding: 19px 0 14px;
 }
-.market-page .contract-board-head .eyebrow { color: #668274; font-size: 10px; font-weight: 750; letter-spacing: .11em; }
+.market-page .contract-board-head .eyebrow { color: #668274; font-size: 11px; font-weight: 750; letter-spacing: .11em; }
 .market-page .contract-board-head h2 { margin: 4px 0 0; font-family: var(--font-ui); color: var(--market-ink); font-size: 17px; font-weight: 720; letter-spacing: -.025em; }
 .market-page .contract-board-head p { margin: 0; color: var(--market-muted); font-size: 11px; text-align: right; }
 .market-page .contract-list { border: 1px solid var(--market-line); border-radius: 11px; overflow: hidden; background: #fff; }
@@ -107,7 +107,7 @@
 .market-page .opinny-probability-chart { padding: 25px 27px 22px; }
 .market-page .opinny-probability-chart .chart-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
 .market-page .opinny-probability-chart .chart-heading { display: grid; gap: 4px; }
-.market-page .opinny-probability-chart .chart-heading .eyebrow { grid-column: auto; font-size: 10px; color: #668274; letter-spacing: .11em; }
+.market-page .opinny-probability-chart .chart-heading .eyebrow { grid-column: auto; font-size: 11px; color: #668274; letter-spacing: .11em; }
 .market-page .opinny-probability-chart .chart-heading h2 { margin: 1px 0 0; font-family: var(--font-ui); font-size: 18px; font-weight: 710; letter-spacing: -.02em; color: var(--market-ink); }
 .market-page .opinny-probability-chart .chart-heading p { margin: 2px 0 0; font-size: 12px; color: var(--market-muted); line-height: 1.5; }
 .market-page .opinny-probability-chart .chart-head-reading { display: grid; justify-items: end; gap: 3px; flex: 0 0 auto; }
@@ -116,22 +116,22 @@
 .market-page .chart-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 13px; padding: 18px 0 9px; }
 .market-page .chart-sample-summary { display: flex; align-items: center; flex-wrap: wrap; gap: 20px; }
 .market-page .chart-sample-summary > span { display: grid; gap: 1px; }
-.market-page .chart-sample-summary small { color: var(--market-muted); font-size: 10px; }
+.market-page .chart-sample-summary small { color: var(--market-muted); font-size: 11px; }
 .market-page .chart-sample-summary strong { color: var(--market-ink); font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .market-page .chart-toolbar .range-tabs { display: flex; align-items: center; gap: 2px; border: 1px solid var(--market-line); border-radius: 8px; padding: 3px; background: #fff; }
 .market-page .chart-toolbar .range-tabs button { min-height: 33px; height: auto; padding: 6px 10px; color: var(--market-muted); font: 650 11px var(--font-ui); border-radius: 5px; }
 .market-page .chart-toolbar .range-tabs button.active { color: var(--market-ink); background: #edf1ec; box-shadow: none; }
 .market-page .chart-plot-row { display: grid; grid-template-columns: 39px minmax(0, 1fr); gap: 4px; margin-top: 11px; }
-.market-page .chart-axis-values { display: flex; flex-direction: column; justify-content: space-between; padding: 0 8px 0 0; color: var(--market-muted); font-size: 10px; text-align: right; font-variant-numeric: tabular-nums; }
+.market-page .chart-axis-values { display: flex; flex-direction: column; justify-content: space-between; padding: 0 8px 0 0; color: var(--market-muted); font-size: 11px; text-align: right; font-variant-numeric: tabular-nums; }
 .market-page .opinny-probability-chart .chart-area { height: 235px; margin: 0; padding: 0; color: #255b44; border-left: 1px solid #e5ebe4; }
 .market-page .opinny-probability-chart .chart-area .grid-line { stroke: #e7ece6; }
 .market-page .opinny-probability-chart .chart-area polyline { stroke: #235940; stroke-width: 2.1; stroke-linecap: round; stroke-linejoin: round; }
 .market-page .opinny-probability-chart .chart-cursor { stroke: #9aaea2; }
 .market-page .opinny-probability-chart .chart-point { fill: #fff; stroke: #235940; stroke-width: 2.5; }
 .market-page .opinny-probability-chart .chart-tooltip { min-width: 82px; border-radius: 6px; box-shadow: 0 6px 16px rgba(17, 44, 33, .13); }
-.market-page .opinny-probability-chart .chart-tooltip small { font-size: 10px; letter-spacing: 0; text-transform: none; }
+.market-page .opinny-probability-chart .chart-tooltip small { font-size: 11px; letter-spacing: 0; text-transform: none; }
 .market-page .opinny-probability-chart .chart-tooltip strong { font-size: 13px; }
-.market-page .opinny-probability-chart .chart-x-axis { margin: 8px 0 0 43px; font-size: 10px; }
+.market-page .opinny-probability-chart .chart-x-axis { margin: 8px 0 0 43px; font-size: 11px; }
 .market-page .chart-caption { margin: 20px 0 0; padding-top: 12px; border-top: 1px solid #e9eee9; color: var(--market-muted); font-size: 11px; line-height: 1.55; }
 .market-page .market-info-card .content-tabs { position: static; padding-inline: 16px; }
 .market-page .market-info-card .market-description { padding: 24px; }

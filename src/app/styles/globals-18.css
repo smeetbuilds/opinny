@@ -19,7 +19,7 @@
 .rewards-count { border-radius: 999px; padding: 6px 9px; color: var(--ink-2); background: var(--surface-soft); font-size: 11px; font-weight: 800; }
 .rewards-toolbar { display: grid; grid-template-columns: minmax(260px, 1fr) auto auto auto; align-items: center; gap: 9px; border-bottom: 1px solid var(--line); padding: 12px 14px; background: #fbfcfa; }
 .rewards-search { min-width: 0; }
-.rewards-toolbar .select-control > span { color: var(--ink-3); font-size: 10px; font-weight: 800; text-transform: uppercase; }
+.rewards-toolbar .select-control > span { color: var(--ink-3); font-size: 11px; font-weight: 800; text-transform: uppercase; }
 
 .rewards-table table { min-width: 1080px; }
 .rewards-table th, .rewards-table td { vertical-align: middle; }
@@ -34,9 +34,9 @@
 .competition-meter b { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: var(--accent); }
 .reward-prices { display: flex; gap: 5px; min-width: 150px; flex-wrap: wrap; }
 .reward-prices > span { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--line); border-radius: 7px; padding: 4px 6px; background: #fbfcfa; }
-.reward-prices small { max-width: 70px; overflow: hidden; color: var(--ink-3); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
-.reward-prices strong { font-size: 10px; }
-.reward-status { display: inline-flex; align-items: center; border-radius: 999px; padding: 5px 8px; font-size: 10px; font-weight: 850; }
+.reward-prices small { max-width: 70px; overflow: hidden; color: var(--ink-3); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.reward-prices strong { font-size: 11px; }
+.reward-status { display: inline-flex; align-items: center; border-radius: 999px; padding: 5px 8px; font-size: 11px; font-weight: 850; }
 .reward-status.eligible { color: var(--green); background: var(--green-soft); }
 .reward-status.watch { color: var(--amber); background: var(--amber-soft); }
 .reward-row-action a { display: inline-flex; align-items: center; gap: 4px; color: var(--brand-2); font-size: 11px; font-weight: 800; white-space: nowrap; }
@@ -53,7 +53,7 @@
 .reward-rules-dialog header p { margin: 0; color: var(--ink-2); font-size: 12px; line-height: 1.55; }
 .reward-rule-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; margin-top: 20px; }
 .reward-rule-grid > span { display: grid; gap: 4px; border: 1px solid var(--line); border-radius: 12px; padding: 13px; background: var(--surface-soft); }
-.reward-rule-grid small { color: var(--ink-3); font-size: 10px; font-weight: 750; }
+.reward-rule-grid small { color: var(--ink-3); font-size: 11px; font-weight: 750; }
 .reward-rule-grid strong { font-size: 16px; }
 .reward-rule-note { margin: 14px 0 0; border-left: 2px solid var(--accent); padding-left: 11px; color: var(--ink-2); font-size: 11px; line-height: 1.6; }
 .reward-rules-dialog > footer { display: flex; justify-content: flex-end; gap: 9px; margin-top: 20px; }
@@ -71,9 +71,9 @@
 .market-order-main { display: flex; min-width: 0; align-items: center; gap: 9px; }
 .market-order-main > span:last-child { display: grid; min-width: 0; gap: 2px; }
 .market-order-main strong { overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
-.market-order-main small { color: var(--ink-3); font-size: 10px; }
+.market-order-main small { color: var(--ink-3); font-size: 11px; }
 .market-order-progress { display: grid; gap: 6px; }
-.market-order-progress > span { color: var(--ink-2); font-size: 10px; font-weight: 750; }
+.market-order-progress > span { color: var(--ink-2); font-size: 11px; font-weight: 750; }
 .market-order-progress i { position: relative; display: block; height: 5px; overflow: hidden; border-radius: 999px; background: var(--surface-soft); }
 .market-order-progress b { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: var(--brand-2); }
 .market-orders-empty { display: grid; gap: 3px; padding: 20px; color: var(--ink-2); }

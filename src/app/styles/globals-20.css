@@ -19,7 +19,7 @@
   flex: 0 0 auto;
   align-items: center;
   gap: 6px;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 850;
   letter-spacing: .075em;
   white-space: nowrap;
@@ -72,9 +72,9 @@
   transform: none;
 }
 @media (max-width: 760px) {
-  .paper-banner-inner { gap: 9px; font-size: 10px; min-height: 42px; }
+  .paper-banner-inner { gap: 9px; font-size: 11px; min-height: 42px; }
   .paper-device-note { display: none; }
-  .paper-mode-mark { font-size: 9px; }
+  .paper-mode-mark { font-size: 11px; }
   .paper-order-actions { justify-content: flex-start; }
   .paper-match-action { min-height: 36px; }
   .paper-reset-button { width: 100%; min-height: 44px; }
