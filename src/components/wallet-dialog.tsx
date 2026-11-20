@@ -71,8 +71,8 @@ export function WalletDialog({ open, onClose, onConnect }: { open: boolean; onCl
           <button className="icon-button" disabled={Boolean(connecting)} onClick={onClose} aria-label="Close wallet dialog"><X size={18} /></button>
         </header>
         <div className="wallet-network-row">
-          <span><Network size={15} /><small>Network</small><strong>{appConfig.chainName}</strong></span>
-          <span><CircleDollarSign size={15} /><small>Primary collateral</small><strong>{appConfig.collateral}</strong></span>
+          <span><Network size={15} /><small>{referenceMode ? "Environment" : "Network"}</small><strong>{referenceMode ? "Browser-local" : appConfig.chainName}</strong></span>
+          <span><CircleDollarSign size={15} /><small>{referenceMode ? "Paper collateral" : "Primary collateral"}</small><strong>{appConfig.collateral}</strong></span>
         </div>
         <div className="wallet-list">
           {(referenceMode ? [{ name: "Paper wallet", detail: "Start with simulated balances; no real wallet required", mark: "OP" }] : wallets).map((wallet) => (
@@ -88,7 +88,7 @@ export function WalletDialog({ open, onClose, onConnect }: { open: boolean; onCl
           <div><WalletCards size={17} /><span>No card or bank funding</span></div>
           <div><Zap size={17} /><span>{referenceMode ? "No transaction is broadcast" : "Wallet-approved transactions"}</span></div>
         </div>
-        <p className="dialog-footnote">{referenceMode ? "Reference mode simulates wallet approval for interface testing. It never signs or sends a blockchain transaction." : "Wallet signatures and network fees may be required. Never share a recovery phrase or private key."}</p>
+        <p className="dialog-footnote">{referenceMode ? "Paper mode creates a browser-local practice session. It does not connect to a real wallet, sign a transaction or broadcast to a blockchain." : "Wallet signatures and network fees may be required. Never share a recovery phrase or private key."}</p>
       </section>
     </div>
   );

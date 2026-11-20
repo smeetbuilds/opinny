@@ -215,3 +215,21 @@ The Help page and Rewards console now explicitly distinguish browser-local
 paper examples from connected production integrations. The rewards dialog
 also uses keyboard focus containment, and legal text has a 16px reading
 scale consistent with the reference.
+
+### Final source-level consistency pass
+
+The source CSS has also been cleaned at the originating selectors:
+floating market-card hover lifts, search shadows, decorative probability-card
+orb, and legacy green gradients in snapshots, rewards, admin KPIs, resolution,
+account, and claimable surfaces were removed or flattened. This reduces the
+dependence on late overrides and keeps the UI aligned with the reference's
+flat, hairline-led treatment.
+
+Paper-mode context is visible in the wallet dialog (browser-local environment),
+metadata, error handling and on all three policy pages. The policies preserve
+their future-integration material but clearly disclose that the current product
+executes no real blockchain transactions.
+
+A static CSS contract test checks that these ornamental treatments do not
+silently return. CI and HTTP responses cannot confirm visual parity, keyboard
+accessibility in a rendered browser or device-specific layout.

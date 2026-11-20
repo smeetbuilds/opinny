@@ -25,23 +25,27 @@ const instrumentSerif = Instrument_Serif({
   adjustFontFallback: false
 });
 
+const siteDescription = appConfig.adapter === "mock"
+  ? "Explore prediction markets, place simulated USDC trades and manage a browser-local paper portfolio. No real money, wallet transactions or live prices."
+  : "Explore event-market probabilities, prepare crypto trades and manage positions through a connected wallet integration.";
+
 export const metadata: Metadata = {
   ...(appConfig.siteUrl ? { metadataBase: new URL(appConfig.siteUrl) } : {}),
   title: {
     default: "Opinny — Trade what happens next",
     template: "%s · Opinny"
   },
-  description: "An interactive prediction-market simulation. Explore event probabilities, place paper trades and manage a practice portfolio with no real money.",
+  description: siteDescription,
   openGraph: {
     type: "website",
     siteName: "Opinny",
     title: "Opinny — Trade what happens next",
-    description: "A crypto prediction-market interface for exploring event probabilities, trading outcomes and managing positions."
+    description: siteDescription
   },
   twitter: {
     card: "summary",
     title: "Opinny — Trade what happens next",
-    description: "A crypto prediction-market interface for exploring event probabilities, trading outcomes and managing positions."
+    description: siteDescription
   },
   icons: {
     icon: "/favicon.svg"

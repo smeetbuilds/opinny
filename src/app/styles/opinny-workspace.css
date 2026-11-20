@@ -1044,3 +1044,34 @@ body .policy-content :is(p, li) { line-height: 1.65; }
 @media (max-width: 767px) {
   .policy-content :is(p, ul, li) { font-size: 16px; }
 }
+
+/* Paper-mode scope on legal pages distinguishes active demo from future
+   integration contracts without hiding the underlying disclosures. */
+.policy-paper-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin: 0 0 32px;
+  border: 1px solid #e5d8a9;
+  border-radius: 16px;
+  padding: 18px 20px;
+  color: var(--ink);
+  background: var(--op-yellow-light);
+}
+.policy-paper-note svg { flex: 0 0 auto; margin-top: 2px; color: var(--ink); }
+.policy-paper-note p { margin: 0; max-width: 890px; font-size: 14px; line-height: 1.65; }
+.policy-paper-note strong { font-weight: 650; }
+.wallet-network-row > span { border-color: var(--line); background: var(--surface-soft); }
+.wallet-network-row strong { font-size: 14px; font-weight: 600; }
+.wallet-network-row small { color: var(--ink-2); font-size: 12px; }
+.wallet-assurance > div { color: var(--ink-2); font-size: 12px; }
+.wallet-sheet .dialog-footnote { color: var(--ink-2); font-size: 13px; line-height: 1.6; }
+.error-page { background: var(--canvas); color: var(--ink); }
+.error-page .error-code { color: var(--ink-2); }
+.error-page h1 { font-family: var(--font-display); font-weight: 400; letter-spacing: -.025em; line-height: 1.1; }
+.error-page p { color: var(--ink-2); font-size: 15px; line-height: 1.6; }
+@media (max-width: 767px) {
+  .policy-paper-note { gap: 10px; margin-bottom: 22px; padding: 14px; }
+  .policy-paper-note p { font-size: 13px; }
+}
+

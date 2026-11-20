@@ -162,3 +162,36 @@ test("help explanations distinguish simulated funds from connected-wallet operat
 test("policy pages use the reference's 16px document body size", () => {
   expect(stylesheet).toContain(".policy-content :is(p, ul, li) { font-size: 16px; line-height: 1.65; }");
 });
+
+
+test("legacy discovery, admin and rewards styling stays flat instead of reintroducing AI-slop gradients", () => {
+  const dir = join(root, "src", "app", "styles");
+  const discovery = readFileSync(join(dir, "globals-11.css"), "utf8");
+  const admin = readFileSync(join(dir, "globals-13.css"), "utf8");
+  const rewards = readFileSync(join(dir, "globals-18.css"), "utf8");
+  const market = readFileSync(join(dir, "globals-02.css"), "utf8");
+  expect(discovery).not.toContain(".market-card::before");
+  expect(discovery).not.toContain("background: linear-gradient(135deg, #fbfcfa, #f4f8f5)");
+  expect(discovery).not.toContain("box-shadow: 0 7px 22px");
+  expect(admin).not.toContain("background:linear-gradient");
+  expect(rewards).not.toContain("background: linear-gradient");
+  expect(market).not.toContain("translateY(-2px)");
+  expect(rewards).toContain(".rewards-hero h1 { max-width: 680px; margin: 5px 0 10px; font-family: var(--font-display)");
+});
+
+test("all visitor-facing shell copy identifies the real scope of browser-local paper mode", () => {
+  const policy = readFileSync(join(root, "src", "components", "policy-page.tsx"), "utf8");
+  const wallet = readFileSync(join(root, "src", "components", "wallet-dialog.tsx"), "utf8");
+  const layout = readFileSync(join(root, "src", "app", "layout.tsx"), "utf8");
+  const error = readFileSync(join(root, "src", "app", "error.tsx"), "utf8");
+  expect(policy).toContain("appConfig.adapter === \"mock\"");
+  expect(policy).toContain('className="policy-paper-note"');
+  expect(policy).toContain("browser-local simulated balances");
+  expect(wallet).toContain('"Browser-local" : appConfig.chainName');
+  expect(wallet).toContain('"Paper collateral" : "Primary collateral"');
+  expect(wallet).toContain("does not connect to a real wallet");
+  expect(error).toContain("browser-local paper simulation");
+  expect(layout).toContain("const siteDescription = appConfig.adapter === \"mock\"");
+  expect(layout.match(/description: siteDescription/g)).toHaveLength(3);
+  expect(stylesheet).toContain(".policy-paper-note {");
+});
