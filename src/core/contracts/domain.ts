@@ -262,6 +262,8 @@ export interface AdminUser {
 
 export interface ResolutionCase {
   id: string;
+  /** Present for a market that can actually settle in the browser-local paper exchange. */
+  marketId?: string;
   market: string;
   endDate: string;
   proposedOutcome: string;

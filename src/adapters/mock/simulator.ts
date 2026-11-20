@@ -85,12 +85,27 @@ export function paperAdminUsers(): AdminUser[] {
   return seedAdminUsers.map((user) => ({ ...user, status: state().userStatuses?.[user.id] ?? user.status }));
 }
 export function paperResolutionCases(): ResolutionCase[] {
-  return seedResolutions.map((item) => ({
+  const current = state();
+  const locallyCreated = (current.createdMarkets ?? [])
+    .filter((market) => (current.marketStatuses?.[market.id] ?? market.status) !== "draft")
+    .map((market): ResolutionCase => {
+      const caseId = "paper-case-" + market.id;
+      return {
+        id: caseId, marketId: market.id, market: market.shortQuestion,
+        endDate: market.endDate.slice(0, 10),
+        proposedOutcome: market.outcomes[0]?.label ?? "",
+        source: market.resolutionSource, disputes: 0,
+        status: current.resolutionDecisions?.[caseId]?.status
+          ?? (current.resolvedMarkets?.[market.id] ? "approved" : "awaiting")
+      };
+    });
+  return [...locallyCreated, ...seedResolutions].map((item) => ({
     ...item,
-    status: state().resolutionDecisions?.[item.id]?.status ?? item.status,
-    proposedOutcome: state().resolutionDecisions?.[item.id]?.outcome ?? item.proposedOutcome
+    status: current.resolutionDecisions?.[item.id]?.status ?? item.status,
+    proposedOutcome: current.resolutionDecisions?.[item.id]?.outcome ?? item.proposedOutcome
   }));
 }
+
 export function createPaperMarket(input: AdminMarketInput): string {
   const labels = input.outcomes.map((item) => item.trim()).filter(Boolean);
   if (!input.question.trim() || input.question.trim().length > 180) throw new Error("Enter a market question of 1–180 characters.");
@@ -145,7 +160,7 @@ export function setPaperResolution(id: string, outcome: string): string {
   if (!item) throw new Error("Resolution case not found.");
   if (item.status === "approved") throw new Error("Resolution already approved.");
   if (!outcome.trim()) throw new Error("Select a resolution outcome.");
-  const linked = paperMarkets().find((market) => market.question === item.market || market.shortQuestion === item.market);
+  const linked = paperMarkets().find((market) => item.marketId ? market.id === item.marketId : market.question === item.market || market.shortQuestion === item.market);
   if (linked && !linked.outcomes.some((candidate) => candidate.label === outcome || candidate.id === outcome)) throw new Error("The selected outcome does not belong to this market.");
   if (linked) settlePaperMarket(linked.id, outcome);
   state().resolutionDecisions ??= {};

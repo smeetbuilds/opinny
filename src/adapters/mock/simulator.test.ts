@@ -279,3 +279,36 @@ test("settlement cancels resting orders, releases collateral and pays winners on
   expect(() => redeemPaperPosition(position.id)).toThrow();
   expect(() => previewPaperOrder({ ...resting, clientRequestId: "after-settle" })).toThrow();
 });
+
+test("created paper market supports publish, trade, outcome selection, settlement and one-time redemption", () => {
+  seedPaperExchangeForTests();
+  const id = createPaperMarket({
+    question: "Will the paper scenario finish with the second result?",
+    category: "Science", kind: "binary", outcomes: ["First", "Second"],
+    endDate: new Date(Date.now() + 14 * 86_400_000).toISOString(),
+    resolutionSource: "Scenario fixture", resolutionRules: "Choose a winning outcome from the browser-local admin queue."
+  });
+  expect(paperResolutionCases().some((item) => item.marketId === id)).toBe(false);
+  setPaperMarketStatus(id, "open");
+  const market = paperMarkets().find((item) => item.id === id)!;
+  const resolutionCase = paperResolutionCases().find((item) => item.marketId === id)!;
+  expect(resolutionCase.status).toBe("awaiting");
+  const initialCash = paperBalances().find((item) => item.asset === "USDC")!.available;
+  executePaperOrder({
+    clientRequestId: "scenario-buy", marketId: id, outcomeId: market.outcomes[1].id,
+    side: "buy", type: "market", collateralAmount: 40
+  });
+  const won = paperPositions().find((position) => position.marketId === id && position.outcome === "Second")!;
+  expect(won.shares).toBeGreaterThan(0);
+  expect(paperBalances().find((item) => item.asset === "USDC")!.available).toBeLessThan(initialCash);
+  setPaperResolution(resolutionCase.id, "Second");
+  expect(paperResolutionCases().find((item) => item.id === resolutionCase.id)?.status).toBe("approved");
+  expect(paperMarkets().find((item) => item.id === id)!.outcomes.find((item) => item.label === "Second")!.probability).toBe(100);
+  const claimable = paperPositions().find((item) => item.id === won.id)!;
+  expect(claimable.status).toBe("resolved");
+  expect(claimable.claimableAmount).toBeCloseTo(won.shares, 4);
+  redeemPaperPosition(won.id);
+  expect(paperBalances().find((item) => item.asset === "USDC")!.available).toBeGreaterThan(initialCash);
+  expect(() => redeemPaperPosition(won.id)).toThrow();
+  expect(() => setPaperResolution(resolutionCase.id, "First")).toThrow();
+});
