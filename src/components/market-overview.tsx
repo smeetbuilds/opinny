@@ -36,7 +36,7 @@ export function MarketOverview({ initialMarket }: { initialMarket: Market }) {
                   <div className={index === 0 ? "headline-outcome primary" : "headline-outcome"} key={outcome.id}>
                     <span>{outcome.label}</span>
                     <strong>{outcome.probability}%</strong>
-                    <em className={outcome.change24h >= 0 ? "positive" : "negative"}>{outcome.change24h >= 0 ? "+" : ""}{outcome.change24h.toFixed(1)} today</em>
+                    <em className={outcome.change24h >= 0 ? "positive" : "negative"}>{outcome.change24h >= 0 ? "+" : ""}{outcome.change24h.toFixed(1)} paper move</em>
                     {market.status === "open" ? <TradeOutcomeButton outcomeId={outcome.id} label={outcome.label} className={index === 0 ? "yes-button" : "no-button"} /> : <span className="outcome-closed-action">{market.status === "resolved" ? "Final" : "Unavailable"}</span>}
                   </div>
                 ))}

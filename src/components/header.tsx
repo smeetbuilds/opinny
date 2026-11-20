@@ -9,6 +9,7 @@ import { NotificationCenter } from "./notification-center";
 import { useApp } from "./app-provider";
 import { shortAddress } from "@/lib/format";
 import { appConfig } from "@/lib/config";
+import { marketHref } from "@/lib/market-href";
 
 const navItems = [
   { href: "/markets", label: "Markets" },
@@ -49,8 +50,8 @@ export function Header() {
     setActiveResult(0);
   }, []);
 
-  const openMarket = useCallback((slug: string) => {
-    router.push(`/market/${slug}`);
+  const openMarket = useCallback((slug: string, marketId: string) => {
+    router.push(marketHref(slug, marketId));
     closeSearch();
   }, [closeSearch, router]);
 
@@ -100,7 +101,8 @@ export function Header() {
     }
     if (event.key === "Enter") {
       event.preventDefault();
-      openMarket(results[activeResult]?.slug ?? results[0].slug);
+      const market = results[activeResult] ?? results[0];
+      openMarket(market.slug, market.id);
     }
   }
 
@@ -163,7 +165,7 @@ export function Header() {
             <div className="command-results" id="market-search-results" role="listbox" aria-label="Market search results">
               <div className="command-results-head"><span className="command-label">{query ? "Matching markets" : "Trending now"}</span><small>{results.length} shown</small></div>
               {results.map((market, index) => (
-                <button id={`market-search-option-${market.id}`} className={index === activeResult ? "active" : ""} role="option" aria-selected={index === activeResult} key={market.id} onMouseEnter={() => setActiveResult(index)} onClick={() => openMarket(market.slug)}>
+                <button id={`market-search-option-${market.id}`} className={index === activeResult ? "active" : ""} role="option" aria-selected={index === activeResult} key={market.id} onMouseEnter={() => setActiveResult(index)} onClick={() => openMarket(market.slug, market.id)}>
                   <span className={`market-avatar ${market.imageTone}`}>{market.icon}</span>
                   <span><strong>{market.shortQuestion}</strong><small>{market.category} · {market.status === "open" ? `$${Math.round(market.volume24h / 1000)}K today` : market.status}</small></span>
                   <em>{Math.max(...market.outcomes.map((outcome) => outcome.probability))}%</em>

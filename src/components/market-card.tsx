@@ -35,7 +35,7 @@ export function MarketCard({ market: initialMarket, compact = false }: { market:
         <button className={`bookmark-button ${bookmarked ? "active" : ""}`} aria-label={bookmarked ? `Remove ${market.shortQuestion} from watchlist` : `Add ${market.shortQuestion} to watchlist`} aria-pressed={bookmarked} onClick={() => toggleFavorite(market.id)}><Bookmark size={17} fill={bookmarked ? "currentColor" : "none"} /></button>
       </div>
 
-      {!compact ? <div className="market-card-snapshot"><span><small>{market.status === "resolved" ? "Resolved outcome" : "Leading outcome"}</small><strong>{leader.label}</strong></span><b>{leader.probability}%</b><em className={leader.change24h >= 0 ? "positive" : "negative"}>{leader.change24h >= 0 ? "+" : ""}{leader.change24h.toFixed(1)} today</em></div> : null}
+      {!compact ? <div className="market-card-snapshot"><span><small>{market.status === "resolved" ? "Resolved outcome" : "Leading outcome"}</small><strong>{leader.label}</strong></span><b>{leader.probability}%</b><em className={leader.change24h >= 0 ? "positive" : "negative"}>{leader.change24h >= 0 ? "+" : ""}{leader.change24h.toFixed(1)} paper move</em></div> : null}
 
       <div className="outcome-list">
         {market.outcomes.slice(0, compact ? 2 : 4).map((outcome, index) => {
