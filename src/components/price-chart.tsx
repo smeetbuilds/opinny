@@ -22,11 +22,6 @@ export function PriceChart({
   const [inspectedIndex, setInspectedIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    setSamples(values);
-    setLabel(outcomeLabel);
-  }, [marketId, values, outcomeLabel]);
-
-  useEffect(() => {
     if (!marketId) return;
     let mounted = true;
     const refresh = () => {
