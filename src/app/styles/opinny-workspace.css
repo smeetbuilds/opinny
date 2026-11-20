@@ -827,3 +827,19 @@ body :is(a, button, input, select, textarea, summary, [role="slider"], [tabindex
   .site-footer .footer-mobile-groups nav a { display: flex; min-height: 44px; align-items: center; color: #d0d0d8; font-size: 13px; }
   .site-footer .footer-mobile-groups nav a:active { color: #fff; }
 }
+
+/* 320–479px: preserve all three utilities while avoiding a clipped header. */
+@media (max-width: 479px) {
+  .topbar-inner { gap: 8px; }
+  .topbar .brand { gap: 6px; }
+  .topbar .brand-mark { width: 32px; height: 32px; }
+  .topbar .brand-word { font-size: 25px; }
+  .topbar-actions { gap: 4px; }
+  .topbar-actions .primary-button.compact { width: 44px; min-width: 44px; height: 44px; min-height: 44px; border-radius: 50%; padding: 0; }
+  .topbar-actions .wallet-button-label { display: none; }
+  .topbar-actions .primary-button.compact svg { width: 18px; height: 18px; margin: 0; }
+  .topbar-actions .account-button { width: 47px; height: 44px; padding: 0 6px; justify-content: center; gap: 5px; }
+  .topbar-actions .account-button > span:nth-child(2) { display: none; }
+  .topbar-actions .notification-trigger { min-width: 40px; width: 40px; height: 44px; }
+}
+

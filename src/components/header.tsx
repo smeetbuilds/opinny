@@ -150,7 +150,7 @@ export function Header() {
             <NotificationCenter />
             {connected ? (
               <div className="account-control">
-                <button className="account-button" onClick={() => setAccountOpen((open) => !open)} aria-expanded={accountOpen} aria-haspopup="menu">
+                <button className="account-button" aria-label="Account menu" onClick={() => setAccountOpen((open) => !open)} aria-expanded={accountOpen} aria-haspopup="menu">
                   <span className="status-dot" /><span>{shortAddress(walletAddress)}</span><ChevronDown className={accountOpen ? "rotated" : ""} size={15} />
                 </button>
                 {accountOpen ? (
@@ -162,7 +162,7 @@ export function Header() {
                   </div>
                 ) : null}
               </div>
-            ) : <button className="primary-button compact" onClick={() => setWalletOpen(true)}><Wallet size={16} />{appConfig.adapter === "mock" ? "Start trading" : "Connect wallet"}</button>}
+            ) : <button className="primary-button compact" aria-label={appConfig.adapter === "mock" ? "Start paper trading" : "Connect wallet"} onClick={() => setWalletOpen(true)}><Wallet size={16} /><span className="wallet-button-label">{appConfig.adapter === "mock" ? "Start trading" : "Connect wallet"}</span></button>}
             <button ref={menuTriggerRef} className="icon-button mobile-menu-trigger" onClick={() => setMenuOpen(true)} aria-label="Open menu" aria-expanded={menuOpen} aria-haspopup="dialog"><Menu size={20} /></button>
           </div>
         </div>
