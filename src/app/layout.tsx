@@ -48,6 +48,8 @@ export const metadata: Metadata = {
   }
 };
 
+// Place both font-variable classes on <html>: the :root typography aliases
+// must resolve to Next.js's scoped, self-hosted family names.
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const marketCatalog = await dataAdapter.listMarkets();
 

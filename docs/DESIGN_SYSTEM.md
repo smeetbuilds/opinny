@@ -78,3 +78,29 @@ Evaluate the market page, home, discovery grid and mobile trade sheet at 320, 37
 ### Implementation debt
 
 The styles are currently composed from `globals-01.css` through numbered override files. The most recent detail/discovery direction is in `globals-23.css`, `globals-24.css`, and `globals-25.css`. This is a *transitional cascade*, not a sustainable final architecture. Before future large-scale redesigns, consolidate duplicate selectors into component-scoped or purpose-built stylesheets, with visual regression checks. Do not pile on another global override file for routine maintenance.
+
+## Reliable webfont loading
+
+Font sources are bundled through `next/font/google` in `src/app/layout.tsx` and served
+from the deployed Next.js static assets. Inter is the UI and numeric font;
+Instrument Serif is the editorial display face.
+
+The generated `inter.variable` and `instrumentSerif.variable` classes **must be on
+`<html>`**, not only on `<body>`. The project aliases them as
+`--font-ui: var(--font-inter)` and `--font-display: var(--font-instrument-serif)`
+inside `:root`, which cannot resolve a child-only variable on the ancestor.
+
+Style rules must use `var(--font-ui)` or `var(--font-display)`, including the family
+slot of the `font` shorthand. Literal `"Inter"` and `"Instrument Serif"`
+CSS font-family names are *not* aliases for Next.js's generated scoped font names.
+Do not force a single family on all descendants with an important universal rule.
+
+Both fonts use `display: "swap"` to avoid invisible text while loading.
+Keep the two-font-only brand rule and do not add a third font or CSS fallback stack.
+The font smoke test in `src/lib/fonts.test.ts` checks the contract during CI.
+
+To diagnose font loading in a deployed browser, inspect the computed `font-family`
+of a market heading and its price row. The heading should use the generated
+Instrument Serif family and the price row the generated Inter family. Check
+requests for the generated `_next/static/media/*.woff2` files return HTTP 200
+with font data rather than HTML/404.
