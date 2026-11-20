@@ -727,7 +727,8 @@ body :is(.mono, [data-price], [data-number]) { font-variant-numeric: tabular-num
 }
 
 /* Fidelity/accessibility corrections: source reference also applies to navigation at tablet widths. */
-@media (max-width: 1024px) {
+@media (max-width: 1180px) {
+  .topbar .desktop-nav { display: none; }
   .topbar .mobile-menu-trigger { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; }
 }
 @media (min-width: 761px) and (max-width: 900px) {
@@ -916,3 +917,31 @@ body .policy-content :is(p, li) { line-height: 1.65; }
   body .market-page .trade-ticket.mobile-ticket { max-height: min(94dvh, 900px); }
 }
 
+
+/* DESIGN.md calls for a true desktop trading ticket at 1024px.
+   The legacy responsive sheet rule was accidentally inclusive of 1024px. */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .market-page .market-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    align-items: start;
+    gap: 16px;
+  }
+  .market-page .desktop-ticket {
+    display: block;
+    position: sticky;
+    top: 78px;
+    max-height: calc(100dvh - 90px);
+    overflow-y: auto;
+  }
+  .market-page .mobile-trade-button { display: none; }
+  .market-page { padding-bottom: 64px; }
+}
+@media (min-width: 1024px) {
+  .market-page .trade-ticket.mobile-ticket { display: none; }
+}
+@media (max-width: 1023px) {
+  .market-page .market-layout { display: block; }
+  .market-page .desktop-ticket { display: none; }
+  .market-page .mobile-trade-button { display: flex; }
+}

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Activity, Bell, CheckCheck, CircleDollarSign, Radio, Trash2, X } from "lucide-react";
 import { useApp, type PlatformNotification } from "./app-provider";
 
@@ -15,31 +15,44 @@ const icons = {
 export function NotificationCenter() {
   const { notifications, unreadCount, markNotificationRead, markAllNotificationsRead, clearNotifications } = useApp();
   const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     if (!open) return;
     const previousOverflow = document.body.style.overflow;
+    const frame = window.requestAnimationFrame(() => {
+      dialogRef.current?.querySelector<HTMLButtonElement>('[aria-label="Close notifications"]')?.focus();
+    });
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") { event.preventDefault(); setOpen(false); return; }
+      if (event.key !== "Tab") return;
+      const focusables = [...(dialogRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], input:not([disabled]), [tabindex]:not([tabindex="-1"])') ?? [])];
+      if (!focusables.length) { event.preventDefault(); return; }
+      const first = focusables[0], last = focusables[focusables.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
     };
     document.body.style.overflow = "hidden";
     window.addEventListener("keydown", onKeyDown);
     return () => {
+      window.cancelAnimationFrame(frame);
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", onKeyDown);
+      if (triggerRef.current?.getClientRects().length) triggerRef.current.focus();
     };
   }, [open]);
 
   return (
     <>
-      <button className="icon-button notification-trigger" aria-label={`Notifications${unreadCount ? `, ${unreadCount} unread` : ""}`} aria-expanded={open} onClick={() => setOpen(true)}>
+      <button ref={triggerRef} className="icon-button notification-trigger" aria-label={`Notifications${unreadCount ? `, ${unreadCount} unread` : ""}`} aria-expanded={open} onClick={() => setOpen(true)}>
         <Bell size={18} />
         {unreadCount ? <span className="notification-badge">{unreadCount > 9 ? "9+" : unreadCount}</span> : null}
       </button>
       {open ? (
         <div className="notification-layer">
           <button className="notification-backdrop" aria-label="Close notifications" onClick={() => setOpen(false)} />
-          <aside className="notification-center" role="dialog" aria-modal="true" aria-labelledby="notification-title">
+          <aside ref={dialogRef} className="notification-center" role="dialog" aria-modal="true" aria-labelledby="notification-title">
             <div className="sheet-handle" />
             <header>
               <div><span className="eyebrow">Account activity</span><h2 id="notification-title">Notifications</h2><p>{unreadCount ? `${unreadCount} unread update${unreadCount === 1 ? "" : "s"}` : "You are all caught up"}</p></div>

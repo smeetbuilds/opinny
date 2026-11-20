@@ -39,6 +39,8 @@ export function Header() {
   const menuDialogRef = useRef<HTMLElement>(null);
   const searchTriggerRef = useRef<HTMLButtonElement>(null);
   const menuTriggerRef = useRef<HTMLButtonElement>(null);
+  const accountTriggerRef = useRef<HTMLButtonElement>(null);
+  const accountControlRef = useRef<HTMLDivElement>(null);
 
   const results = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -84,17 +86,29 @@ export function Header() {
       if (event.key === "Escape") {
         if (searchOpen) closeSearch();
         setMenuOpen(false);
+        if (accountOpen) accountTriggerRef.current?.focus();
         setAccountOpen(false);
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [closeSearch, searchOpen]);
+  }, [accountOpen, closeSearch, searchOpen]);
+
+  useEffect(() => {
+    if (!accountOpen) return;
+    const closeOnOutsideClick = (event: PointerEvent) => {
+      if (event.target instanceof Node && !accountControlRef.current?.contains(event.target)) setAccountOpen(false);
+    };
+    document.addEventListener("pointerdown", closeOnOutsideClick);
+    return () => document.removeEventListener("pointerdown", closeOnOutsideClick);
+  }, [accountOpen]);
 
   useEffect(() => {
     if (!searchOpen && !menuOpen) return;
     const target = searchOpen ? searchDialogRef.current : menuDialogRef.current;
-    const returnFocus = searchOpen ? searchTriggerRef.current : menuTriggerRef.current;
+    const returnFocus = searchOpen
+      ? (searchTriggerRef.current?.getClientRects().length ? searchTriggerRef.current : menuTriggerRef.current)
+      : menuTriggerRef.current;
     const frame = window.requestAnimationFrame(() => {
       target?.querySelector<HTMLElement>(searchOpen ? 'input[role="combobox"]' : '[aria-label="Close menu"]')?.focus();
     });
@@ -110,7 +124,7 @@ export function Header() {
     return () => {
       window.cancelAnimationFrame(frame);
       window.removeEventListener("keydown", trapTab);
-      returnFocus?.focus();
+      if (returnFocus?.getClientRects().length) returnFocus.focus();
     };
   }, [searchOpen, menuOpen]);
 
@@ -149,16 +163,16 @@ export function Header() {
           <div className="topbar-actions">
             <NotificationCenter />
             {connected ? (
-              <div className="account-control">
-                <button className="account-button" aria-label="Account menu" onClick={() => setAccountOpen((open) => !open)} aria-expanded={accountOpen} aria-haspopup="menu">
+              <div className="account-control" ref={accountControlRef}>
+                <button ref={accountTriggerRef} className="account-button" aria-label="Account menu" onClick={() => setAccountOpen((open) => !open)} aria-expanded={accountOpen}>
                   <span className="status-dot" /><span>{shortAddress(walletAddress)}</span><ChevronDown className={accountOpen ? "rotated" : ""} size={15} />
                 </button>
                 {accountOpen ? (
-                  <div className="account-menu" role="menu">
-                    <Link href="/portfolio" role="menuitem" onClick={() => setAccountOpen(false)}>Portfolio</Link>
-                    <Link href="/orders" role="menuitem" onClick={() => setAccountOpen(false)}>Orders</Link>
-                    <Link href="/settings" role="menuitem" onClick={() => setAccountOpen(false)}>Settings</Link>
-                    <button role="menuitem" onClick={() => { void disconnectWallet(); setAccountOpen(false); }}>Disconnect</button>
+                  <div className="account-menu" role="group" aria-label="Account actions">
+                    <Link href="/portfolio" onClick={() => setAccountOpen(false)}>Portfolio</Link>
+                    <Link href="/orders" onClick={() => setAccountOpen(false)}>Orders</Link>
+                    <Link href="/settings" onClick={() => setAccountOpen(false)}>Settings</Link>
+                    <button onClick={() => { void disconnectWallet(); setAccountOpen(false); }}>Disconnect</button>
                   </div>
                 ) : null}
               </div>

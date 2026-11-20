@@ -88,12 +88,28 @@ export function TradeTicket({ market: initialMarket }: { market: Market }) {
       setOutcome(next.id);
       setLimitPrice(String(next.probability));
       setSubmitError("");
-      if (window.matchMedia("(max-width: 980px)").matches) setMobileOpen(true);
-      else document.getElementById("trade-ticket")?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "center" });
+      if (window.matchMedia("(max-width: 1023px)").matches) {
+        setMobileOpen(true);
+      } else {
+        const ticket = document.getElementById("trade-ticket");
+        ticket?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "center" });
+        window.requestAnimationFrame(() => {
+          const target = [...(ticket?.querySelectorAll<HTMLButtonElement>("button[data-trade-outcome]") ?? [])]
+            .find((button) => button.dataset.tradeOutcome === outcomeId);
+          target?.focus({ preventScroll: true });
+        });
+      }
     };
     window.addEventListener("opinny:trade", openForOutcome);
     return () => window.removeEventListener("opinny:trade", openForOutcome);
   }, [market.outcomes]);
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 1023px)");
+    const closeOnDesktop = () => { if (!media.matches) setMobileOpen(false); };
+    media.addEventListener("change", closeOnDesktop);
+    return () => media.removeEventListener("change", closeOnDesktop);
+  }, []);
 
   useEffect(() => {
     if (!mobileOpen) return;
@@ -235,6 +251,7 @@ export function TradeTicket({ market: initialMarket }: { market: Market }) {
               <button
                 key={item.id}
                 type="button"
+                data-trade-outcome={item.id}
                 aria-pressed={outcome === item.id}
                 className={outcome === item.id ? "active" : ""}
                 onClick={() => { setOutcome(item.id); setLimitPrice(String(item.probability)); setSubmitError(""); }}
