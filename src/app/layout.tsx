@@ -9,7 +9,7 @@ import { appConfig } from "@/lib/config";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
-  display: "block",
+  display: "swap",
   preload: true,
   fallback: [],
   adjustFontFallback: false
@@ -19,7 +19,7 @@ const instrumentSerif = Instrument_Serif({
   subsets: ["latin"],
   weight: "400",
   variable: "--font-instrument-serif",
-  display: "block",
+  display: "swap",
   preload: true,
   fallback: [],
   adjustFontFallback: false
@@ -52,8 +52,8 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const marketCatalog = await dataAdapter.listMarkets();
 
   return (
-    <html lang="en">
-      <body className={`${inter.className} ${inter.variable} ${instrumentSerif.variable}`}>
+    <html lang="en" className={`${inter.variable} ${instrumentSerif.variable}`}>
+      <body className={inter.className}>
         <ModalFocusManager />
         <AppProvider initialMarkets={marketCatalog}>{children}</AppProvider>
       </body>

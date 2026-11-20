@@ -6,7 +6,7 @@
 .content-tabs button.active::after { content: ""; position: absolute; right: 11px; bottom: -1px; left: 11px; height: 2px; background: var(--accent); }
 .content-tabs button span { margin-left: 4px; border-radius: 99px; padding: 2px 5px; background: var(--surface-soft); font-size: 8px; }
 .market-description { padding: 20px; }
-.market-description h2 { margin: 0 0 8px; font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; font-size: 24px; }
+.market-description h2 { margin: 0 0 8px; font-family: var(--font-display); font-size: 24px; }
 .market-description > p { max-width: 850px; margin: 0; color: var(--ink-2); line-height: 1.72; }
 .rules-box { display: grid; grid-template-columns: minmax(0, 1fr) 240px; gap: 16px; margin-top: 17px; border-radius: 11px; padding: 14px; background: var(--surface-soft); }
 .rules-box > div:first-child { display: flex; gap: 10px; }
@@ -18,7 +18,7 @@
 .market-data-grid { display: grid; grid-template-columns: minmax(300px, .75fr) minmax(420px, 1.25fr); gap: 16px; }
 .book-card, .trades-card { overflow: hidden; }
 .book-head, .table-title { display: flex; min-height: 60px; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--line); padding: 12px 16px; }
-.book-head h3, .table-title h3, .table-title h2 { margin: 0; font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; font-size: 21px; }
+.book-head h3, .table-title h3, .table-title h2 { margin: 0; font-family: var(--font-display); font-size: 21px; }
 .book-head > div:first-child, .table-title > div { display: grid; gap: 1px; }
 .book-head span, .table-title span { color: var(--ink-3); font-size: 9px; }
 .book-legend { display: grid; width: 68%; grid-template-columns: repeat(3, 1fr); gap: 6px; text-align: right; }

@@ -26,8 +26,8 @@ body h4,
 body h5,
 body h6,
 body .brand-word {
-  font-family: var(--font-display) !important;
-  font-weight: 400 !important;
+  font-family: var(--font-display);
+  font-weight: 400;
   font-synthesis: none;
 }
 
@@ -41,6 +41,6 @@ body .mono,
 body code,
 body pre,
 body kbd {
-  font-family: var(--font-ui) !important;
+  font-family: var(--font-ui);
   font-feature-settings: normal;
 }

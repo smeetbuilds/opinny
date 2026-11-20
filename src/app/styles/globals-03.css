@@ -27,7 +27,7 @@
 .trend-list > a { display: flex; min-width: 0; align-items: center; gap: 10px; padding: 12px 14px; }
 .trend-list > a + a { border-top: 1px solid var(--line); }
 .trend-list > a:hover { background: #fbfcfa; }
-.trend-rank { width: 20px; color: var(--ink-3); font-family: ui-monospace, monospace; font-size: 9px; }
+.trend-rank { width: 20px; color: var(--ink-3); font-family: var(--font-ui); font-size: 9px; }
 .trend-copy { display: grid; min-width: 0; flex: 1; gap: 1px; }
 .trend-copy strong { overflow: hidden; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
 .trend-copy small { color: var(--ink-3); font-size: 9px; }
@@ -42,7 +42,7 @@
 .leaderboard-teaser > a { display: flex; margin-top: 13px; align-items: center; gap: 6px; color: rgba(255, 255, 255, .82); font-size: 10px; font-weight: 800; }
 
 .page-hero { max-width: 720px; margin-bottom: 34px; }
-.page-hero h1 { margin: 0; font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; font-size: 58px; font-weight: 600; letter-spacing: -.05em; line-height: 1; }
+.page-hero h1 { margin: 0; font-family: var(--font-display); font-size: 58px; font-weight: 600; letter-spacing: -.05em; line-height: 1; }
 .page-hero p { max-width: 650px; margin: 15px 0 0; color: var(--ink-2); font-size: 15px; }
 
 @keyframes fade-in { from { opacity: 0; } }
@@ -61,12 +61,12 @@
 .market-title-row { display: flex; align-items: flex-start; gap: 14px; }
 .market-title-row > div:nth-child(2) { min-width: 0; flex: 1; }
 .market-meta-line { display: flex; margin-bottom: 6px; align-items: center; gap: 8px; color: var(--ink-3); font-size: 9px; font-weight: 750; letter-spacing: .04em; text-transform: uppercase; }
-.market-title-row h1 { max-width: 900px; margin: 0; font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; font-size: clamp(31px, 3vw, 45px); font-weight: 600; letter-spacing: -.035em; line-height: 1.08; }
+.market-title-row h1 { max-width: 900px; margin: 0; font-family: var(--font-display); font-size: clamp(31px, 3vw, 45px); font-weight: 600; letter-spacing: -.035em; line-height: 1.08; }
 .market-actions { display: flex; gap: 7px; }
 .headline-outcomes { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-top: 24px; }
 .headline-outcomes > div { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 3px 10px; border: 1px solid var(--line); border-radius: 12px; padding: 12px; background: #fbfcfa; }
 .headline-outcomes span { font-size: 11px; font-weight: 750; }
-.headline-outcomes strong { grid-row: span 2; font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; font-size: 32px; line-height: 1; }
+.headline-outcomes strong { grid-row: span 2; font-family: var(--font-ui); font-size: 32px; line-height: 1; }
 .headline-outcomes em { font-size: 9px; font-style: normal; font-weight: 750; }
 .headline-outcomes button { grid-column: 1 / -1; height: 33px; margin-top: 8px; border: 0; border-radius: 8px; cursor: pointer; font-size: 11px; font-weight: 800; }
 .yes-button { color: var(--green); background: var(--green-soft); }
@@ -80,7 +80,7 @@
 .chart-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
 .chart-head > div:first-child { display: grid; grid-template-columns: auto auto; align-items: baseline; gap: 2px 9px; }
 .chart-head span { grid-column: 1 / -1; color: var(--ink-3); font-size: 9px; font-weight: 700; text-transform: uppercase; }
-.chart-head strong { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; font-size: 34px; }
+.chart-head strong { font-family: var(--font-ui); font-size: 34px; }
 .chart-head em { color: var(--green); font-size: 10px; font-style: normal; font-weight: 750; }
 .range-tabs { display: flex; border: 1px solid var(--line); border-radius: 9px; padding: 3px; background: var(--surface-soft); }
 .range-tabs button { height: 27px; border: 0; border-radius: 6px; padding: 0 9px; color: var(--ink-3); background: transparent; cursor: pointer; font-size: 9px; font-weight: 800; }

@@ -26,7 +26,7 @@
 .resolution-summary { display: grid; grid-column: 1 / -1; grid-template-columns: repeat(4, 1fr); gap: 12px; }
 .resolution-summary article { display: grid; gap: 4px; border: 1px solid var(--line); border-radius: 13px; padding: 14px; background: var(--surface); }
 .resolution-summary span { color: var(--ink-3); font-size: 9px; }
-.resolution-summary strong { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; font-size: 28px; }
+.resolution-summary strong { font-family: var(--font-ui); font-size: 28px; }
 .resolution-card { padding: 16px; }
 .resolution-card header { display: flex; align-items: center; justify-content: space-between; }
 .resolution-card header > div { display: flex; align-items: center; gap: 8px; }
