@@ -12,10 +12,11 @@ import type {
 } from "@/core/contracts/domain";
 import { marketData as marketDataA } from "./market-data-a";
 import { marketData as marketDataB } from "./market-data-b";
+import { marketData as marketDataC } from "./market-data-c";
 
 export const categories = ["All", "Politics", "Crypto", "Sports", "Technology", "Economy", "Culture", "Science"];
 
-export const markets = [...marketDataA, ...marketDataB];
+export const markets = [...marketDataA, ...marketDataB, ...marketDataC];
 
 export const orderBook: { bids: OrderBookLevel[]; asks: OrderBookLevel[] } = {
   asks: [

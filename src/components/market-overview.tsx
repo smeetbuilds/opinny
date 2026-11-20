@@ -3,6 +3,7 @@
 import { Activity, CalendarDays, CircleDollarSign, Clock3, TrendingUp, Users } from "lucide-react";
 import type { Market } from "@/core/contracts/domain";
 import { formatCurrency, formatDate, formatNumber } from "@/lib/format";
+import { appConfig } from "@/lib/config";
 import { useApp } from "./app-provider";
 import { TradeOutcomeButton } from "./trade-outcome-button";
 import { MarketActions } from "./market-actions";
@@ -18,7 +19,7 @@ export function MarketOverview({ initialMarket }: { initialMarket: Market }) {
               <div className="market-title-row">
                 <span className={`market-avatar large ${market.imageTone}`} aria-hidden="true">{market.icon}</span>
                 <div>
-                  <div className="market-meta-line"><span>{market.category}</span>{market.live ? <em><i />Live</em> : null}<span>Closes {formatDate(market.endDate)}</span></div>
+                  <div className="market-meta-line"><span>{market.category}</span>{market.live ? <em><i />{appConfig.adapter === "mock" ? "Paper activity" : "Live"}</em> : null}<span>Closes {formatDate(market.endDate)}</span></div>
                   <h1>{market.question}</h1>
                 </div>
                 <MarketActions marketId={market.id} title={market.question} />

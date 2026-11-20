@@ -21,7 +21,7 @@ export function MarketGrid({
   const { marketCatalog } = useApp();
   // The browser-local catalog includes markets created after the static page was built.
   // Use the server snapshot only until the client catalog has loaded.
-  const markets = useMemo(() => marketCatalog.length ? marketCatalog : initialMarkets, [initialMarkets, marketCatalog]);
+  const markets = useMemo(() => (marketCatalog.length ? marketCatalog : initialMarkets).filter((market) => market.status !== "draft"), [initialMarkets, marketCatalog]);
   const categories = useMemo(() => ["All", ...Array.from(new Set(markets.map((market) => market.category))).sort()], [markets]);
   const [category, setCategory] = useState("All");
   const [sort, setSort] = useState("trending");

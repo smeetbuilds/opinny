@@ -1,0 +1,72 @@
+
+/* 2026 paper-simulator quality pass: legible mobile data, deliberate touch targets, and
+   explicit sandbox resolution controls. Extends, rather than replaces, Opinny tokens. */
+.paper-resolution-choice {
+  display: grid;
+  gap: 9px;
+  padding: 16px;
+  border: 1px solid #c5d9cd;
+  border-radius: 13px;
+  background: #f2f8f3;
+}
+.paper-resolution-choice label { color: var(--ink); font-size: 13px; font-weight: 760; }
+.paper-resolution-choice select {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: var(--ink);
+  background: #fff;
+  font: inherit;
+  font-size: 14px;
+}
+.paper-resolution-choice p { color: var(--ink-3); font-size: 12px; line-height: 1.5; }
+.chart-area[role="slider"]:focus-visible {
+  outline: 3px solid rgba(32, 101, 73, .42);
+  outline-offset: -3px;
+  border-radius: 9px;
+}
+.chart-card .range-tabs { scrollbar-width: thin; }
+.market-live-controls { min-width: 0; }
+.depth-outcome-tabs { max-width: 100%; overflow-x: auto; scrollbar-width: thin; }
+.depth-outcome-tabs button { flex: 0 0 auto; min-height: 38px; }
+.market-actions .icon-button, .bookmark-button { min-width: 40px; min-height: 40px; }
+@media (max-width: 760px) {
+  .market-hero-card { min-width: 0; }
+  .market-hero-card h1 { overflow-wrap: anywhere; }
+  .market-signal-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .market-signal-strip > div { min-width: 0; }
+  .market-signal-strip > div:nth-child(3) {
+    grid-column: 1 / -1;
+    border-top: 1px solid var(--line);
+    border-left: 0;
+  }
+  .market-signal-strip strong { white-space: normal; overflow-wrap: anywhere; }
+  .chart-card .range-tabs {
+    display: flex;
+    max-width: 100%;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .chart-card .range-tabs button { min-height: 36px; flex: 0 0 auto; }
+  .chart-card .chart-insights { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .chart-card .chart-insights > span:nth-child(3) { border-left: 0; border-top: 1px solid var(--line); }
+  .chart-card .chart-insights > span:nth-child(4) { border-top: 1px solid var(--line); }
+  .market-live-controls { width: 100%; max-width: 100%; }
+  .depth-outcome-tabs { width: 100%; }
+  .trade-ticket.mobile-ticket,
+  .wallet-sheet { padding-bottom: max(22px, env(safe-area-inset-bottom)); }
+  .trade-ticket .quick-amounts button { min-height: 44px; }
+  .trade-ticket .ticket-submit { min-height: 48px; }
+  .paper-resolution-choice { padding: 13px; }
+}
+@media (max-width: 390px) {
+  .market-signal-strip > div { padding: 10px; }
+  .chart-card .chart-insights { margin-inline: 12px; }
+  .market-card .market-card-title > a { overflow-wrap: anywhere; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .market-hero-card, .market-signal-strip, .chart-card { scroll-behavior: auto; }
+}
