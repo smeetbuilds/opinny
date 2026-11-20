@@ -843,3 +843,76 @@ body :is(a, button, input, select, textarea, summary, [role="slider"], [tabindex
   .topbar-actions .notification-trigger { min-width: 40px; width: 40px; height: 44px; }
 }
 
+/* Consolidated form, filter and dense-data control ergonomics.
+   Old 7–10px labels were lifted to the reference's 11px micro floor in legacy CSS.
+   Interactive text/targets are deliberately larger than that micro floor. */
+body :is(
+  .active-composer textarea,
+  .comment-composer textarea,
+  .table-search input,
+  .table-sort select,
+  .admin-form input,
+  .admin-form select,
+  .admin-form textarea,
+  .admin-search input,
+  .admin-settings-card input,
+  .admin-settings-card select,
+  .preference-grid select,
+  .address-input,
+  .market-search-field input,
+  .dialog-field input
+) {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.5;
+}
+body :is(
+  .table-search,
+  .table-sort,
+  .admin-search,
+  .admin-select-control,
+  .admin-form input,
+  .admin-form select,
+  .admin-form textarea,
+  .admin-settings-card input,
+  .admin-settings-card select,
+  .preference-grid select,
+  .address-input,
+  .dialog-field input,
+  .market-search-field
+) {
+  min-height: 44px;
+  border-color: var(--line-strong);
+  border-radius: 8px;
+}
+body :is(
+  .activity-filter-row button,
+  .leaderboard-periods button,
+  .profile-tabs button,
+  .notification-tools button,
+  .category-scroll,
+  .admin-action-menu button,
+  .admin-action-menu a
+) { min-height: 40px; font-size: 13px; }
+body :is(
+  .account-data-table .row-action,
+  .orders-responsive-table .row-action,
+  .portfolio-responsive-table .row-action,
+  .bookmark-button
+) { min-height: 40px; }
+body .admin-form label > span { color: var(--ink); font-size: 13px; }
+body .admin-form label > small { color: var(--ink-2); font-size: 11px; }
+body :is(.table-sort, .admin-select-control) { background: #fff; color: var(--ink-2); }
+body .active-composer textarea { min-height: 112px; resize: vertical; }
+body .notification-copy small { font-size: 12px; line-height: 1.5; }
+body .notification-copy time { font-size: 11px; color: var(--ink-3); }
+body .notification-center header p { font-size: 13px; }
+body .notification-empty span { font-size: 13px; }
+body .policy-content { font-size: 15px; line-height: 1.65; }
+body .policy-content :is(p, li) { line-height: 1.65; }
+@media (max-width: 767px) {
+  body :is(.bookmark-button,.category-scroll,.activity-filter-row button,.leaderboard-periods button) { min-width: 44px; min-height: 44px; }
+  body .mobile-bottom-nav a { min-height: 58px; }
+  body .market-page .trade-ticket.mobile-ticket { max-height: min(94dvh, 900px); }
+}
+

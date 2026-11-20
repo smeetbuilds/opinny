@@ -69,7 +69,7 @@ export function SiteFooter() {
       </div>
       <div className="page-container footer-bottom">
         <span>© {new Date().getFullYear()} {appConfig.name}</span>
-        <span>{appConfig.chainName} · {appConfig.supportedAssets.join(" / ")}</span>
+        <span>{appConfig.adapter === "mock" ? "Practice mode · No blockchain transactions" : `${appConfig.chainName} · ${appConfig.supportedAssets.join(" / ")}`}</span>
         <span>Explore thoughtfully. Trade responsibly.</span>
       </div>
     </footer>
