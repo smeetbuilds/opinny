@@ -30,11 +30,11 @@ export function SiteFooter() {
       <div className="page-container footer-grid">
         <div className="footer-brand">
           <Logo />
-          <p>Trade event probabilities through a clean, crypto-only market interface.</p>
+          <p>A considered space to explore probabilities, test a thesis, and understand every paper trade.</p>
           <div className="footer-assurance">
-            <span><CircleDollarSign size={14} />Crypto only</span>
-            <span><ShieldCheck size={14} />Non-custodial interface</span>
-            <span><Activity size={14} />Live market states</span>
+            <span><CircleDollarSign size={14} />{appConfig.adapter === "mock" ? "Simulated USDC" : "Crypto collateral"}</span>
+            <span><ShieldCheck size={14} />{appConfig.adapter === "mock" ? "No real funds" : "Wallet-connected"}</span>
+            <span><Activity size={14} />{appConfig.adapter === "mock" ? "Browser-local sessions" : "Market activity"}</span>
           </div>
         </div>
         <nav aria-label="Product links"><strong>Product</strong>{productLinks.map(([label, href]) => <Link href={href} key={href}>{label}</Link>)}</nav>
@@ -44,7 +44,7 @@ export function SiteFooter() {
       <div className="page-container footer-bottom">
         <span>© {new Date().getFullYear()} {appConfig.name}</span>
         <span>{appConfig.chainName} · {appConfig.supportedAssets.join(" / ")}</span>
-        <span>Light interface</span>
+        <span>Explore thoughtfully. Trade responsibly.</span>
       </div>
     </footer>
   );

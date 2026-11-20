@@ -1,0 +1,271 @@
+/*
+ * Opinny reference design adaptation — November 2026
+ * Uploaded reference: Miro-design-analysis (not Miro branding or licensed assets).
+ * Shared typography remains self-hosted Inter + Instrument Serif.
+ * Canonical UI tokens live here until the numbered legacy CSS can be consolidated.
+ */
+:root {
+  --canvas: #ffffff;
+  --surface: #ffffff;
+  --surface-soft: #f7f8fa;
+  --ink: #1c1c1e;
+  --ink-2: #555a6a;
+  --ink-3: #6b6f7e;
+  --line: #e0e2e8;
+  --line-strong: #c7cad5;
+  --brand: #1c1c1e;
+  --brand-2: #2c2c34;
+  --brand-soft: #f7f8fa;
+  --accent: #4262ff;
+  --accent-soft: #edf0ff;
+  --green: #087955;
+  --green-soft: #e7f8f2;
+  --red: #ac3345;
+  --red-soft: #fef0f1;
+  --amber: #795913;
+  --amber-soft: #fff5d1;
+  --shadow-sm: 0 1px 2px rgba(5, 0, 56, .035);
+  --shadow-md: 0 16px 48px -8px rgba(5, 0, 56, .12);
+  --radius-sm: 8px;
+  --radius: 16px;
+  --radius-lg: 28px;
+  --container: 1280px;
+  --op-yellow: #ffd02f;
+  --op-yellow-light: #fff4c4;
+  --op-rose: #fde0f0;
+  --op-coral: #ffc6c6;
+  --op-teal: #c3faf5;
+  --op-orange: #ffe6cd;
+  --op-mint: #d5f6e8;
+  --op-ink-deep: #050038;
+  --op-footer: #1c1c1e;
+  --op-gap-1: 4px;
+  --op-gap-2: 8px;
+  --op-gap-3: 12px;
+  --op-gap-4: 16px;
+  --op-gap-5: 20px;
+  --op-gap-6: 24px;
+  --op-gap-8: 32px;
+  --op-gap-10: 40px;
+  --op-section: 64px;
+  --op-section-lg: 96px;
+}
+html { background: var(--canvas); scroll-padding-top: 86px; }
+body { color: var(--ink); background: var(--canvas); font-family: var(--font-ui); font-size: 16px; line-height: 1.5; }
+body :is(input, textarea, select, button) { font-family: var(--font-ui); }
+body :is(.mono, [data-price], [data-number]) { font-variant-numeric: tabular-nums; }
+:where(a, button, input, select, textarea, [role="slider"], [tabindex="0"]):focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+::selection { color: #1c1c1e; background: #ffed9b; }
+.positive { color: var(--green) !important; }
+.negative { color: var(--red) !important; }
+.page-container, .topbar-inner { max-width: var(--container); }
+.inner-page { padding-top: 52px; padding-bottom: 96px; }
+.page-hero { margin-bottom: 36px; }
+.page-hero h1 { color: var(--ink); font-size: clamp(44px, 4.5vw, 60px); line-height: 1.08; letter-spacing: -.03em; }
+.page-hero p { color: var(--ink-2); font-size: 16px; line-height: 1.6; }
+.eyebrow { color: var(--ink-3); font-size: 11px; font-weight: 650; letter-spacing: .045em; line-height: 1.45; }
+
+.primary-button, .secondary-button {
+  min-height: 44px;
+  border-radius: 9999px;
+  padding: 10px 24px;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  box-shadow: none;
+  transform: none;
+  transition: background-color .16s ease, border-color .16s ease, color .16s ease;
+}
+.primary-button { background: var(--brand); color: #fff; border-color: var(--brand); box-shadow: none; }
+.primary-button:hover, .primary-button:active { background: var(--brand-2); border-color: var(--brand-2); box-shadow: none; transform: none; }
+.secondary-button { background: #fff; border-color: var(--line-strong); color: var(--ink); }
+.secondary-button:hover { background: var(--surface-soft); border-color: var(--ink); }
+.primary-button:disabled, .secondary-button:disabled { background: var(--line); border-color: var(--line); color: #555a6a; opacity: .75; }
+.primary-button.compact, .secondary-button.compact { min-height: 40px; border-radius: 9999px; padding-inline: 18px; font-size: 13px; }
+.icon-button { width: 40px; height: 40px; border-radius: 9999px; box-shadow: none; }
+.icon-button:hover { border-color: var(--line-strong); background: var(--surface-soft); transform: none; }
+.account-button, .search-trigger, .select-control, .market-search-field { border-radius: 8px; background: var(--surface-soft); }
+.account-button { height: 42px; padding-inline: 14px; font-size: 13px; }
+.search-trigger { min-height: 42px; height: 42px; padding-inline: 14px; }
+.search-trigger kbd { background: #fff; color: var(--ink-2); }
+.select-control { min-height: 42px; border-color: var(--line-strong); }
+.select-control select { font-size: 13px; color: var(--ink); }
+.category-tabs { gap: 8px; }
+.category-tabs button, .account-tabs-mobile a, .depth-outcome-tabs button {
+  min-height: 39px;
+  height: auto;
+  border: 1px solid var(--line-strong);
+  border-radius: 9999px;
+  background: #fff;
+  color: var(--ink-2);
+  padding: 9px 17px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.category-tabs button.active, .category-tabs button:hover, .account-tabs-mobile a.active, .depth-outcome-tabs button.active {
+  color: #fff;
+  background: var(--brand);
+  border-color: var(--brand);
+}
+.toggle-control { font-size: 13px; color: var(--ink-2); }
+.toggle-control input:checked + span { background: var(--brand); }
+
+.topbar {
+  height: 64px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(255,255,255,.97);
+  box-shadow: none;
+  backdrop-filter: blur(14px);
+}
+.topbar-inner { width: min(var(--container), calc(100% - 40px)); height: 100%; gap: 22px; }
+.brand { gap: 10px; }
+.brand-mark { width: 35px; height: 35px; border-radius: 10px; background: var(--brand); box-shadow: none; }
+.brand-mark::before { border-color: #fff; }
+.brand-mark span { background: var(--op-yellow); border-color: var(--brand); }
+.brand-word { font-size: 29px; color: var(--ink); font-weight: 400; letter-spacing: -.055em; }
+.desktop-nav a { min-height: 40px; display: inline-flex; align-items: center; border-radius: 8px; font-size: 14px; font-weight: 550; padding: 8px 12px; }
+.desktop-nav a:hover { background: var(--surface-soft); }
+.desktop-nav a.active { background: transparent; }
+.desktop-nav a.active::after { background: var(--brand); height: 2px; bottom: 1px; }
+.topbar-actions { gap: 10px; }
+.topbar-actions .primary-button { border-radius: 9999px; }
+.status-dot { background: var(--green); box-shadow: none; }
+.account-menu { border-radius: 12px; box-shadow: var(--shadow-md); }
+.command-dialog, .wallet-sheet, .funding-dialog, .operation-dialog {
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  box-shadow: var(--shadow-md);
+}
+.command-input-wrap { border-color: var(--line); }
+.command-results > button { border-radius: 8px; }
+.command-results > button.active, .command-results > button:hover { background: var(--surface-soft); }
+.wallet-option { border-radius: 12px; }
+.wallet-mark { border-radius: 10px; background: var(--op-yellow-light); color: var(--ink); }
+.toast { border-radius: 12px; box-shadow: var(--shadow-md); }
+
+.paper-banner { border: 0; background: var(--brand); color: #fff; }
+.paper-banner-inner { min-height: 39px; gap: 14px; align-items: center; }
+.paper-banner-inner > span:nth-child(2) { color: #e2e2e6; font-size: 12px; }
+.paper-mode-mark { color: var(--ink); background: var(--op-yellow); border-radius: 9999px; padding: 4px 11px; font-size: 10px; font-weight: 800; letter-spacing: .07em; }
+.paper-mode-mark i { background: var(--ink); box-shadow: none; }
+.paper-device-note { color: #cacbd3; font-size: 11px; }
+
+.market-card, .trade-ticket, .book-card, .trades-card, .chart-card, .market-hero-card, .market-info-card,
+.comments-card, .account-sidebar, .account-panel, .data-panel, .activity-panel, .settings-card,
+.profile-header-card, .profile-content, .admin-panel, .resolution-card, .admin-settings-card {
+  border-color: var(--line);
+  border-radius: 16px;
+  box-shadow: none;
+}
+.market-page { --market-ink: var(--ink); --market-muted: var(--ink-2); --market-line: var(--line); }
+.market-page .market-hero-card, .market-page .chart-card, .market-page .market-info-card,
+.market-page .book-card, .market-page .trades-card, .market-page .trade-ticket,
+.market-page .market-orders-card { border-color: var(--line); border-radius: 16px; box-shadow: none; }
+.market-page .contract-quote-row:hover { background: var(--surface-soft); }
+.market-page .contract-trade-action {
+  border-color: var(--brand);
+  border-radius: 9999px;
+  color: #fff;
+  background: var(--brand);
+  min-height: 40px;
+  font-size: 12px;
+}
+.market-page .contract-trade-action:hover { background: var(--brand-2); }
+.market-page .contract-probability-bar i { background: var(--brand); }
+.market-page .contract-pricing > strong { color: var(--ink); }
+.market-page .market-status-text.status-open { color: var(--green); }
+.market-page .ticket-submit, .market-page .mobile-trade-button { border-radius: 9999px; background: var(--brand); }
+.market-page .ticket-submit:hover { background: var(--brand-2); }
+.market-page .chart-toolbar .range-tabs { border-radius: 9999px; background: var(--surface-soft); }
+.market-page .chart-toolbar .range-tabs button { border-radius: 9999px; }
+.market-page .chart-toolbar .range-tabs button.active { color: #fff; background: var(--brand); }
+.market-page .opinny-probability-chart .chart-area { color: var(--brand); }
+.market-page .opinny-probability-chart .chart-area polyline { stroke: var(--brand); }
+.market-page .opinny-probability-chart .chart-point { stroke: var(--brand); }
+.market-page .trade-summary .summary-highlight strong { color: var(--ink); }
+.market-page .outcome-selector button.active, .market-page .order-type-control button.active { border-color: var(--ink); background: #f7f8fa; box-shadow: inset 0 0 0 1px var(--ink); }
+
+.opinny-discovery-card.market-card {
+  border-color: var(--line);
+  border-radius: 16px;
+  padding: 22px;
+  background: #fff;
+  box-shadow: none;
+}
+.opinny-discovery-card.market-card:hover { border-color: var(--line-strong); background: #fff; }
+.opinny-discovery-card .market-card-title > a { color: var(--ink); font-size: 16px; font-weight: 600; line-height: 1.45; }
+.opinny-discovery-card .category-label { color: var(--ink-3); font-size: 11px; }
+.opinny-discovery-card .card-status.status-open { color: var(--green); }
+.opinny-discovery-card .market-card-snapshot { border-color: var(--line); }
+.opinny-discovery-card .market-card-leading-price b, .opinny-discovery-card .outcome-row strong { color: var(--ink); }
+.opinny-discovery-card .outcome-row:hover { background: var(--surface-soft); }
+.opinny-discovery-card .outcome-row .probability-track i { background: var(--brand); }
+.opinny-discovery-card .outcome-row .outcome-action { color: #314bc7; }
+.opinny-discovery-card .market-card-footer { color: var(--ink-3); border-color: var(--line); font-size: 11px; }
+.market-grid { gap: 16px; }
+.section-heading-row h2, .sidebar-head h2 { color: var(--ink); }
+.market-grid-section .section-heading-row h2 { font-size: 38px; }
+.market-results-meta, .market-results-meta button { font-size: 12px; }
+
+.page-hero-metrics { border-radius: 16px; background: var(--surface-soft); border-color: var(--line); }
+.page-hero-metrics svg { color: var(--ink); }
+.account-balance { background: var(--brand); }
+.account-tabs-mobile { background: var(--canvas); }
+.account-sidebar nav a.active { background: var(--op-yellow-light); color: var(--ink); }
+.account-page-head { border-color: var(--line); }
+.account-page-head h1 { font-size: clamp(40px, 4vw, 56px); }
+.balance-card, .data-panel, .activity-panel, .settings-card { box-shadow: none; }
+.admin-page-kpis, .admin-metric-grid, .admin-panel { box-shadow: none; }
+
+.site-footer {
+  color: #fff;
+  background: var(--op-footer);
+  border-top: 0;
+  padding-top: 64px;
+}
+.site-footer .footer-grid { gap: 38px; }
+.site-footer .brand-word { color: #fff; }
+.site-footer .brand-mark { border: 1px solid #505056; background: #fff; }
+.site-footer .brand-mark::before { border-color: var(--brand); }
+.site-footer .brand-mark span { border-color: #fff; background: var(--op-yellow); }
+.site-footer .footer-brand > p { color: #c5c6cd; font-size: 14px; line-height: 1.65; }
+.site-footer nav > strong { color: #fff; font-size: 14px; font-weight: 600; }
+.site-footer nav > a { color: #c5c6cd; font-size: 13px; line-height: 1.4; }
+.site-footer nav > a:hover { color: #fff; }
+.site-footer .footer-assurance { color: #c5c6cd; }
+.site-footer .footer-bottom { border-color: #414148; color: #c5c6cd; font-size: 12px; }
+
+@media (max-width: 1023px) {
+  .topbar-inner { gap: 12px; }
+  .market-page .contract-trade-action { min-height: 42px; }
+}
+@media (max-width: 767px) {
+  .page-container, .topbar-inner { width: min(var(--container), calc(100% - 32px)); }
+  .topbar { height: 64px; }
+  .topbar-actions .primary-button { min-height: 40px; font-size: 12px; }
+  .icon-button, .mobile-menu-trigger { min-width: 44px; min-height: 44px; }
+  .category-tabs button { min-height: 44px; }
+  .paper-banner-inner { padding-block: 9px; }
+  .paper-banner-inner > span:nth-child(2) { font-size: 11px; line-height: 1.5; }
+  .mobile-bottom-nav { border-color: var(--line); background: rgba(255,255,255,.98); }
+  .mobile-bottom-nav a { color: var(--ink-2); font-size: 10px; }
+  .mobile-bottom-nav a.active { color: var(--ink); }
+  .mobile-bottom-nav a.active::before { content: ""; display: block; position: absolute; top: 0; width: 22px; height: 3px; background: var(--op-yellow); border-radius: 0 0 4px 4px; }
+  .mobile-bottom-nav a { position: relative; }
+  .market-grid { gap: 14px; }
+  .market-page .market-hero-card, .market-page .chart-card { border-radius: 16px; }
+  .site-footer { padding-top: 48px; }
+}
+@media (max-width: 479px) {
+  .page-container, .topbar-inner { width: min(var(--container), calc(100% - 28px)); }
+  .market-page .contract-trade-action { min-height: 44px; }
+  .site-footer .footer-grid { gap: 28px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
